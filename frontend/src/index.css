@@ -10,12 +10,7 @@
   --p3: #f5d90a;
   --p4: #52c41a;
   color-scheme: dark;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
 }
@@ -555,7 +550,7 @@ mark.focused {
 .reasons q {
   font-style: italic;
   color: var(--muted);
-  quotes: "«" "»";
+  quotes: '«' '»';
 }
 
 .override {
@@ -648,11 +643,11 @@ mark.focused {
 }
 
 .question-answer q::before {
-  content: "«";
+  content: '«';
 }
 
 .question-answer q::after {
-  content: "»";
+  content: '»';
 }
 
 .critical {
@@ -841,7 +836,7 @@ button.primary {
 .carta-origin q {
   margin-left: 0.4rem;
   font-style: italic;
-  quotes: "«" "»";
+  quotes: '«' '»';
 }
 
 .carta-unconfirmed {
