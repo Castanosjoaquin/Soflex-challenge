@@ -18,6 +18,7 @@ from app.engine.models import Mode
 from app.readers.ia.provider import OpenAICompatProvider
 from app.readers.ia.reader import IAReader
 from app.readers.rules.reader import RulesReader
+from app.trace.store import TraceStore
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -30,12 +31,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.demos = load_demo_calls(settings.demo_calls_dir, {c.id for c in app.state.cases})
         app.state.action_log = ActionLog(settings.database_path)
         app.state.dispatch = DispatchStore(settings.database_path)
+        app.state.traces = TraceStore(settings.database_path)
         provider = _provider(settings)
         ia_reader = IAReader(provider, settings.llm_timeout_seconds) if provider else None
         app.state.calls = CallService(
             RulesReader(),
             app.state.action_log,
             app.state.dispatch,
+            app.state.traces,
             Mode.SIMULADO if provider is None else Mode.IA,
             ia_reader=ia_reader,
         )

@@ -21,6 +21,8 @@ from app.catalog.signals import SIGNALS, SignalDef
 from app.config import LLMProviderName
 from app.dispatch.store import DerivedCarta, DispatchStore
 from app.engine.models import CallState, Line
+from app.trace.models import ReadingTrace
+from app.trace.narrate import TraceLine, narrate
 from app.transcript.models import ParsedTurn, Speaker
 from app.transcript.parser import parse_transcript
 
@@ -77,6 +79,14 @@ class OpenCallRequest(BaseModel):
 class TurnRequest(BaseModel):
     speaker: Speaker
     text: str
+
+
+class ReadingDetail(BaseModel):
+    """A traza as the detalle técnico shows it: told in natural language, plus the raw steps."""
+
+    title: str
+    lines: list[TraceLine]
+    trace: ReadingTrace
 
 
 class ActionRequest(BaseModel):
@@ -225,6 +235,17 @@ async def close(call_id: str, request: Request) -> Response:
     except CallNotFoundError:
         raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
     return Response(status_code=204)
+
+
+@router.get("/calls/{call_id}/readings")
+def readings(call_id: str, request: Request) -> list[ReadingDetail]:
+    """The traza of every lectura of the llamada, in order (SPEC §5.11)."""
+    try:
+        traces = _calls(request).readings(call_id)
+    except CallNotFoundError:
+        raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
+    told = [(narrate(t), t) for t in traces]
+    return [ReadingDetail(title=n.title, lines=n.lines, trace=t) for n, t in told]
 
 
 @router.get("/dispatch")

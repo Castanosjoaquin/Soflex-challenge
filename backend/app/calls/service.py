@@ -25,6 +25,9 @@ from app.engine.models import Ampliacion, Aviso, CallState, Carta, Line, Mode
 from app.readers.ia.reader import IAReader, IAReading
 from app.readers.rules.location import read_turn_location
 from app.readers.rules.reader import RulesReader
+from app.trace import build as traces
+from app.trace.models import ReadingTrace, Step
+from app.trace.store import TraceStore
 from app.transcript.models import Speaker, Turn
 
 logger = logging.getLogger(__name__)
@@ -67,8 +70,6 @@ class _Call:
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     # The Carta as the despachador has it: as derivada plus every ampliación sent.
     sent: Carta | None = None
-    # What the Lector con IA did in each lectura (attempts, errors, fallback), for the trazas.
-    ia_readings: list[IAReading] = field(default_factory=list)
 
 
 class CallService:
@@ -77,6 +78,7 @@ class CallService:
         reader: RulesReader,
         log: ActionLog,
         dispatch: DispatchStore,
+        traces: TraceStore,
         mode: Mode,
         clock: Callable[[], float] = time.monotonic,
         ia_reader: IAReader | None = None,
@@ -86,6 +88,7 @@ class CallService:
         self._ia_reader = ia_reader
         self._log = log
         self._dispatch = dispatch
+        self._traces = traces
         self._mode = mode
         self._clock = clock
         self._calls: dict[str, _Call] = {}
@@ -102,20 +105,45 @@ class CallService:
     async def add_turn(self, call_id: str, speaker: Speaker, text: str) -> CallState:
         call = self._call(call_id)
         async with call.lock:
+            at = datetime.now(UTC)
             at_ms = round((self._clock() - call.opened_at) * 1000)
-            turn = Turn(index=len(call.state.turns), at_ms=at_ms, speaker=speaker, text=text)
-            state = engine.add_turn(call.state, turn)
-            rules = self._reader.read(state.turns, state.line)
+            before, watch = call.state, traces.Stopwatch()
+            with watch.step(Step.RELATO):
+                turn = Turn(index=len(before.turns), at_ms=at_ms, speaker=speaker, text=text)
+                state = engine.add_turn(before, turn)
+            with watch.step(Step.REGLAS):
+                rules = self._reader.read(state.turns, state.line)
+            ia_reading: IAReading | None = None
             ia, mode = None, self._mode
             if self._ia_reader is not None:
-                ia_reading = await self._ia_reader.read(state.turns, state.line)
-                call.ia_readings.append(ia_reading)
+                with watch.step(Step.IA):
+                    ia_reading = await self._ia_reader.read(state.turns, state.line)
                 if ia_reading.fell_back:
                     logger.warning("Lector con IA: %s (%s)", ia_reading.status, ia_reading.error)
                 ia, mode = ia_reading.output, Mode.REGLAS if ia_reading.fell_back else Mode.IA
-            state = state.model_copy(update={"mode": mode})
-            call.state = merge.apply_readings(state, rules, ia)
+            with watch.step(Step.COMBINACION):
+                state = state.model_copy(update={"mode": mode})
+                call.state = merge.apply_readings(state, rules, ia)
+            self._traces.append(
+                traces.build(
+                    index=turn.index + 1,
+                    at=at,
+                    turn=turn,
+                    before=before,
+                    after=call.state,
+                    rules=rules,
+                    ia=ia_reading,
+                    steps=watch.steps,
+                )
+            )
             return call.state
+
+    def readings(self, call_id: str) -> list[ReadingTrace]:
+        """The trazas of a llamada, open or already closed; one per lectura, in order."""
+        found = self._traces.for_call(call_id)
+        if not found and call_id not in self._calls:
+            raise CallNotFoundError(call_id)
+        return found
 
     async def act(
         self,
