@@ -1,0 +1,38 @@
+id,pregunta,respuesta,cobertura_tokens,nivel
+001,¿Hay personas atrapadas en el interior?,"Sí, el cocinero quedó adentro",1.0,alta (≥2/3): casi literal
+002,¿Hay vehículos linderos en riesgo?,"Sí, auto pegado con óptica derritiéndose",1.0,alta (≥2/3): casi literal
+003,¿Cuántas personas y quiénes están atrapadas?,4 personas: embarazada y menor de edad,0.4,media
+004,¿Hacia dónde avanza el foco?,Avanza hacia sector de juegos infantiles,1.0,alta (≥2/3): casi literal
+005,¿El accidentado tiene casco?,"Sí, puesto",1.0,alta (≥2/3): casi literal
+005,¿Estado aparente?,"Inmóvil, dolor en pierna",0.33,baja (<1/3): parafraseo/inferencia
+006,¿Vehículos involucrados?,4 rodados: 3 autos y 1 utilitaria,0.33,baja (<1/3): parafraseo/inferencia
+006,¿Humo en motores?,"Sí, auto cruzado",1.0,alta (≥2/3): casi literal
+007,¿Lugar y situación?,"Bajo puente de Elcano, camión atascado en techo",0.67,media
+008,¿Estado de conciencia?,"Recuperó conciencia, sudoración fría, parestesia en miembros",0.33,baja (<1/3): parafraseo/inferencia
+009,¿Signos de hipoxia?,"Sí, tiraje intercostal y cianosis peribucal",0.25,baja (<1/3): parafraseo/inferencia
+010,¿Qué zona está lesionada?,"Cadera izquierda y brazo, imposibilidad de bipedestación",0.6,media
+011,¿Daños materiales?,"Dos camionetas aplastadas, calzada totalmente cortada",0.67,media
+012,¿Causa del escape?,Cuadrilla picó caño,0.67,media
+012,¿Magnitud?,"Soplido fuerte, olor penetrante",0.75,alta (≥2/3): casi literal
+013,¿Dónde está ubicado?,"Carril Metrobus, pozo de 2 metros de diámetro",0.83,alta (≥2/3): casi literal
+014,¿Situación de la estructura?,"Colgada de un perno, oscilando con el viento",0.75,alta (≥2/3): casi literal
+015,¿Elementos utilizados?,"Sillas y botellas, vidriera rota",0.75,alta (≥2/3): casi literal
+015,¿Heridos?,Raspón en brazo,1.0,alta (≥2/3): casi literal
+016,¿Hubo ataque previo?,"Sí, mordió a otro canino",0.33,baja (<1/3): parafraseo/inferencia
+016,¿Ubicación?,Sector canil de Plaza Almagro,0.75,alta (≥2/3): casi literal
+017,¿Evacuación en curso?,"Sí, 180 alumnos hacia patio descubierto",0.5,media
+018,¿Estado de la víctima?,"Consciente, debajo del estribo, lesión en pierna derecha",0.83,alta (≥2/3): casi literal
+019,¿Signos de anafilaxia?,"Edema facial, disnea aguda, disfagia, urticaria generalizada",0.0,baja (<1/3): parafraseo/inferencia
+020,¿Estado del tendido?,Cable chispeando sobre calzada mojada,0.75,alta (≥2/3): casi literal
+021,¿Situación de ocupantes?,"Conductores sobre techos de vehículos, agua a mitad de puertas",0.83,alta (≥2/3): casi literal
+022,¿Qué sustancia se derrama?,Gasoil de cisterna volcada,0.67,media
+022,¿Fuego presente?,No al momento,0.0,baja (<1/3): parafraseo/inferencia
+023,¿Tipo de lesión?,Fractura expuesta de tibia/peroné con sangrado,1.0,alta (≥2/3): casi literal
+024,¿Situación del nodo?,"Semáforos apagados, alto flujo de transporte público, paso escolar",0.12,baja (<1/3): parafraseo/inferencia
+025,¿Tipo de fuego?,"Batería de litio, humo blanco químico, llama violenta",0.71,alta (≥2/3): casi literal
+026,¿Signos clínicos?,"Crisis tónico-clónica generalizada, sialorrea, pérdida de conciencia",0.0,baja (<1/3): parafraseo/inferencia
+027,¿Afectación?,"Caída de medianera a patio vecino, sin personas en el patio al momento",0.57,media
+028,¿Magnitud de la pérdida?,"Chorro de 4m de presión, avenida inundada, entrada a 2 subsuelos",0.86,alta (≥2/3): casi literal
+029,¿Estado del conductor?,"Atrapado boca abajo por cinturón, no puede salir",0.83,alta (≥2/3): casi literal
+029,¿Posición del rodado?,Volcado en zanja,1.0,alta (≥2/3): casi literal
+030,¿Señales del siniestro?,"Zumbido, explosión, humo de aceite dieléctrico, corte zonal",0.57,media

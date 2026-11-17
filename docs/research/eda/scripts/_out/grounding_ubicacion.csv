@@ -1,0 +1,31 @@
+id,calle_detectada,g_calle,altura_detectada,g_altura,interseccion_detectada,g_inter,inter_calles,inter_presentes,barrio_en_texto,comuna_en_texto
+001,Av. Corrientes,literal,1540,literal,Montevideo y Paraná,Montevideo:literal / Paraná:ausente,2,1,False,False
+002,Av. Raúl Scalabrini Ortiz,parcial,800,literal,Vera y Velasco,Vera:literal / Velasco:literal,2,2,False,False
+003,Billinghurst,literal,1845,literal,Juncal y French,Juncal:ausente / French:ausente,2,0,False,False
+004,Av. Castañares,normalizado,4500 (esquina),inferida (esquina),Av. Escalada,Av. Escalada:normalizado,1,1,False,False
+005,Av. San Juan,literal,1800 (esquina),inferida (esquina),Av. Entre Ríos,Av. Entre Ríos:normalizado,1,1,False,False
+006,Autopista 25 de Mayo (AU 1),literal,Km 4.5 (altura Boedo),no numérica,Bajada Boedo / Castro Barros,Bajada Boedo:normalizado / Castro Barros:ausente,2,1,True,False
+007,Av. Elcano,literal,3100,inferida,Superí y Freire,Superí:ausente / Freire:ausente,2,0,False,False
+008,Carlos Pellegrini (Andén Subte Línea B),literal,S/N (Estación Subterránea),no numérica,Av. Corrientes y Carlos Pellegrini,Av. Corrientes:ausente / Carlos Pellegrini:literal,2,1,False,False
+009,Av. Directorio,literal,2140,literal,Carabobo y Camacuá,Carabobo:ausente / Camacuá:ausente,2,0,False,False
+010,Av. Cabildo,normalizado,3700,literal,Jaramillo y Manuela Pedraza,Jaramillo:literal / Manuela Pedraza:ausente,2,1,False,False
+011,Av. Forest,literal,1200,literal,Virrey Arredondo y Virrey Loreto,Virrey Arredondo:literal / Virrey Loreto:literal,2,2,False,False
+012,Thames,literal,1900,literal,Nicaragua y Costa Rica,Nicaragua:literal / Costa Rica:literal,2,2,False,False
+013,Av. Juan B. Justo,literal,4200 (esquina),inferida (esquina),Muñecas y Murillo,Muñecas:literal / Murillo:ausente,2,1,False,False
+014,Av. Rivadavia,literal,6300,literal,Membrillar y Rivera Indarte,Membrillar:literal / Rivera Indarte:ausente,2,1,False,False
+015,Serrano,literal,1500 (esquina),inferida (esquina),Honduras y Jorge Luis Borges,Honduras:literal / Jorge Luis Borges:ausente,2,1,False,False
+016,Sarmiento,literal,3900 (esquina),inferida (esquina),Bulnes y Salguero,Bulnes:literal / Salguero:ausente,2,1,True,False
+017,Yerbal,literal,2450,literal,Artigas y Fray Cayetano Rodríguez,Artigas:ausente / Fray Cayetano Rodríguez:ausente,2,0,False,False
+018,Billinghurst,literal,1100 (esquina),inferida (esquina),Gorriti y Honduras,Gorriti:literal / Honduras:ausente,2,1,False,False
+019,Honduras,literal,4800,literal,Armenia y Gurruchaga,Armenia:ausente / Gurruchaga:ausente,2,0,False,False
+020,Av. Warnes,normalizado,650,literal,Darwin y Humboldt,Darwin:literal / Humboldt:ausente,2,1,False,False
+021,Jerónimo Salguero,parcial,3400 (bajo viaducto),inferida,Av. Figueroa Alcorta,Av. Figueroa Alcorta:normalizado,1,1,False,False
+022,Av. 27 de Febrero,literal,S/N (Rotonda Puente Alsina),no numérica,Av. Sáenz,Av. Sáenz:ausente,1,0,False,False
+023,Av. Belgrano,literal,3100,literal,Catamarca y La Rioja,Catamarca:ausente / La Rioja:ausente,2,0,True,False
+024,Av. Juan de Garay,literal,3600 (esquina),inferida (esquina),Av. Boedo,Av. Boedo:literal,1,1,True,False
+025,Av. Warnes,normalizado,1400,literal,Av. Dorrego y Concepción Arenal,Av. Dorrego:ausente / Concepción Arenal:ausente,2,0,False,False
+026,Av. San Juan,literal,2800,literal,Catamarca y Deán Funes,Catamarca:ausente / Deán Funes:ausente,2,0,True,False
+027,Paraguay,literal,3800,literal,Salguero y Vidt,Salguero:literal / Vidt:literal,2,2,False,False
+028,Av. Montes de Oca,literal,1100,literal,Rocha y Gral. Hornos,Rocha:literal / Gral. Hornos:ausente,2,1,True,False
+029,Av. Leopoldo Lugones,parcial,Km 7 (altura Parque Norte),no numérica,Puente Scalabrini Ortiz,Puente Scalabrini Ortiz:ausente,1,0,False,False
+030,Av. Independencia,literal,2200,literal,Pasco y Rincón,Pasco:literal / Rincón:ausente,2,1,False,False

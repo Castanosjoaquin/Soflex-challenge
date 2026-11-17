@@ -1,0 +1,80 @@
+id,tipo,pregunta,mandatoria_más_parecida,jaccard
+001,respondida,¿Hay personas atrapadas en el interior?,¿Hay personas atrapadas en el interior?,1.0
+001,pendiente,¿Pudo cortar la llave de gas general?,¿Hay garrafas o cañería de gas activa?,0.12
+001,pendiente,¿El humo afecta a los pisos superiores del edificio?,¿Hay inmuebles linderos afectados?,0.14
+002,respondida,¿Hay vehículos linderos en riesgo?,¿El vehículo lindero corre riesgo de explosión?,0.6
+002,pendiente,¿Hay cables eléctricos sobre el contenedor?,¿El fuego afecta árboles o cables aéreos?,0.14
+002,pendiente,¿Se observa algún producto químico o aerosol arrojado?,¿Hay humo ingresando a viviendas?,0.0
+003,respondida,¿Cuántas personas y quiénes están atrapadas?,¿Alguna persona presenta síntomas de asfixia o descompensación?,0.11
+003,pendiente,¿Intentó activar la maniobra manual de descenso desde sala de máquinas?,¿Alguna persona presenta síntomas de asfixia o descompensación?,0.0
+003,pendiente,¿Se llamó a la empresa conservadora?,¿Alguna persona presenta síntomas de asfixia o descompensación?,0.0
+004,respondida,¿Hacia dónde avanza el foco?,¿Hay visibilidad reducida en la avenida?,0.0
+004,pendiente,¿El humo invade la traza de Av. Escalada afectando el tránsito?,¿Hay visibilidad reducida en la avenida?,0.11
+005,respondida,¿El accidentado tiene casco?,¿Se le retiró el casco? (NO retirar),0.33
+005,respondida,¿Estado aparente?,¿Hay combustible sobre el asfalto?,0.0
+005,pendiente,¿La vía respiratoria está despejada?,¿El motociclista respira y responde al diálogo?,0.17
+005,pendiente,¿Hay sangrado activo profuso visible?,¿Hay combustible sobre el asfalto?,0.0
+006,respondida,¿Vehículos involucrados?,¿Cuántos carriles están bloqueados?,0.0
+006,respondida,¿Humo en motores?,¿Cuántos carriles están bloqueados?,0.0
+006,pendiente,¿Algún conductor o acompañante perdió el conocimiento?,¿Cuántos carriles están bloqueados?,0.0
+006,pendiente,¿Se dio aviso al peaje / concesionaria AUSA?,¿Cuántos carriles están bloqueados?,0.0
+007,respondida,¿Lugar y situación?,¿Hay derrame de carga?,0.0
+007,pendiente,¿El tren sigue circulando por arriba?,¿Hay derrame de carga?,0.0
+007,pendiente,¿El chofer se encuentra ileso?,¿Hay derrame de carga?,0.0
+008,respondida,¿Estado de conciencia?,¿Sufrió golpe en el cráneo al caer?,0.0
+008,pendiente,¿Puede mover ambos brazos con igual fuerza?,¿La paciente puede hablar coherentemente?,0.11
+008,pendiente,¿Tiene dolor en el pecho?,¿Sufrió golpe en el cráneo al caer?,0.0
+009,respondida,¿Signos de hipoxia?,¿Tiene antecedentes de internación en terapia?,0.0
+009,pendiente,¿Cuántos disparos de aerosol inhalador le administraron en la última hora?,¿Tiene antecedentes de internación en terapia?,0.0
+010,respondida,¿Qué zona está lesionada?,¿Tiene sangrado visible?,0.0
+010,pendiente,¿Pudo mover los dedos del pie afectado?,¿La pierna afectada presenta acortamiento o rotación externa?,0.1
+010,pendiente,¿Toma medicación anticoagulante?,¿Tiene sangrado visible?,0.0
+011,respondida,¿Daños materiales?,¿Quedaron personas aisladas en viviendas?,0.0
+011,pendiente,¿Se escuchan explosiones en transformadores cercanos?,¿Quedaron personas aisladas en viviendas?,0.0
+011,pendiente,¿Los autos estaban desocupados?,¿Quedaron personas aisladas en viviendas?,0.0
+012,respondida,¿Causa del escape?,¿Se apagaron fuentes de ignición cercanas?,0.0
+012,respondida,¿Magnitud?,¿Se apagaron fuentes de ignición cercanas?,0.0
+012,pendiente,¿Hay bares o cocinas con fuego abierto en la cuadra?,¿Se apagaron fuentes de ignición cercanas?,0.0
+013,respondida,¿Dónde está ubicado?,¿Hay vehículos caídos adentro?,0.0
+013,pendiente,¿Se observa olor cloacal o socavación de veredas linderas?,¿El socavón sigue ensanchándose?,0.12
+014,respondida,¿Situación de la estructura?,¿La estructura tiene riesgo de caída sobre personas o vehículos?,0.17
+014,pendiente,¿El local comercial tiene acceso cerrado?,¿La vereda fue evacuada?,0.0
+015,respondida,¿Elementos utilizados?,¿Los involucrados continúan en el lugar?,0.0
+015,respondida,¿Heridos?,¿Los involucrados continúan en el lugar?,0.0
+015,pendiente,¿Hacia qué arteria se están dispersando?,¿Los involucrados continúan en el lugar?,0.0
+016,respondida,¿Hubo ataque previo?,¿Tiene collar identificatorio?,0.0
+016,respondida,¿Ubicación?,¿Tiene collar identificatorio?,0.0
+016,pendiente,¿Pudo cerrarse la puerta trampa del canil para mantenerlo aislado?,¿El animal se encuentra encerrado en el canil o suelto en la plaza?,0.08
+017,respondida,¿Evacuación en curso?,¿Todos los cursos desalojaron las aulas?,0.2
+017,pendiente,¿Se utilizó matafuego clase C (CO2 o polvo) sobre el tablero?,¿Hay humo en vías de escape?,0.0
+018,respondida,¿Estado de la víctima?,¿Hay pérdida de fluidos del vehículo?,0.0
+018,pendiente,¿El colectivo se movió después del impacto?,¿Hay pérdida de fluidos del vehículo?,0.0
+018,pendiente,¿Se corroboró el pulso de la víctima?,¿Hay pérdida de fluidos del vehículo?,0.0
+019,respondida,¿Signos de anafilaxia?,¿Presenta mareos o desmayo?,0.0
+019,pendiente,¿Algún allegado sabe si tiene medicación antialérgica de emergencia consigo?,¿Presenta mareos o desmayo?,0.0
+020,respondida,¿Estado del tendido?,¿Se observa agua sobre la vereda?,0.0
+020,pendiente,¿El camión causante quedó enganchado en el lugar o continuó su marcha?,¿Se observa agua sobre la vereda?,0.0
+021,respondida,¿Situación de ocupantes?,¿El paso está clausurado al tránsito?,0.0
+021,pendiente,¿Hay corriente de agua rápida o agua estancada?,¿El nivel del agua sigue ascendiendo?,0.14
+022,respondida,¿Qué sustancia se derrama?,¿Se observa alguna fuente de calor o humo?,0.0
+022,respondida,¿Fuego presente?,¿Se observa alguna fuente de calor o humo?,0.0
+022,pendiente,¿Qué cantidad estimada contiene el tanque cisterna?,¿Se observa alguna fuente de calor o humo?,0.0
+023,respondida,¿Tipo de lesión?,¿El paciente está consciente y ubicado?,0.0
+023,pendiente,¿Se aplicó compresión directa sobre la herida?,¿El paciente está consciente y ubicado?,0.0
+024,respondida,¿Situación del nodo?,¿Hay presencia de agentes de tránsito?,0.0
+024,pendiente,¿Los semáforos parpadean en amarillo o están totalmente negros?,¿Hay presencia de agentes de tránsito?,0.0
+025,respondida,¿Tipo de fuego?,¿Hay personas con quemaduras químicas?,0.0
+025,pendiente,¿El operario que manipulaba la carga sufrió quemaduras en manos o rostro?,¿Hay personas con quemaduras químicas?,0.11
+026,respondida,¿Signos clínicos?,¿Se le colocó algún objeto en la boca? (NO colocar),0.0
+026,pendiente,¿La crisis dura más de 3 minutos consecutivos?,¿Cuánto tiempo lleva la crisis activa?,0.11
+026,pendiente,¿Sufrió golpe en la cabeza al caer de la silla?,¿Tiene la cabeza protegida contra golpes contra el suelo?,0.29
+027,respondida,¿Afectación?,¿Afectó cañerías de gas o agua del patio lindero?,0.17
+027,pendiente,¿Se observa fisuración en la estructura principal del edificio habitado?,¿La obra continúa trabajando?,0.0
+028,respondida,¿Magnitud de la pérdida?,¿Se observa socavamiento de la acera?,0.0
+028,pendiente,¿Las bombas de achique de los edificios están funcionando o se cortó la luz?,¿Se observa socavamiento de la acera?,0.0
+029,respondida,¿Estado del conductor?,¿El conductor está consciente y responde?,0.25
+029,respondida,¿Posición del rodado?,¿Cuántos carriles están comprometidos?,0.0
+029,pendiente,¿El motor continúa en marcha?,¿Cuántos carriles están comprometidos?,0.0
+029,pendiente,¿Hay más ocupantes en las plazas traseras?,¿Cuántos carriles están comprometidos?,0.0
+030,respondida,¿Señales del siniestro?,¿Hay personas heridas en la vía pública?,0.0
+030,pendiente,¿El edificio lindero cuenta con evacuación preventiva en marcha?,¿Hay personas heridas en la vía pública?,0.0

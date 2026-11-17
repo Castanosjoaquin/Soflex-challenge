@@ -1,0 +1,91 @@
+id,cat,prio,mandatoria,estado_manual
+001,INCENDIO_RESCATE,P1,¿Hay personas atrapadas en el interior?,A
+001,INCENDIO_RESCATE,P1,¿Hay garrafas o cañería de gas activa?,N
+001,INCENDIO_RESCATE,P1,¿Hay inmuebles linderos afectados?,N
+002,INCENDIO_RESCATE,P3,¿El fuego afecta árboles o cables aéreos?,N
+002,INCENDIO_RESCATE,P3,¿El vehículo lindero corre riesgo de explosión?,P
+002,INCENDIO_RESCATE,P3,¿Hay humo ingresando a viviendas?,N
+003,INCENDIO_RESCATE,P2,¿La cabina quedó desnivelada entre losas?,A
+003,INCENDIO_RESCATE,P2,¿Hay ventilación forzada en el hueco?,N
+003,INCENDIO_RESCATE,P2,¿Alguna persona presenta síntomas de asfixia o descompensación?,P
+004,INCENDIO_RESCATE,P2,¿Hacia qué sector sopla el viento?,P
+004,INCENDIO_RESCATE,P2,¿Hay presencia de asentamientos o viviendas próximas?,N
+004,INCENDIO_RESCATE,P2,¿Hay visibilidad reducida en la avenida?,N
+005,ACCIDENTE_VIAL,P1,¿El motociclista respira y responde al diálogo?,P
+005,ACCIDENTE_VIAL,P1,¿Se le retiró el casco? (NO retirar),A
+005,ACCIDENTE_VIAL,P1,¿Hay combustible sobre el asfalto?,N
+006,ACCIDENTE_VIAL,P1,¿Hay personas atrapadas en los habitáculos?,P
+006,ACCIDENTE_VIAL,P1,¿Hay derrame de fluidos sobre la traza?,N
+006,ACCIDENTE_VIAL,P1,¿Cuántos carriles están bloqueados?,P
+007,ACCIDENTE_VIAL,P3,¿Hay heridos en la cabina o peatones alcanzados?,N
+007,ACCIDENTE_VIAL,P3,¿Se observa daño estructural en la viga del puente ferroviario?,N
+007,ACCIDENTE_VIAL,P3,¿Hay derrame de carga?,N
+008,EMERGENCIA_MEDICA,P2,¿La paciente puede hablar coherentemente?,P
+008,EMERGENCIA_MEDICA,P2,¿Tiene antecedentes cardíacos o diabetes?,N
+008,EMERGENCIA_MEDICA,P2,¿Sufrió golpe en el cráneo al caer?,N
+009,EMERGENCIA_MEDICA,P1,¿La niña puede completar frases al hablar?,N
+009,EMERGENCIA_MEDICA,P1,¿Tiene estridor o silbido audible al exhalar?,N
+009,EMERGENCIA_MEDICA,P1,¿Tiene antecedentes de internación en terapia?,N
+010,EMERGENCIA_MEDICA,P2,¿La pierna afectada presenta acortamiento o rotación externa?,N
+010,EMERGENCIA_MEDICA,P2,¿Perdió el conocimiento en algún momento?,N
+010,EMERGENCIA_MEDICA,P2,¿Tiene sangrado visible?,N
+011,DEFENSA_CIVIL,P2,¿Los cables están chispeando o en contacto con agua?,N
+011,DEFENSA_CIVIL,P2,¿Había ocupantes dentro de los rodados aplastados?,N
+011,DEFENSA_CIVIL,P2,¿Quedaron personas aisladas en viviendas?,N
+012,DEFENSA_CIVIL,P1,¿La fuga continúa sonando a alta presión?,A
+012,DEFENSA_CIVIL,P1,¿Los vecinos iniciaron autoevacuación?,N
+012,DEFENSA_CIVIL,P1,¿Se apagaron fuentes de ignición cercanas?,N
+013,SERVICIOS_PUBLICOS,P2,¿El socavón sigue ensanchándose?,N
+013,SERVICIOS_PUBLICOS,P2,¿Está afectado el carril exclusivo de transporte?,A
+013,SERVICIOS_PUBLICOS,P2,¿Hay vehículos caídos adentro?,A
+014,DEFENSA_CIVIL,P2,¿La estructura tiene riesgo de caída sobre personas o vehículos?,P
+014,DEFENSA_CIVIL,P2,¿Está enganchada de cables de tensión?,N
+014,DEFENSA_CIVIL,P2,¿La vereda fue evacuada?,N
+015,CONVIVENCIA_SEGURIDAD,P2,¿Se observan armas blancas o de fuego?,N
+015,CONVIVENCIA_SEGURIDAD,P2,¿Hay personas inconscientes en el piso?,N
+015,CONVIVENCIA_SEGURIDAD,P2,¿Los involucrados continúan en el lugar?,P
+016,CONVIVENCIA_SEGURIDAD,P3,¿Hay personas mordidas o heridas en este momento?,N
+016,CONVIVENCIA_SEGURIDAD,P3,¿El animal se encuentra encerrado en el canil o suelto en la plaza?,P
+016,CONVIVENCIA_SEGURIDAD,P3,¿Tiene collar identificatorio?,P
+017,INCENDIO_RESCATE,P1,¿El edificio cuenta con corte general de energía exterior?,N
+017,INCENDIO_RESCATE,P1,¿Todos los cursos desalojaron las aulas?,P
+017,INCENDIO_RESCATE,P1,¿Hay humo en vías de escape?,P
+018,ACCIDENTE_VIAL,P1,¿El ciclista está atrapado debajo del eje de las ruedas?,P
+018,ACCIDENTE_VIAL,P1,¿Lleva casco?,N
+018,ACCIDENTE_VIAL,P1,¿Hay pérdida de fluidos del vehículo?,N
+019,EMERGENCIA_MEDICA,P1,¿El paciente porta un autoinyector de adrenalina (EpiPen)?,N
+019,EMERGENCIA_MEDICA,P1,¿Conserva la capacidad de hablar o emitir sonidos?,N
+019,EMERGENCIA_MEDICA,P1,¿Presenta mareos o desmayo?,N
+020,SERVICIOS_PUBLICOS,P1,¿Hay chispas o llamas activas en el cable?,A
+020,SERVICIOS_PUBLICOS,P1,¿Hay transeúntes o comercios linderos en riesgo?,N
+020,SERVICIOS_PUBLICOS,P1,¿Se observa agua sobre la vereda?,A
+021,DEFENSA_CIVIL,P2,¿El nivel del agua sigue ascendiendo?,N
+021,DEFENSA_CIVIL,P2,¿Hay personas con hipotermia o ancianos atrapados?,P
+021,DEFENSA_CIVIL,P2,¿El paso está clausurado al tránsito?,N
+022,INCENDIO_RESCATE,P1,¿El líquido está ingresando al sistema de desagüe pluvial?,P
+022,INCENDIO_RESCATE,P1,¿El conductor logró salir de la cabina?,N
+022,INCENDIO_RESCATE,P1,¿Se observa alguna fuente de calor o humo?,A
+023,EMERGENCIA_MEDICA,P2,¿El sangrado es pulsátil en chorro o continuo?,P
+023,EMERGENCIA_MEDICA,P2,¿La extremidad distal está tibia o fría?,N
+023,EMERGENCIA_MEDICA,P2,¿El paciente está consciente y ubicado?,P
+024,SERVICIOS_PUBLICOS,P3,¿Hubo colisiones o heridos al momento?,P
+024,SERVICIOS_PUBLICOS,P3,¿El cruce cuenta con sendas peatonales activas?,N
+024,SERVICIOS_PUBLICOS,P3,¿Hay presencia de agentes de tránsito?,N
+025,INCENDIO_RESCATE,P1,¿El local fue evacuado completamente?,N
+025,INCENDIO_RESCATE,P1,¿Hay más baterías de ion de litio contiguas?,A
+025,INCENDIO_RESCATE,P1,¿Hay personas con quemaduras químicas?,N
+026,EMERGENCIA_MEDICA,P1,¿Cuánto tiempo lleva la crisis activa?,N
+026,EMERGENCIA_MEDICA,P1,¿Tiene la cabeza protegida contra golpes contra el suelo?,N
+026,EMERGENCIA_MEDICA,P1,¿Se le colocó algún objeto en la boca? (NO colocar),N
+027,DEFENSA_CIVIL,P2,¿Hay obreros o vecinos atrapados o lesionados?,P
+027,DEFENSA_CIVIL,P2,¿Afectó cañerías de gas o agua del patio lindero?,N
+027,DEFENSA_CIVIL,P2,¿La obra continúa trabajando?,N
+028,SERVICIOS_PUBLICOS,P2,¿El agua ingresa a salas de transformadores eléctricos subterráneos?,N
+028,SERVICIOS_PUBLICOS,P2,¿Hay vehículos tapados en los garajes?,P
+028,SERVICIOS_PUBLICOS,P2,¿Se observa socavamiento de la acera?,N
+029,ACCIDENTE_VIAL,P1,¿El conductor está consciente y responde?,P
+029,ACCIDENTE_VIAL,P1,¿Hay humo o pérdida de nafta visible?,N
+029,ACCIDENTE_VIAL,P1,¿Cuántos carriles están comprometidos?,N
+030,INCENDIO_RESCATE,P1,¿Hay llamas abiertas saliendo hacia la vereda?,P
+030,INCENDIO_RESCATE,P1,¿Hay viviendas pegadas a la subestación?,N
+030,INCENDIO_RESCATE,P1,¿Hay personas heridas en la vía pública?,N

@@ -1,0 +1,603 @@
+
+### Nulos por columna
+|       |   id_registro |   timestamp_llamada |   origen_reporte |   categoria |   subcategoria |   prioridad_sugerida |   transcripcion_cruda |   calle_detectada |   altura_detectada |   interseccion_detectada |   barrio_comuna |   preguntas_protocolo_mandatorias |   preguntas_respondidas_en_relato |   preguntas_pendientes |   instrucciones_prearribo |   riesgos_detectados |   recursos_recomendados_despacho |   notas_operativas_despacho |   ts |   n |   cat |   comuna |   barrio |
+|:------|--------------:|--------------------:|-----------------:|------------:|---------------:|---------------------:|----------------------:|------------------:|-------------------:|-------------------------:|----------------:|----------------------------------:|----------------------------------:|-----------------------:|--------------------------:|---------------------:|---------------------------------:|----------------------------:|-----:|----:|------:|---------:|---------:|
+| nulos |             0 |                   0 |                0 |           0 |              0 |                    0 |                     0 |                 0 |                  0 |                        0 |               0 |                                 0 |                                 0 |                      0 |                         0 |                    0 |                                0 |                           0 |    0 |   0 |     0 |        0 |        0 |
+
+### Cardinalidad por columna
+|        |   id_registro |   timestamp_llamada |   origen_reporte |   categoria |   subcategoria |   prioridad_sugerida |   transcripcion_cruda |   calle_detectada |   altura_detectada |   interseccion_detectada |   barrio_comuna |   preguntas_protocolo_mandatorias |   preguntas_respondidas_en_relato |   preguntas_pendientes |   instrucciones_prearribo |   riesgos_detectados |   recursos_recomendados_despacho |   notas_operativas_despacho |   n |   comuna |   barrio |
+|:-------|--------------:|--------------------:|-----------------:|------------:|---------------:|---------------------:|----------------------:|------------------:|-------------------:|-------------------------:|----------------:|----------------------------------:|----------------------------------:|-----------------------:|--------------------------:|---------------------:|---------------------------------:|----------------------------:|----:|---------:|---------:|
+| únicos |            30 |                  30 |                5 |           6 |             30 |                    3 |                    30 |                27 |                 29 |                       30 |              17 |                                30 |                                30 |                     30 |                        30 |                   30 |                               30 |                          30 |  30 |       11 |       17 |
+
+### Distribución de categoria
+| categoria             |   n |
+|:----------------------|----:|
+| INCENDIO_RESCATE      |   8 |
+| EMERGENCIA_MEDICA     |   6 |
+| ACCIDENTE_VIAL        |   5 |
+| DEFENSA_CIVIL         |   5 |
+| SERVICIOS_PUBLICOS    |   4 |
+| CONVIVENCIA_SEGURIDAD |   2 |
+
+### Distribución de prioridad_sugerida
+| prioridad_sugerida   |   n |
+|:---------------------|----:|
+| P1                   |  14 |
+| P2                   |  12 |
+| P3                   |   4 |
+
+### Distribución de origen_reporte
+| origen_reporte   |   n |
+|:-----------------|----:|
+| TELEFONIA_911    |  12 |
+| TELEFONIA_103    |   7 |
+| TELEFONIA_107    |   5 |
+| TELEFONIA_147    |   4 |
+| APP_CIUDADANA    |   2 |
+
+### Distribución de barrio
+| barrio        |   n |
+|:--------------|----:|
+| Palermo       |   6 |
+| Villa Crespo  |   3 |
+| Flores        |   3 |
+| San Nicolás   |   2 |
+| Boedo         |   2 |
+| Colegiales    |   2 |
+| San Cristóbal |   2 |
+| Recoleta      |   1 |
+| Villa Soldati |   1 |
+| Constitución  |   1 |
+| Saavedra      |   1 |
+| Almagro       |   1 |
+| Nueva Pompeya |   1 |
+| Balvanera     |   1 |
+| Chacarita     |   1 |
+| Barracas      |   1 |
+| Belgrano      |   1 |
+
+### Distribución de comuna
+|   comuna |   n |
+|---------:|----:|
+|       14 |   6 |
+|       15 |   4 |
+|        1 |   3 |
+|        5 |   3 |
+|       13 |   3 |
+|        7 |   3 |
+|        3 |   3 |
+|        4 |   2 |
+|        2 |   1 |
+|        8 |   1 |
+|       12 |   1 |
+
+### Categoría × prioridad
+| cat                   |   P1 |   P2 |   P3 |
+|:----------------------|-----:|-----:|-----:|
+| INCENDIO_RESCATE      |    5 |    2 |    1 |
+| ACCIDENTE_VIAL        |    4 |    0 |    1 |
+| EMERGENCIA_MEDICA     |    3 |    3 |    0 |
+| DEFENSA_CIVIL         |    1 |    4 |    0 |
+| SERVICIOS_PUBLICOS    |    1 |    2 |    1 |
+| CONVIVENCIA_SEGURIDAD |    0 |    1 |    1 |
+
+### Origen × categoría
+| origen_reporte   |   INCENDIO_RESCATE |   ACCIDENTE_VIAL |   EMERGENCIA_MEDICA |   DEFENSA_CIVIL |   SERVICIOS_PUBLICOS |   CONVIVENCIA_SEGURIDAD |
+|:-----------------|-------------------:|-----------------:|--------------------:|----------------:|---------------------:|------------------------:|
+| APP_CIUDADANA    |                  0 |                1 |                   0 |               0 |                    1 |                       0 |
+| TELEFONIA_103    |                  2 |                0 |                   0 |               5 |                    0 |                       0 |
+| TELEFONIA_107    |                  0 |                0 |                   5 |               0 |                    0 |                       0 |
+| TELEFONIA_147    |                  0 |                0 |                   0 |               0 |                    3 |                       1 |
+| TELEFONIA_911    |                  6 |                4 |                   1 |               0 |                    0 |                       1 |
+
+### Origen × prioridad
+| origen_reporte   |   P1 |   P2 |   P3 |
+|:-----------------|-----:|-----:|-----:|
+| APP_CIUDADANA    |    0 |    1 |    1 |
+| TELEFONIA_103    |    1 |    5 |    1 |
+| TELEFONIA_107    |    3 |    2 |    0 |
+| TELEFONIA_147    |    1 |    1 |    2 |
+| TELEFONIA_911    |    9 |    3 |    0 |
+
+### Categoría × comuna
+| cat                   |   1 |   2 |   3 |   4 |   5 |   7 |   8 |   12 |   13 |   14 |   15 |
+|:----------------------|----:|----:|----:|----:|----:|----:|----:|-----:|-----:|-----:|-----:|
+| INCENDIO_RESCATE      |   1 |   1 |   1 |   1 |   0 |   1 |   1 |    0 |    0 |    0 |    2 |
+| ACCIDENTE_VIAL        |   1 |   0 |   0 |   0 |   1 |   0 |   0 |    0 |    2 |    1 |    0 |
+| EMERGENCIA_MEDICA     |   1 |   0 |   2 |   0 |   0 |   1 |   0 |    1 |    0 |    1 |    0 |
+| DEFENSA_CIVIL         |   0 |   0 |   0 |   0 |   0 |   1 |   0 |    0 |    1 |    3 |    0 |
+| SERVICIOS_PUBLICOS    |   0 |   0 |   0 |   1 |   1 |   0 |   0 |    0 |    0 |    0 |    2 |
+| CONVIVENCIA_SEGURIDAD |   0 |   0 |   0 |   0 |   1 |   0 |   0 |    0 |    0 |    1 |    0 |
+
+### Rango temporal
+2026-10-14 08:15:22 → 2026-10-15 23:40:50 (1 days 15:25:28)
+
+### ¿ID ordenado igual que timestamp?
+True
+
+### Gaps entre llamadas (min)
+|         |   count |   mean |   std |   min |   25% |   50% |   75% |   max |
+|:--------|--------:|-------:|------:|------:|------:|------:|------:|------:|
+| gap_min |      29 |   81.6 |  38.9 |  35.3 |  71.4 |  75.6 |  84.6 | 266.7 |
+
+### Llamadas por día
+| ts         |   n |
+|:-----------|----:|
+| 2026-10-14 |  13 |
+| 2026-10-15 |  17 |
+
+### Gaps > 2h
+|    | id_registro      | timestamp_llamada   |   gap_min |
+|---:|:-----------------|:--------------------|----------:|
+| 16 | SFX-REC-2026-017 | 2026-10-15T07:12:00 |     266.7 |
+
+### Saludos inconsistentes con la hora
+|    | id_registro      | timestamp_llamada   | saludo   |
+|---:|:-----------------|:--------------------|:---------|
+| 15 | SFX-REC-2026-016 | 2026-10-15T02:45:18 | buen dia |
+| 23 | SFX-REC-2026-024 | 2026-10-15T16:35:22 | buen dia |
+
+### Longitud de transcripciones
+|       |   chars |   palabras |   pal_llamante |   turnos |   oraciones_llamante |
+|:------|--------:|-----------:|---------------:|---------:|---------------------:|
+| count |    30   |       30   |           30   |       30 |                 30   |
+| mean  |   285.1 |       49.9 |           43.6 |        2 |                  3.1 |
+| std   |    25.5 |        5.4 |            5   |        0 |                  0.8 |
+| min   |   242   |       38   |           33   |        2 |                  1   |
+| 25%   |   268.5 |       46.2 |           40   |        2 |                  3   |
+| 50%   |   283.5 |       50.5 |           44.5 |        2 |                  3   |
+| 75%   |   305.5 |       54   |           47.8 |        2 |                  4   |
+| max   |   346   |       63   |           55   |        2 |                  5   |/Users/joaquin/Documents/Soflex/Soflex-challenge/docs/research/eda/scripts/eda.py:177: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  hits = df.loc[T.str.contains(pat, case=False, regex=True), "id_registro"].str[-3:].tolist()
+/Users/joaquin/Documents/Soflex/Soflex-challenge/docs/research/eda/scripts/eda.py:191: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  c = T.str.contains(pat, case=False, regex=True)
+/Users/joaquin/Documents/Soflex/Soflex-challenge/docs/research/eda/scripts/eda.py:210: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  c = T.str.contains(pat, regex=True)
+
+
+### Turnos por transcripción
+|   turnos |   n |
+|---------:|----:|
+|        2 |  30 |
+
+### Palabras del llamante por categoría
+| cat                   |   mean |   min |   max |
+|:----------------------|-------:|------:|------:|
+| INCENDIO_RESCATE      |   42.6 |    33 |    48 |
+| ACCIDENTE_VIAL        |   46   |    40 |    49 |
+| EMERGENCIA_MEDICA     |   45.5 |    40 |    55 |
+| DEFENSA_CIVIL         |   43.2 |    36 |    48 |
+| SERVICIOS_PUBLICOS    |   41.2 |    37 |    51 |
+| CONVIVENCIA_SEGURIDAD |   42   |    39 |    45 |
+
+### Palabras del llamante y '!' por prioridad
+| prioridad_sugerida   |   pal |   exclam_media |   con_exclam |   n |
+|:---------------------|------:|---------------:|-------------:|----:|
+| P1                   | 45    |            0.5 |            5 |  14 |
+| P2                   | 43.42 |            0   |            0 |  12 |
+| P3                   | 39.5  |            0   |            0 |   4 |
+
+### Apertura del operador por origen
+|    | id_registro      | origen_reporte   | apertura_op                             |
+|---:|:-----------------|:-----------------|:----------------------------------------|
+| 12 | SFX-REC-2026-013 | APP_CIUDADANA    | Guardia Urbana, buenas noches.          |
+|  6 | SFX-REC-2026-007 | APP_CIUDADANA    | Monitoreo Urbano, buenas tardes.        |
+| 10 | SFX-REC-2026-011 | TELEFONIA_103    | Guardia de Auxilio 103, buenas noches.  |
+| 13 | SFX-REC-2026-014 | TELEFONIA_103    | Defensa Civil, dígame.                  |
+| 11 | SFX-REC-2026-012 | TELEFONIA_103    | Emergencias de la Ciudad, ¿dónde es?    |
+| 20 | SFX-REC-2026-021 | TELEFONIA_103    | 103 Guardia de Auxilio.                 |
+| 26 | SFX-REC-2026-027 | TELEFONIA_103    | 103 Guardia de Auxilio.                 |
+|  3 | SFX-REC-2026-004 | TELEFONIA_103    | Defensa Civil, dígame.                  |
+|  1 | SFX-REC-2026-002 | TELEFONIA_103    | Emergencias de la Ciudad, buen día.     |
+|  7 | SFX-REC-2026-008 | TELEFONIA_107    | SAME 107, ¿cuál es el paciente?         |
+|  8 | SFX-REC-2026-009 | TELEFONIA_107    | SAME, indique localidad y dirección.    |
+| 22 | SFX-REC-2026-023 | TELEFONIA_107    | SAME, ¿cuál es el paciente?             |
+| 18 | SFX-REC-2026-019 | TELEFONIA_107    | SAME 107.                               |
+| 25 | SFX-REC-2026-026 | TELEFONIA_107    | SAME 107.                               |
+| 19 | SFX-REC-2026-020 | TELEFONIA_147    | 147 Atención de la Ciudad.              |
+| 27 | SFX-REC-2026-028 | TELEFONIA_147    | 147 Ciudad de Buenos Aires.             |
+| 23 | SFX-REC-2026-024 | TELEFONIA_147    | 147 Ciudad, buen día.                   |
+| 15 | SFX-REC-2026-016 | TELEFONIA_147    | 147 Atención Ciudadana.                 |
+| 24 | SFX-REC-2026-025 | TELEFONIA_911    | 911, ¿su emergencia?                    |
+| 21 | SFX-REC-2026-022 | TELEFONIA_911    | 911, ¿dónde es la emergencia?           |
+|  0 | SFX-REC-2026-001 | TELEFONIA_911    | 911 emergencias, ¿dónde es su urgencia? |
+| 14 | SFX-REC-2026-015 | TELEFONIA_911    | 911, ¿su emergencia?                    |
+| 16 | SFX-REC-2026-017 | TELEFONIA_911    | 911, ¿cuál es la emergencia?            |
+| 28 | SFX-REC-2026-029 | TELEFONIA_911    | 911, ¿dónde es el accidente?            |
+|  9 | SFX-REC-2026-010 | TELEFONIA_911    | 911 emergencias.                        |
+|  5 | SFX-REC-2026-006 | TELEFONIA_911    | 911 emergencias.                        |
+|  4 | SFX-REC-2026-005 | TELEFONIA_911    | 911, ¿cuál es su emergencia?            |
+|  2 | SFX-REC-2026-003 | TELEFONIA_911    | 911, ¿en qué lo asisto?                 |
+| 17 | SFX-REC-2026-018 | TELEFONIA_911    | 911, ¿dónde ocurre el hecho?            |
+| 29 | SFX-REC-2026-030 | TELEFONIA_911    | 911, ¿dónde es la emergencia?           |
+
+### Regionalismos / coloquialismos detectados
+| expresión                     |   casos | ids                               |
+|:------------------------------|--------:|:----------------------------------|
+| nene / chicos / chico         |       7 | 003, 015, 017, 018, 022, 023, 024 |
+| vereda                        |       4 | 010, 012, 014, 028                |
+| colectivo                     |       3 | 013, 018, 024                     |
+| se prendió fuego / prendieron |       3 | 001, 002, 014                     |
+| monopatín                     |       2 | 018, 025                          |
+| se trabó / trabando           |       2 | 003, 007                          |
+| bajo puente / bajo nivel      |       2 | 007, 021                          |
+| delivery                      |       1 | 005                               |
+| dogo / pitbull                |       1 | 016                               |
+| trifásica                     |       1 | 017                               |
+| 3ro C (piso/depto)            |       1 | 009                               |
+| una tipa (árbol)              |       1 | 011                               |
+| cordón cuneta                 |       1 | 022                               |
+| bajada (de autopista)         |       1 | 006                               |
+| mano a Provincia              |       1 | 006                               |
+| mirá                          |       1 | 002                               |
+| canil                         |       1 | 016                               |
+| fútbol 5                      |       1 | 023                               |
+| bodegón                       |       1 | 026                               |
+| mordió el guardarraíl         |       1 | 029                               |
+| a chorros                     |       1 | 022                               |
+| blanca como un papel          |       1 | 008                               |
+| está que arde                 |       1 | 008                               |
+| picando (la vereda)           |       1 | 012                               |
+| Belgrano R                    |       1 | 007                               |
+| camperas                      |       0 |                                   |
+
+### Marcadores de ruido/estrés
+| marcador                                          |   casos |
+|:--------------------------------------------------|--------:|
+| signos '!'                                        |       5 |
+| muletilla 'mirá/bueno/che/eh'                     |       1 |
+| puntos suspensivos                                |       0 |
+| palabra repetida consecutiva                      |       0 |
+| pedido de urgencia (por favor/urgente/auxilio/ya) |       8 |
+| duda del llamante (o / como / unos)               |       5 |
+| marca de [inaudible]/corte                        |       0 |
+
+### Cómo se expresan las direcciones
+| patrón                                                                         |   casos | ids                                                                                      |
+|:-------------------------------------------------------------------------------|--------:|:-----------------------------------------------------------------------------------------|
+| número directo 'Calle 1234'                                                    |      18 | 001, 002, 003, 008, 009, 010, 011, 012, 014, 017, 019, 020, 023, 025, 026, 027, 028, 030 |
+| 'al 800' (altura redondeada)                                                   |       4 | 002, 011, 027, 028                                                                       |
+| 'casi X' (esquina cercana)                                                     |       6 | 001, 010, 014, 020, 028, 030                                                             |
+| 'entre X y Y'                                                                  |       4 | 002, 011, 012, 027                                                                       |
+| intersección 'X y Y' (sin número)                                              |       6 | 004, 005, 015, 018, 022, 024                                                             |
+| 'esquina'                                                                      |       1 | 024                                                                                      |
+| 'altura' / 'a la altura'                                                       |       3 | 006, 007, 029                                                                            |
+| prefijo 'Av.'                                                                  |      14 | 001, 005, 007, 009, 011, 013, 014, 022, 023, 024, 026, 028, 029, 030                     |
+| landmark (parque/plaza/estación/subestación/rotonda/viaducto/puente/autopista) |      10 | 004, 006, 007, 008, 015, 016, 021, 022, 029, 030                                         |
+| menciona barrio                                                                |       5 | 004, 007, 023, 026, 028                                                                  |
+| piso/depto                                                                     |       2 | 003, 009                                                                                 |
+
+### Términos característicos por categoría (aparece en n_cat casos de la categoría / n_total casos del dataset)
+| categoría             | términos en ≥2 casos de la categoría (n_cat/n_total)                                                    |
+|:----------------------|:--------------------------------------------------------------------------------------------------------|
+| INCENDIO_RESCATE      | fuego (4/4), negro (3/3), humo (4/6), olor (3/4), corriendo (2/2), basura (2/2), luz (2/2), salir (2/2) |
+| ACCIDENTE_VIAL        | pierna (2/2), carril (2/3), auto (2/3)                                                                  |
+| EMERGENCIA_MEDICA     | piernas (2/2), dolor (2/2)                                                                              |
+| DEFENSA_CIVIL         | vereda (2/4)                                                                                            |
+| SERVICIOS_PUBLICOS    | agua (2/3), metros (2/4)                                                                                |
+| CONVIVENCIA_SEGURIDAD | plaza (2/2)                                                                                             |
+
+### Señales léxicas vs prioridad (casos con la señal / total de la prioridad)
+| señal                               | P1   | P2   | P3   |
+|:------------------------------------|:-----|:-----|:-----|
+| personas atrapadas/adentro          | 3/14 | 2/12 | 0/4  |
+| no respira/no responde/inconsciente | 3/14 | 0/12 | 0/4  |
+| menores/vulnerables                 | 2/14 | 2/12 | 1/4  |
+| fuego/explosión/humo                | 7/14 | 0/12 | 1/4  |
+| gas/combustible/eléctrico           | 5/14 | 1/12 | 0/4  |
+| exclamación                         | 5/14 | 0/12 | 0/4  |
+
+### Grounding de ubicación (detalle por caso)
+|   id | calle_detectada                         | g_calle     | altura_detectada            | g_altura           | interseccion_detectada             | g_inter                                            | barrio_en_texto   | comuna_en_texto   |
+|-----:|:----------------------------------------|:------------|:----------------------------|:-------------------|:-----------------------------------|:---------------------------------------------------|:------------------|:------------------|
+|  001 | Av. Corrientes                          | literal     | 1540                        | literal            | Montevideo y Paraná                | Montevideo:literal / Paraná:ausente                | False             | False             |
+|  002 | Av. Raúl Scalabrini Ortiz               | parcial     | 800                         | literal            | Vera y Velasco                     | Vera:literal / Velasco:literal                     | False             | False             |
+|  003 | Billinghurst                            | literal     | 1845                        | literal            | Juncal y French                    | Juncal:ausente / French:ausente                    | False             | False             |
+|  004 | Av. Castañares                          | normalizado | 4500 (esquina)              | inferida (esquina) | Av. Escalada                       | Av. Escalada:normalizado                           | False             | False             |
+|  005 | Av. San Juan                            | literal     | 1800 (esquina)              | inferida (esquina) | Av. Entre Ríos                     | Av. Entre Ríos:normalizado                         | False             | False             |
+|  006 | Autopista 25 de Mayo (AU 1)             | literal     | Km 4.5 (altura Boedo)       | no numérica        | Bajada Boedo / Castro Barros       | Bajada Boedo:normalizado / Castro Barros:ausente   | True              | False             |
+|  007 | Av. Elcano                              | literal     | 3100                        | inferida           | Superí y Freire                    | Superí:ausente / Freire:ausente                    | False             | False             |
+|  008 | Carlos Pellegrini (Andén Subte Línea B) | literal     | S/N (Estación Subterránea)  | no numérica        | Av. Corrientes y Carlos Pellegrini | Av. Corrientes:ausente / Carlos Pellegrini:literal | False             | False             |
+|  009 | Av. Directorio                          | literal     | 2140                        | literal            | Carabobo y Camacuá                 | Carabobo:ausente / Camacuá:ausente                 | False             | False             |
+|  010 | Av. Cabildo                             | normalizado | 3700                        | literal            | Jaramillo y Manuela Pedraza        | Jaramillo:literal / Manuela Pedraza:ausente        | False             | False             |
+|  011 | Av. Forest                              | literal     | 1200                        | literal            | Virrey Arredondo y Virrey Loreto   | Virrey Arredondo:literal / Virrey Loreto:literal   | False             | False             |
+|  012 | Thames                                  | literal     | 1900                        | literal            | Nicaragua y Costa Rica             | Nicaragua:literal / Costa Rica:literal             | False             | False             |
+|  013 | Av. Juan B. Justo                       | literal     | 4200 (esquina)              | inferida (esquina) | Muñecas y Murillo                  | Muñecas:literal / Murillo:ausente                  | False             | False             |
+|  014 | Av. Rivadavia                           | literal     | 6300                        | literal            | Membrillar y Rivera Indarte        | Membrillar:literal / Rivera Indarte:ausente        | False             | False             |
+|  015 | Serrano                                 | literal     | 1500 (esquina)              | inferida (esquina) | Honduras y Jorge Luis Borges       | Honduras:literal / Jorge Luis Borges:ausente       | False             | False             |
+|  016 | Sarmiento                               | literal     | 3900 (esquina)              | inferida (esquina) | Bulnes y Salguero                  | Bulnes:literal / Salguero:ausente                  | True              | False             |
+|  017 | Yerbal                                  | literal     | 2450                        | literal            | Artigas y Fray Cayetano Rodríguez  | Artigas:ausente / Fray Cayetano Rodríguez:ausente  | False             | False             |
+|  018 | Billinghurst                            | literal     | 1100 (esquina)              | inferida (esquina) | Gorriti y Honduras                 | Gorriti:literal / Honduras:ausente                 | False             | False             |
+|  019 | Honduras                                | literal     | 4800                        | literal            | Armenia y Gurruchaga               | Armenia:ausente / Gurruchaga:ausente               | False             | False             |
+|  020 | Av. Warnes                              | normalizado | 650                         | literal            | Darwin y Humboldt                  | Darwin:literal / Humboldt:ausente                  | False             | False             |
+|  021 | Jerónimo Salguero                       | parcial     | 3400 (bajo viaducto)        | inferida           | Av. Figueroa Alcorta               | Av. Figueroa Alcorta:normalizado                   | False             | False             |
+|  022 | Av. 27 de Febrero                       | literal     | S/N (Rotonda Puente Alsina) | no numérica        | Av. Sáenz                          | Av. Sáenz:ausente                                  | False             | False             |
+|  023 | Av. Belgrano                            | literal     | 3100                        | literal            | Catamarca y La Rioja               | Catamarca:ausente / La Rioja:ausente               | True              | False             |
+|  024 | Av. Juan de Garay                       | literal     | 3600 (esquina)              | inferida (esquina) | Av. Boedo                          | Av. Boedo:literal                                  | True              | False             |
+|  025 | Av. Warnes                              | normalizado | 1400                        | literal            | Av. Dorrego y Concepción Arenal    | Av. Dorrego:ausente / Concepción Arenal:ausente    | False             | False             |
+|  026 | Av. San Juan                            | literal     | 2800                        | literal            | Catamarca y Deán Funes             | Catamarca:ausente / Deán Funes:ausente             | True              | False             |
+|  027 | Paraguay                                | literal     | 3800                        | literal            | Salguero y Vidt                    | Salguero:literal / Vidt:literal                    | False             | False             |
+|  028 | Av. Montes de Oca                       | literal     | 1100                        | literal            | Rocha y Gral. Hornos               | Rocha:literal / Gral. Hornos:ausente               | True              | False             |
+|  029 | Av. Leopoldo Lugones                    | parcial     | Km 7 (altura Parque Norte)  | no numérica        | Puente Scalabrini Ortiz            | Puente Scalabrini Ortiz:ausente                    | False             | False             |
+|  030 | Av. Independencia                       | literal     | 2200                        | literal            | Pasco y Rincón                     | Pasco:literal / Rincón:ausente                     | False             | False             |
+
+### Grounding calle (resumen)
+| g_calle     |   casos |
+|:------------|--------:|
+| literal     |      23 |
+| normalizado |       4 |
+| parcial     |       3 |
+
+### Grounding altura (resumen)
+| g_altura           |   casos |
+|:-------------------|--------:|
+| literal            |      17 |
+| inferida (esquina) |       7 |
+| no numérica        |       4 |
+| inferida           |       2 |
+
+### Grounding intersección / barrio / comuna (resumen)
+|                                                        |   valor |
+|:-------------------------------------------------------|--------:|
+| calles de intersección etiquetadas                     |      54 |
+| presentes en el texto (literal/normalizado/parcial)    |      24 |
+| casos con TODAS las calles de intersección en el texto |       8 |
+| casos con al menos una calle inventada/inferida        |      22 |
+| casos con barrio mencionado en el texto                |       6 |
+| casos con comuna mencionada en el texto                |       0 |
+
+### Grounding de respuestas (cobertura de tokens de la respuesta en la transcripción)
+|                  |   count |   mean |   std |   min |   25% |   50% |   75% |   max |
+|:-----------------|--------:|-------:|------:|------:|------:|------:|------:|------:|
+| cobertura_tokens |      37 |   0.64 |  0.31 |     0 |   0.4 |  0.71 |  0.83 |     1 |
+
+### Grounding de respuestas por nivel
+| nivel                              |   respuestas |
+|:-----------------------------------|-------------:|
+| alta (≥2/3): casi literal          |           19 |
+| baja (<1/3): parafraseo/inferencia |            9 |
+| media                              |            9 |
+
+### Respuestas con menor cobertura (top 10)
+|   id | pregunta                                     | respuesta                                                            |   cobertura_tokens | nivel                              |
+|-----:|:---------------------------------------------|:---------------------------------------------------------------------|-------------------:|:-----------------------------------|
+|  019 | ¿Signos de anafilaxia?                       | Edema facial, disnea aguda, disfagia, urticaria generalizada         |               0    | baja (<1/3): parafraseo/inferencia |
+|  026 | ¿Signos clínicos?                            | Crisis tónico-clónica generalizada, sialorrea, pérdida de conciencia |               0    | baja (<1/3): parafraseo/inferencia |
+|  022 | ¿Fuego presente?                             | No al momento                                                        |               0    | baja (<1/3): parafraseo/inferencia |
+|  024 | ¿Situación del nodo?                         | Semáforos apagados, alto flujo de transporte público, paso escolar   |               0.12 | baja (<1/3): parafraseo/inferencia |
+|  009 | ¿Signos de hipoxia?                          | Sí, tiraje intercostal y cianosis peribucal                          |               0.25 | baja (<1/3): parafraseo/inferencia |
+|  016 | ¿Hubo ataque previo?                         | Sí, mordió a otro canino                                             |               0.33 | baja (<1/3): parafraseo/inferencia |
+|  005 | ¿Estado aparente?                            | Inmóvil, dolor en pierna                                             |               0.33 | baja (<1/3): parafraseo/inferencia |
+|  006 | ¿Vehículos involucrados?                     | 4 rodados: 3 autos y 1 utilitaria                                    |               0.33 | baja (<1/3): parafraseo/inferencia |
+|  008 | ¿Estado de conciencia?                       | Recuperó conciencia, sudoración fría, parestesia en miembros         |               0.33 | baja (<1/3): parafraseo/inferencia |
+|  003 | ¿Cuántas personas y quiénes están atrapadas? | 4 personas: embarazada y menor de edad                               |               0.4  | media                              |
+
+### Conteo de preguntas por caso
+|       |   mandatorias |   respondidas |   pendientes |
+|:------|--------------:|--------------:|-------------:|
+| count |            30 |         30    |         30   |
+| mean  |             3 |          1.23 |          1.4 |
+| std   |             0 |          0.43 |          0.5 |
+| min   |             3 |          1    |          1   |
+| 25%   |             3 |          1    |          1   |
+| 50%   |             3 |          1    |          1   |
+| 75%   |             3 |          1    |          2   |
+| max   |             3 |          2    |          2   |
+
+### Consistencia mandatorias ↔ respondidas/pendientes
+|                                                                            |   valor |
+|:---------------------------------------------------------------------------|--------:|
+| mandatorias (total)                                                        |      90 |
+| respondidas (total)                                                        |      37 |
+| pendientes (total)                                                         |      42 |
+| respondidas cuyo texto es EXACTAMENTE una mandatoria                       |       1 |
+| pendientes cuyo texto es EXACTAMENTE una mandatoria                        |       0 |
+| respondidas con match difuso (Jaccard≥0.25) a una mandatoria               |       4 |
+| pendientes con match difuso (Jaccard≥0.25) a una mandatoria                |       1 |
+| mandatorias que no figuran ni como respondidas ni como pendientes (difuso) |      85 |
+| casos donde respondidas+pendientes cubre todas las mandatorias             |       0 |
+
+### Ejemplos de vínculo pregunta → mandatoria más parecida
+|   id | tipo       | pregunta                                             | mandatoria_más_parecida                                          |   jaccard |
+|-----:|:-----------|:-----------------------------------------------------|:-----------------------------------------------------------------|----------:|
+|  001 | respondida | ¿Hay personas atrapadas en el interior?              | ¿Hay personas atrapadas en el interior?                          |      1    |
+|  002 | respondida | ¿Hay vehículos linderos en riesgo?                   | ¿El vehículo lindero corre riesgo de explosión?                  |      0.6  |
+|  005 | respondida | ¿El accidentado tiene casco?                         | ¿Se le retiró el casco? (NO retirar)                             |      0.33 |
+|  026 | pendiente  | ¿Sufrió golpe en la cabeza al caer de la silla?      | ¿Tiene la cabeza protegida contra golpes contra el suelo?        |      0.29 |
+|  029 | respondida | ¿Estado del conductor?                               | ¿El conductor está consciente y responde?                        |      0.25 |
+|  017 | respondida | ¿Evacuación en curso?                                | ¿Todos los cursos desalojaron las aulas?                         |      0.2  |
+|  027 | respondida | ¿Afectación?                                         | ¿Afectó cañerías de gas o agua del patio lindero?                |      0.17 |
+|  014 | respondida | ¿Situación de la estructura?                         | ¿La estructura tiene riesgo de caída sobre personas o vehículos? |      0.17 |
+|  005 | pendiente  | ¿La vía respiratoria está despejada?                 | ¿El motociclista respira y responde al diálogo?                  |      0.17 |
+|  001 | pendiente  | ¿El humo afecta a los pisos superiores del edificio? | ¿Hay inmuebles linderos afectados?                               |      0.14 |
+|  002 | pendiente  | ¿Hay cables eléctricos sobre el contenedor?          | ¿El fuego afecta árboles o cables aéreos?                        |      0.14 |
+|  021 | pendiente  | ¿Hay corriente de agua rápida o agua estancada?      | ¿El nivel del agua sigue ascendiendo?                            |      0.14 |
+
+### Preguntas mandatorias únicas vs totales
+90 únicas de 90 totales; repetidas literalmente: 0
+
+### Similitud entre preguntas mandatorias (Jaccard de tokens)
+|                    |   count |   mean |   std |   min |   25% |   50% |   75% |   max |
+|:-------------------|--------:|-------:|------:|------:|------:|------:|------:|------:|
+| misma categoría    |     720 |  0.013 | 0.048 |     0 |     0 |     0 |     0 |   0.5 |
+| distinta categoría |    3285 |  0.008 | 0.036 |     0 |     0 |     0 |     0 |   0.5 |/Users/joaquin/Documents/Soflex/Soflex-challenge/docs/research/eda/scripts/eda.py:485: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  it = pd.DataFrame({k: I.str.contains(p, case=False, regex=True) for k, p in INSTR_THEMES.items()})
+
+
+### Pares de mandatorias más parecidas (Jaccard≥0.3)
+| cat_a                 | a                                                    | cat_b              | b                                                  |   jaccard |
+|:----------------------|:-----------------------------------------------------|:-------------------|:---------------------------------------------------|----------:|
+| INCENDIO_RESCATE      | ¿Hay personas atrapadas en el interior?              | ACCIDENTE_VIAL     | ¿Hay personas atrapadas en los habitáculos?        |      0.5  |
+| ACCIDENTE_VIAL        | ¿Cuántos carriles están bloqueados?                  | ACCIDENTE_VIAL     | ¿Cuántos carriles están comprometidos?             |      0.5  |
+| INCENDIO_RESCATE      | ¿Hay personas atrapadas en el interior?              | DEFENSA_CIVIL      | ¿Hay personas con hipotermia o ancianos atrapados? |      0.4  |
+| ACCIDENTE_VIAL        | ¿Hay personas atrapadas en los habitáculos?          | DEFENSA_CIVIL      | ¿Hay personas con hipotermia o ancianos atrapados? |      0.4  |
+| ACCIDENTE_VIAL        | ¿Se le retiró el casco? (NO retirar)                 | ACCIDENTE_VIAL     | ¿Lleva casco?                                      |      0.33 |
+| DEFENSA_CIVIL         | ¿Los cables están chispeando o en contacto con agua? | SERVICIOS_PUBLICOS | ¿Hay chispas o llamas activas en el cable?         |      0.33 |
+| CONVIVENCIA_SEGURIDAD | ¿Hay personas mordidas o heridas en este momento?    | SERVICIOS_PUBLICOS | ¿Hubo colisiones o heridos al momento?             |      0.33 |
+| CONVIVENCIA_SEGURIDAD | ¿Hay personas mordidas o heridas en este momento?    | INCENDIO_RESCATE   | ¿Hay personas heridas en la vía pública?           |      0.33 |
+
+### Temas de las preguntas mandatorias por categoría (# preguntas que tocan el tema)
+|                                           |   INCENDIO_RESCATE |   ACCIDENTE_VIAL |   EMERGENCIA_MEDICA |   DEFENSA_CIVIL |   SERVICIOS_PUBLICOS |   CONVIVENCIA_SEGURIDAD |
+|:------------------------------------------|-------------------:|-----------------:|--------------------:|----------------:|---------------------:|------------------------:|
+| personas atrapadas / heridas / víctimas   |                  3 |                3 |                   0 |               5 |                    1 |                       2 |
+| gas / combustible / derrame               |                  2 |                5 |                   0 |               1 |                    0 |                       0 |
+| propagación / linderos / evacuación       |                  7 |                0 |                   0 |               4 |                    1 |                       0 |
+| electricidad / cables                     |                  2 |                0 |                   0 |               2 |                    2 |                       0 |
+| fuego / humo                              |                  5 |                1 |                   0 |               1 |                    1 |                       1 |
+| estructura / colapso                      |                  2 |                2 |                   0 |               1 |                    2 |                       0 |
+| conciencia / respiración / signos vitales |                  1 |                2 |                   5 |               0 |                    0 |                       1 |
+| tránsito / carriles / vía                 |                  1 |                3 |                   0 |               1 |                    3 |                       0 |
+| sangrado / lesión                         |                  1 |                0 |                   5 |               1 |                    0 |                       0 |
+| antecedentes / medicación                 |                  0 |                0 |                   3 |               0 |                    0 |                       0 |
+| evolución (sigue/continúa/tiempo)         |                  0 |                0 |                   1 |               3 |                    1 |                       1 |
+| armas                                     |                  0 |                0 |                   0 |               0 |                    0 |                       1 |
+
+### Mandatorias sin tema asignado
+14
+
+### Instrucciones pre-arribo: estructura
+|       |   instr_oraciones |   instr_palabras |   instr_neg |
+|:------|------------------:|-----------------:|------------:|
+| count |              30   |             30   |        30   |
+| mean  |               2.2 |             24.4 |         1.1 |
+| std   |               0.7 |              5.3 |         0.6 |
+| min   |               1   |             14   |         0   |
+| 25%   |               2   |             22   |         1   |
+| 50%   |               2   |             24   |         1   |
+| 75%   |               3   |             26.8 |         1   |
+| max   |               4   |             41   |         2   |
+
+### Instrucciones con énfasis en MAYÚSCULAS
+| id_registro      | categoria        | instrucciones_prearribo                                                                                                                                                       |
+|:-----------------|:-----------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SFX-REC-2026-005 | ACCIDENTE_VIAL   | BAJO NINGUNA CIRCUNSTANCIA retire el casco del motociclista. No moverlo del asfalto. Desviar el tránsito con conos o balizas para evitar un segundo atropello.                |
+| SFX-REC-2026-025 | INCENDIO_RESCATE | NO ARROJAR AGUA COMÚN. El agua puede reaccionar violentamente con el litio. Evacuar el local inmediatamente y cerrar la persiana para frenar la dispersión del humo fluorado. |
+
+### Similitud entre instrucciones (Jaccard)
+|              |   count |   mean |   std |   min |   25% |   50% |   75% |   max |
+|:-------------|--------:|-------:|------:|------:|------:|------:|------:|------:|
+| misma cat    |      70 |  0.037 | 0.034 |     0 |     0 | 0.037 | 0.051 | 0.136 |
+| distinta cat |     365 |  0.019 | 0.031 |     0 |     0 | 0     | 0.036 | 0.185 |
+
+### Temas de instrucciones pre-arribo por categoría
+|                                              |   INCENDIO_RESCATE |   ACCIDENTE_VIAL |   EMERGENCIA_MEDICA |   DEFENSA_CIVIL |   SERVICIOS_PUBLICOS |   CONVIVENCIA_SEGURIDAD |
+|:---------------------------------------------|-------------------:|-----------------:|--------------------:|----------------:|---------------------:|------------------------:|
+| no tocar/no mover a la víctima               |                  1 |                3 |                   2 |               0 |                    0 |                       0 |
+| alejarse / perímetro / evacuar               |                  6 |                0 |                   0 |               3 |                    1 |                       0 |
+| no usar agua                                 |                  4 |                0 |                   0 |               0 |                    0 |                       0 |
+| fuentes de ignición (fumar, llaves, motores) |                  1 |                0 |                   0 |               1 |                    0 |                       0 |
+| cortar tránsito / balizar                    |                  2 |                2 |                   0 |               0 |                    0 |                       0 |
+| posición del paciente                        |                  1 |                0 |                   5 |               0 |                    0 |                       0 |
+| abrigar / contener                           |                  2 |                0 |                   1 |               0 |                    0 |                       0 |
+| cortar energía / gas                         |                  0 |                2 |                   0 |               0 |                    1 |                       0 |
+| no intervenir / resguardarse                 |                  0 |                0 |                   0 |               0 |                    0 |                       1 |
+
+### Riesgos por caso
+|           |   count |   mean |   std |   min |   25% |   50% |   75% |   max |
+|:----------|--------:|-------:|------:|------:|------:|------:|------:|------:|
+| n_riesgos |      30 |   2.33 |  0.61 |     1 |     2 |     2 |     3 |     3 |
+
+### Riesgos repetidos literalmente entre casos
+{}
+
+### Recursos por categoría (# casos que los piden)
+|                                                                 |   INCENDIO_RESCATE |   ACCIDENTE_VIAL |   EMERGENCIA_MEDICA |   DEFENSA_CIVIL |   SERVICIOS_PUBLICOS |   CONVIVENCIA_SEGURIDAD |
+|:----------------------------------------------------------------|-------------------:|-----------------:|--------------------:|----------------:|---------------------:|------------------------:|
+| SAME / ambulancia                                               |                  4 |                4 |                   6 |               0 |                    0 |                       0 |
+| Bomberos (autobomba/dotación/cisterna)                          |                  8 |                3 |                   0 |               2 |                    1 |                       0 |
+| Rescate (unidad/móvil)                                          |                  2 |                2 |                   0 |               0 |                    0 |                       0 |
+| Policía / comisaría / patrullero / vallado                      |                  1 |                3 |                   0 |               2 |                    1 |                       2 |
+| Tránsito (móvil/agentes/grúa)                                   |                  1 |                2 |                   0 |               1 |                    3 |                       1 |
+| Distribuidora eléctrica (Edenor/Edesur)                         |                  2 |                0 |                   0 |               1 |                    1 |                       0 |
+| Gas (Metrogas)                                                  |                  0 |                0 |                   0 |               1 |                    0 |                       0 |
+| Agua (AySA)                                                     |                  0 |                0 |                   0 |               0 |                    2 |                       0 |
+| Autopistas (AUSA)                                               |                  0 |                2 |                   0 |               0 |                    0 |                       0 |
+| Defensa Civil / Guardia de Auxilio                              |                  0 |                0 |                   0 |               3 |                    1 |                       0 |
+| Otros (arbolado, trenes, zoonosis, semaforización, arquitectos) |                  0 |                1 |                   0 |               3 |                    1 |                       1 |
+
+### Recursos por prioridad (# casos que los piden)
+|                                                                 |   P1 |   P2 |   P3 |
+|:----------------------------------------------------------------|-----:|-----:|-----:|
+| SAME / ambulancia                                               |   10 |    4 |    0 |
+| Bomberos (autobomba/dotación/cisterna)                          |    9 |    4 |    1 |
+| Rescate (unidad/móvil)                                          |    3 |    1 |    0 |
+| Policía / comisaría / patrullero / vallado                      |    4 |    2 |    3 |
+| Tránsito (móvil/agentes/grúa)                                   |    2 |    4 |    2 |
+| Distribuidora eléctrica (Edenor/Edesur)                         |    3 |    1 |    0 |
+| Gas (Metrogas)                                                  |    1 |    0 |    0 |
+| Agua (AySA)                                                     |    0 |    2 |    0 |
+| Autopistas (AUSA)                                               |    2 |    0 |    0 |
+| Defensa Civil / Guardia de Auxilio                              |    0 |    4 |    0 |
+| Otros (arbolado, trenes, zoonosis, semaforización, arquitectos) |    0 |    3 |    3 |
+
+### Ítems de recurso por prioridad
+| prioridad_sugerida   |   n_items_recursos |   unidades |
+|:---------------------|-------------------:|-----------:|
+| P1                   |               2.21 |       2.43 |
+| P2                   |               1.92 |       2    |
+| P3                   |               2.25 |       2.25 |
+
+### Formato de ítems de recurso
+ítems con prefijo 'Nx': 48 / 63
+
+### BM25 leave-one-out (sobre texto del llamante)
+|                                     |   accuracy |
+|:------------------------------------|-----------:|
+| categoría top-1                     |      0.4   |
+| categoría voto top-3                |      0.4   |
+| categoría baseline mayoritaria      |      0.267 |
+| prioridad top-1                     |      0.3   |
+| prioridad voto top-3                |      0.467 |
+| prioridad baseline mayoritaria (P1) |      0.467 |
+
+### BM25 LOO: errores de categoría top-1
+|   id | real_cat              | top1_cat              | top3_cat              | real_p   | top1_p   | top3_p   |   vecino |   score |
+|-----:|:----------------------|:----------------------|:----------------------|:---------|:---------|:---------|---------:|--------:|
+|  005 | ACCIDENTE_VIAL        | EMERGENCIA_MEDICA     | EMERGENCIA_MEDICA     | P1       | P1       | P2       |      026 |    9.06 |
+|  006 | ACCIDENTE_VIAL        | DEFENSA_CIVIL         | DEFENSA_CIVIL         | P1       | P2       | P1       |      021 |   11.14 |
+|  007 | ACCIDENTE_VIAL        | DEFENSA_CIVIL         | DEFENSA_CIVIL         | P3       | P2       | P2       |      021 |    6.1  |
+|  008 | EMERGENCIA_MEDICA     | INCENDIO_RESCATE      | INCENDIO_RESCATE      | P2       | P2       | P1       |      003 |    6.71 |
+|  009 | EMERGENCIA_MEDICA     | INCENDIO_RESCATE      | INCENDIO_RESCATE      | P1       | P1       | P1       |      017 |    6.67 |
+|  011 | DEFENSA_CIVIL         | SERVICIOS_PUBLICOS    | SERVICIOS_PUBLICOS    | P2       | P1       | P1       |      020 |    7.8  |
+|  012 | DEFENSA_CIVIL         | SERVICIOS_PUBLICOS    | SERVICIOS_PUBLICOS    | P1       | P2       | P2       |      028 |   10.41 |
+|  014 | DEFENSA_CIVIL         | SERVICIOS_PUBLICOS    | SERVICIOS_PUBLICOS    | P2       | P2       | P2       |      028 |    8.86 |
+|  015 | CONVIVENCIA_SEGURIDAD | EMERGENCIA_MEDICA     | INCENDIO_RESCATE      | P2       | P1       | P1       |      026 |    8.17 |
+|  018 | ACCIDENTE_VIAL        | EMERGENCIA_MEDICA     | INCENDIO_RESCATE      | P1       | P2       | P1       |      010 |    4.77 |
+|  019 | EMERGENCIA_MEDICA     | CONVIVENCIA_SEGURIDAD | CONVIVENCIA_SEGURIDAD | P1       | P2       | P2       |      015 |    3.23 |
+|  020 | SERVICIOS_PUBLICOS    | DEFENSA_CIVIL         | DEFENSA_CIVIL         | P1       | P2       | P1       |      011 |    6.07 |
+|  021 | DEFENSA_CIVIL         | ACCIDENTE_VIAL        | ACCIDENTE_VIAL        | P2       | P1       | P1       |      006 |   11.8  |
+|  022 | INCENDIO_RESCATE      | ACCIDENTE_VIAL        | SERVICIOS_PUBLICOS    | P1       | P3       | P3       |      007 |    6.02 |
+|  023 | EMERGENCIA_MEDICA     | ACCIDENTE_VIAL        | ACCIDENTE_VIAL        | P2       | P1       | P2       |      005 |    6.9  |
+|  026 | EMERGENCIA_MEDICA     | CONVIVENCIA_SEGURIDAD | CONVIVENCIA_SEGURIDAD | P1       | P2       | P2       |      015 |    9.13 |
+|  028 | SERVICIOS_PUBLICOS    | DEFENSA_CIVIL         | DEFENSA_CIVIL         | P2       | P1       | P2       |      012 |    9.97 |
+|  029 | ACCIDENTE_VIAL        | DEFENSA_CIVIL         | ACCIDENTE_VIAL        | P1       | P2       | P1       |      021 |    8.59 |
+
+### Reglas de keywords (diseñadas mirando el dataset → optimistas)
+accuracy categoría = 0.867
+
+### Reglas: errores
+| id_registro      | categoria          | rule_cat       |
+|:-----------------|:-------------------|:---------------|
+| SFX-REC-2026-013 | SERVICIOS_PUBLICOS | ACCIDENTE_VIAL |
+| SFX-REC-2026-021 | DEFENSA_CIVIL      | ACCIDENTE_VIAL |
+| SFX-REC-2026-022 | INCENDIO_RESCATE   | ACCIDENTE_VIAL |
+| SFX-REC-2026-024 | SERVICIOS_PUBLICOS | ACCIDENTE_VIAL |
+
+OK -> /Users/joaquin/Documents/Soflex/Soflex-challenge/docs/research/eda/scripts/_out/tablas.md
+
+### Anotación manual: estado de las 90 mandatorias según el relato
+| estado_manual       |   preguntas |
+|:--------------------|------------:|
+| no surge del relato |          57 |
+| parcial/implícita   |          23 |
+| respondida          |          10 |
+
+### Anotación manual por categoría
+| cat                   |   no surge del relato |   parcial/implícita |   respondida |
+|:----------------------|----------------------:|--------------------:|-------------:|
+| INCENDIO_RESCATE      |                    13 |                   7 |            4 |
+| ACCIDENTE_VIAL        |                     9 |                   5 |            1 |
+| EMERGENCIA_MEDICA     |                    15 |                   3 |            0 |
+| DEFENSA_CIVIL         |                    11 |                   3 |            1 |
+| SERVICIOS_PUBLICOS    |                     6 |                   2 |            4 |
+| CONVIVENCIA_SEGURIDAD |                     3 |                   3 |            0 |
