@@ -53,6 +53,10 @@ _Avoid_: hecho, feature, flag, riesgo
 La frase textual del relato que respalda una señal o un dato de ubicación. Sin evidencia encontrada en el relato, el dato se descarta.
 _Avoid_: cita, fuente, span
 
+**Traza**:
+El detalle técnico de una lectura, paso por paso: cuánto tardó cada paso, qué leyó cada lector, qué se descartó y por qué, en qué no coincidieron y qué cambió. Es para el equipo técnico, no para el operador.
+_Avoid_: log, debug
+
 **Confianza**:
 El estado de cada dato sugerido: **confirmado** (lo validó el operador), **probable** (tiene evidencia verificada y nada lo contradice) o **a confirmar** (sin respaldo suficiente, lectores en desacuerdo o contradicción). Nunca es un porcentaje.
 _Avoid_: score, certeza, probabilidad
