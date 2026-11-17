@@ -1,4 +1,5 @@
 import type { InstructionItem } from '../api'
+import { KEYS, keyLabel } from '../shortcuts'
 
 interface Props {
   instruction: InstructionItem | null
@@ -19,7 +20,7 @@ export function CriticalBand({ instruction, busy, onRead }: Props) {
         <span className="instruction-done">✔ leída</span>
       ) : (
         <button type="button" disabled={busy} onClick={onRead}>
-          Leída <kbd>L</kbd>
+          Leída <kbd>{keyLabel(KEYS.read)}</kbd>
         </button>
       )}
     </div>

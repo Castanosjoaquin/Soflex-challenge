@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { Evidence, Turn } from '../api'
 
 interface Props {
@@ -29,11 +30,31 @@ function isLit(turnIndex: number, start: number, end: number, focus: Evidence[])
 }
 
 export function Relato({ turns, evidence, focus, waiting }: Props) {
+  // The list scrolls on its own, inside a card that stays in sight next to the datos.
+  const list = useRef<HTMLOListElement>(null)
+
+  // A new turno: follow the llamada to its last line.
+  useEffect(() => {
+    const box = list.current
+    if (box) box.scrollTop = box.scrollHeight
+  }, [turns.length])
+
+  // A dato under the pointer: bring its phrase into the relato's view, without moving the page.
+  useEffect(() => {
+    const box = list.current
+    const mark = box?.querySelector<HTMLElement>('mark.focused')
+    if (!box || !mark) return
+    const top = mark.getBoundingClientRect().top - box.getBoundingClientRect().top
+    if (top < 0 || top > box.clientHeight - mark.offsetHeight) {
+      box.scrollTop += top - box.clientHeight / 3
+    }
+  }, [focus])
+
   if (turns.length === 0 && !waiting) {
     return <p className="muted">Todavía no hay turnos.</p>
   }
   return (
-    <ol className="relato">
+    <ol className="relato" ref={list}>
       {turns.map((turn) => {
         let offset = 0
         return (

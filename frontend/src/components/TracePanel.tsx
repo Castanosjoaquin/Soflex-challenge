@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, type ReadingDetail } from '../api'
+import { KEYS, keyLabel } from '../shortcuts'
 
 interface Props {
   callId: string
   /** Lecturas so far (one per turno): a new one refetches the trazas while the panel is open. */
   lecturas: number
+  /** Open or closed: R toggles it from the keyboard too. */
+  open: boolean
+  onToggle: (open: boolean) => void
 }
 
 /**
  * Detalle técnico (SPEC §5.11): the traza of each lectura, told in natural language, the newest
  * first. Hidden by default: it is for the equipo técnico, and it only asks the API while open.
  */
-export function TracePanel({ callId, lecturas }: Props) {
-  const [open, setOpen] = useState(false)
+export function TracePanel({ callId, lecturas, open, onToggle }: Props) {
+  const panel = useRef<HTMLDetailsElement>(null)
   // Kept with the llamada they belong to, so a new llamada never shows the trazas of the last.
   const [loaded, setLoaded] = useState<{ callId: string; readings: ReadingDetail[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -33,11 +37,24 @@ export function TracePanel({ callId, lecturas }: Props) {
     }
   }, [open, callId, lecturas])
 
+  // It opens at the bottom of the page: bring it into view.
+  useEffect(() => {
+    if (open) panel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [open])
+
   const shown = loaded?.callId === callId ? [...loaded.readings].reverse() : []
 
   return (
-    <details className="card trace-panel" onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary>Detalle técnico · {lecturas === 1 ? '1 lectura' : `${lecturas} lecturas`}</summary>
+    <details
+      ref={panel}
+      className="card trace-panel"
+      open={open}
+      onToggle={(e) => onToggle(e.currentTarget.open)}
+    >
+      <summary>
+        Detalle técnico · {lecturas === 1 ? '1 lectura' : `${lecturas} lecturas`}{' '}
+        <kbd>{keyLabel(KEYS.trace)}</kbd>
+      </summary>
       {error && <p className="error">{error}</p>}
       {open && lecturas === 0 && (
         <p className="muted">Todavía no hubo lecturas en esta llamada.</p>

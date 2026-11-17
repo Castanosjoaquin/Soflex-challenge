@@ -16,9 +16,18 @@ const SECTIONS: { key: keyof Omit<Carta, 'missing'>; title: string; empty: strin
   { key: 'notes', title: 'Notas del operador', empty: 'Sin notas' },
 ]
 
-function Dato({ dato }: { dato: CartaDato }) {
+interface DatoProps {
+  dato: CartaDato
+  onFocus?: (key: string | null) => void
+}
+
+function Dato({ dato, onFocus }: DatoProps) {
+  const lit = onFocus && {
+    onMouseEnter: () => onFocus(dato.key),
+    onMouseLeave: () => onFocus(null),
+  }
   return (
-    <li className={`carta-dato origin-${dato.origin}`}>
+    <li className={`carta-dato origin-${dato.origin}`} {...lit}>
       <span className="carta-label">{dato.label}</span>
       <span className="carta-value">{dato.value}</span>
       {!dato.confirmed && <span className="carta-unconfirmed">sin confirmar</span>}
@@ -30,8 +39,14 @@ function Dato({ dato }: { dato: CartaDato }) {
   )
 }
 
+interface Props {
+  carta: Carta
+  /** In the panel, a line under the pointer lights its phrase in the relato (by its key). */
+  onFocus?: (key: string | null) => void
+}
+
 /** The Carta de Llamada in plain words, for the operador and for the despachador alike. */
-export function CartaView({ carta }: { carta: Carta }) {
+export function CartaView({ carta, onFocus }: Props) {
   return (
     <div className="carta">
       {SECTIONS.map(({ key, title, empty }) => (
@@ -42,7 +57,7 @@ export function CartaView({ carta }: { carta: Carta }) {
           ) : (
             <ul>
               {carta[key].map((dato) => (
-                <Dato key={dato.key} dato={dato} />
+                <Dato key={dato.key} dato={dato} onFocus={onFocus} />
               ))}
             </ul>
           )}

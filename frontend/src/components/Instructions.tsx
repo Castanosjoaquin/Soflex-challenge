@@ -1,4 +1,5 @@
 import type { InstructionItem } from '../api'
+import { KEYS, keyLabel } from '../shortcuts'
 
 interface Props {
   items: InstructionItem[]
@@ -35,7 +36,7 @@ export function Instructions({ items, nextId, busy, onRead }: Props) {
                     disabled={busy}
                     onClick={() => onRead(item.instruction_id)}
                   >
-                    Leída {item.instruction_id === nextId && <kbd>L</kbd>}
+                    Leída {item.instruction_id === nextId && <kbd>{keyLabel(KEYS.read)}</kbd>}
                   </button>
                 )}
               </li>
