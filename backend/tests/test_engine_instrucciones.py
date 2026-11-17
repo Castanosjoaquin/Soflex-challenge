@@ -187,3 +187,19 @@ def test_no_lector_can_bring_instruccion_text() -> None:
     assert names, "the schema has fields"
     assert not any("instruc" in name or "instruction" in name for name in names)
     assert set(ReaderOutput.model_fields) == {"location", "incident", "signals"}
+
+
+def test_the_casco_is_read_once_when_the_critica_repeats_it() -> None:
+    from app.engine.models import Line, Mode
+    from app.engine.state import add_turn, apply_reading, new_call
+    from app.readers.rules.reader import RulesReader
+    from app.transcript.models import Speaker, Turn
+
+    text = "Chocó una moto en Av. Rivadavia 5000, el motociclista está herido y no se mueve"
+    state = new_call("c1", Line.L911, Mode.SIMULADO)
+    state = add_turn(state, Turn(index=0, at_ms=0, speaker=Speaker.LLAMANTE, text=text))
+    state = apply_reading(state, RulesReader().read(state.turns, Line.L911))
+    texts = [i.text for i in state.instructions]
+    assert texts.count("No le saque el casco al motociclista.") == 1
+    assert state.critical_instruction is not None
+    assert state.instructions[0] == state.critical_instruction
