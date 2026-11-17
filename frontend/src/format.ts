@@ -25,3 +25,8 @@ export function formatAddress(location: Location): string {
   if (location.landmark) parts.push(location.landmark)
   return parts.join(', ') || '—'
 }
+
+/** Hour of an ISO timestamp as the sala reads it, e.g. "14:32:05". */
+export function formatTime(at: string): string {
+  return new Date(at).toLocaleTimeString('es-AR', { hour12: false })
+}

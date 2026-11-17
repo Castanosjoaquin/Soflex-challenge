@@ -147,6 +147,55 @@ export interface CallState {
   read_instructions: string[]
   /** `alert`: the llamada already needs what this etapa lacks (① without ubicación). */
   stages: { id: StageId; status: StageStatus; alert: boolean }[]
+  carta: Carta
+  /** Ubicación and tipo confirmed: the Carta can be derivada. */
+  can_derive: boolean
+  derived: boolean
+  ampliaciones: Ampliacion[]
+}
+
+export type CartaOrigin = 'llamante' | 'sistema' | 'operador'
+
+/** One line of the Carta. `key` is stable across versions: ampliaciones diff by it. */
+export interface CartaDato {
+  key: string
+  label: string
+  value: string
+  origin: CartaOrigin
+  /** The llamante's phrase, when the dato was said. */
+  quote: string | null
+}
+
+/** Carta de Llamada: a template over confirmed data only. It carries no recursos. */
+export interface Carta {
+  where: CartaDato[]
+  what: CartaDato[]
+  priority: CartaDato[]
+  at_risk: CartaDato[]
+  instructions: CartaDato[]
+  missing: { text: string; skipped: boolean }[]
+}
+
+export interface CartaChange {
+  key: string
+  label: string
+  before: string | null
+  after: string | null
+}
+
+/** A dato confirmed after derivar, added to the Carta already derivada. */
+export interface Ampliacion {
+  at: string
+  action: string
+  changes: CartaChange[]
+}
+
+export interface DerivedCarta {
+  call_id: string
+  line: Line
+  derived_at: string
+  carta: Carta
+  ampliaciones: Ampliacion[]
 }
 
 export type ActionKind =
@@ -166,7 +215,7 @@ export interface Action {
   reason?: string
 }
 
-async function request<T>(path: string, body?: unknown): Promise<T> {
+async function request<T>(path: string, body?: unknown, empty = false): Promise<T> {
   const res = await fetch(path, {
     method: body === undefined ? 'GET' : 'POST',
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
@@ -179,7 +228,7 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
       .catch(() => '')
     throw new Error(detail || `${path} → HTTP ${res.status}`)
   }
-  return (await res.json()) as T
+  return (empty ? undefined : await res.json()) as T
 }
 
 export const api = {
@@ -193,4 +242,7 @@ export const api = {
     request<CallState>(`/api/calls/${callId}/turns`, { speaker: turn.speaker, text: turn.text }),
   act: (callId: string, action: Action) =>
     request<CallState>(`/api/calls/${callId}/actions`, action),
+  derive: (callId: string) => request<CallState>(`/api/calls/${callId}/derive`, {}),
+  close: (callId: string) => request<void>(`/api/calls/${callId}/close`, {}, true),
+  dispatch: () => request<DerivedCarta[]>('/api/dispatch'),
 }

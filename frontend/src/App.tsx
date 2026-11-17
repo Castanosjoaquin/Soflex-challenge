@@ -10,6 +10,7 @@ import {
   type SampleCall,
   type SignalAnswer,
 } from './api'
+import { CartaPanel } from './components/CartaPanel'
 import { Checklist } from './components/Checklist'
 import { CriticalBand } from './components/CriticalBand'
 import { IncidentCard } from './components/IncidentCard'
@@ -103,6 +104,34 @@ export default function App() {
     }
   }
 
+  const derive = async () => {
+    if (!call || !call.can_derive || call.derived) return
+    const gen = generation.current
+    setBusy(true)
+    try {
+      const next = await api.derive(call.call_id)
+      if (gen === generation.current) setCall(next)
+    } catch (e) {
+      fail(e)
+    } finally {
+      if (gen === generation.current) setBusy(false)
+    }
+  }
+
+  const close = async () => {
+    if (!call) return
+    const gen = ++generation.current
+    try {
+      await api.close(call.call_id)
+    } catch (e) {
+      fail(e)
+    }
+    if (gen !== generation.current) return
+    setCall(null)
+    setSample(null)
+    setBusy(false)
+  }
+
   // Live replay: one POST per turno, after its pause.
   useEffect(() => {
     if (!sample || !call || paused || busy || cursor >= sample.turns.length) return
@@ -156,6 +185,7 @@ export default function App() {
         void act({ kind: 'confirm_premark', target: premark.question_id })
       else if (key === 's' && !busy) skipNext()
       else if (key === 'l' && nextInstruction && !busy) markRead(nextInstruction.instruction_id)
+      else if (key === 'd' && call?.can_derive && !call.derived && !busy) void derive()
       else if (answer && !busy) answerNext(answer[1])
       else if (key === 'p' && call?.priority) {
         e.preventDefault()
@@ -170,6 +200,9 @@ export default function App() {
     <div className="shell">
       <header className="topbar">
         <h1>Copiloto de Sala</h1>
+        <a className="badge" href="/despacho" target="_blank" rel="noreferrer">
+          Bandeja del despachador ↗
+        </a>
         {health && (
           <span className="badge" title="Lector activo">
             {health.provider === 'mock' ? 'Modo simulado' : 'IA'} · {health.catalog_size} llamadas de
@@ -237,6 +270,9 @@ export default function App() {
                 Turno {cursor}/{sample.turns.length}
                 {finished ? ' · fin del relato' : paused ? ' · en pausa' : ''}
               </span>
+              <button type="button" className="secondary" onClick={() => void close()}>
+                Cerrar llamada
+              </button>
             </div>
 
             <div className="columns">
@@ -286,6 +322,8 @@ export default function App() {
                 onRead={markRead}
               />
             </div>
+
+            <CartaPanel call={call} busy={busy} onDerive={() => void derive()} />
           </section>
         ) : (
           <section className="workspace card">
