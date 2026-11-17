@@ -91,7 +91,10 @@ def test_the_checklist_follows_the_catalog_order_of_the_tipo() -> None:
         "inc_electrico",
         "inc_heridos",
     ]
-    assert _item(state, "inc_propagacion").status is QuestionStatus.PRE_MARCADA
+    # «la gente salió corriendo» is a (partial) evacuation; the humo entering the salón is not
+    # propagation to linderos or upper floors.
+    assert _item(state, "inc_evacuado").status is QuestionStatus.PRE_MARCADA
+    assert _item(state, "inc_propagacion").status is QuestionStatus.PENDIENTE
     assert _item(state, "inc_gas").status is QuestionStatus.PENDIENTE
 
 
@@ -140,8 +143,9 @@ def test_the_universal_comes_before_the_preguntas_clave() -> None:
 
 def test_premarked_and_answered_questions_are_not_asked_again() -> None:
     state = answer_question(_call_with(PIZZERIA), "inc_gas", NO)
-    # inc_propagacion is pre-marked, so the next one missing is inc_evacuado.
-    assert _next_id(state) == "inc_evacuado"
+    state = answer_question(state, "inc_propagacion", NO)
+    # inc_evacuado is pre-marked, so the next one missing is inc_electrico.
+    assert _next_id(state) == "inc_electrico"
 
 
 def test_a_subtipo_brings_its_own_question() -> None:
@@ -184,7 +188,7 @@ def test_only_a_premark_can_be_confirmed() -> None:
 def test_a_skipped_question_stays_in_the_checklist_and_the_next_one_comes() -> None:
     state = skip_question(_call_with(PIZZERIA), "inc_gas")
     assert _item(state, "inc_gas").status is QuestionStatus.SALTEADA
-    assert _next_id(state) == "inc_evacuado"
+    assert _next_id(state) == "inc_propagacion"
     state = answer_question(state, "inc_gas", NO_SABE)
     assert _item(state, "inc_gas").status is QuestionStatus.RESPONDIDA
     assert state.skipped_questions == []
@@ -207,5 +211,5 @@ def test_stage_three_is_done_when_every_critical_question_is_answered_or_skipped
     assert _stage(state, StageId.PREGUNTAS) is StageStatus.ACTUAL
     state = skip_question(state, "inc_propagacion")
     assert _stage(state, StageId.PREGUNTAS) is StageStatus.HECHA
-    # The non-critical ones are still there to ask.
-    assert _next_id(state) == "inc_evacuado"
+    # The non-critical ones are still there to ask (inc_evacuado is already pre-marked).
+    assert _next_id(state) == "inc_electrico"

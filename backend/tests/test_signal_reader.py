@@ -84,3 +84,26 @@ def test_false_friends_are_not_signals() -> None:
 def test_menores_by_age() -> None:
     assert _read("mi hija de 8 años")[S.MENORES].value is SI
     assert S.MENORES not in _read("un chico de 24 años")
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Arriba hay departamentos, ya sale humo por la ventana del primer piso", SI),
+        ("el humo ya pasó al local de al lado", SI),
+        ("se está metiendo el humo negro al salón", None),
+    ],
+)
+def test_propagation_is_reaching_other_floors_or_linderos(
+    text: str, expected: SignalAnswer | None
+) -> None:
+    assert _value(text, SignalId.PROPAGACION) is expected
+
+
+def test_people_leaving_is_an_evacuation() -> None:
+    assert _value("la gente salió corriendo a la calle", SignalId.EVACUADO) is SI
+
+
+def _value(text: str, signal_id: SignalId) -> SignalAnswer | None:
+    reading = _read(text).get(signal_id)
+    return reading.value if reading else None

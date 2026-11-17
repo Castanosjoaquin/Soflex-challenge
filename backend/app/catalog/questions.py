@@ -83,7 +83,7 @@ _INCENDIO = (
         "¿El fuego o el humo pasa a otros locales o a pisos de arriba?",
         critical=True,
     ),
-    _q("inc_evacuado", _I, 40, S.EVACUADO, "¿Salieron todos del lugar?"),
+    _q("inc_evacuado", _I, 40, S.EVACUADO, "¿Evacuaron el lugar?"),
     _q("inc_electrico", _I, 50, S.RIESGO_ELECTRICO, "¿Hay riesgo eléctrico (tablero, cables)?"),
     _q("inc_heridos", _I, 60, S.HERIDOS, "¿Hay heridos o quemados?"),
     # Subtipos

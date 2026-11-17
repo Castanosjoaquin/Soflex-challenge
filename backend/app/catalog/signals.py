@@ -78,7 +78,7 @@ SIGNALS: dict[SignalId, SignalDef] = {
         ),
         _signal(SignalId.HERIDOS, "Heridos", "¿Hay heridos? ¿Cuántos?"),
         _signal(SignalId.MENORES, "Menores", "¿Hay chicos involucrados?"),
-        _signal(SignalId.EVACUADO, "Evacuado", "¿Salieron todos? ¿Están afuera?"),
+        _signal(SignalId.EVACUADO, "Evacuado", "¿Evacuaron el lugar?"),
         _signal(SignalId.PROPAGACION, "Propagación", "¿Se está extendiendo a linderos o pisos?"),
         _signal(
             SignalId.DERRAME_COMBUSTIBLE, "Derrame de combustible", "¿Hay combustible derramado?"
@@ -105,13 +105,13 @@ SIGNALS: dict[SignalId, SignalDef] = {
 }
 
 # Señales whose combination is incoherent (SPEC §5.4.2): if the relato affirms both, neither is
-# trusted and both go to a_confirmar. Someone who is conscious is breathing; someone trapped
-# inside has not been evacuated.
+# trusted and both go to a_confirmar. Someone who is conscious is breathing. (Persona atrapada
+# with evacuado is not incoherent: "la gente salió pero adentro quedó el cocinero" is a partial
+# evacuation, caso 001.)
 type SignalFact = tuple[SignalId, SignalAnswer]
 
 INCOHERENT_PAIRS: tuple[tuple[SignalFact, SignalFact], ...] = (
     ((SignalId.RESPIRA, SignalAnswer.NO), (SignalId.CONSCIENTE, SignalAnswer.SI)),
-    ((SignalId.PERSONA_ATRAPADA, SignalAnswer.SI), (SignalId.EVACUADO, SignalAnswer.SI)),
 )
 
 # Señales that mean there is a víctima the llamante can see: when any of them is "sí", the

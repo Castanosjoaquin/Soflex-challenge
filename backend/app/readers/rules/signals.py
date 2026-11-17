@@ -209,7 +209,8 @@ _PATTERNS: tuple[_Pattern, ...] = (
     _p(
         S.EVACUADO,
         r"\b(salieron todos|salimos todos|ya salimos|ya salieron|estan todos afuera"
-        r"|estamos (todos )?afuera|evacuad[oa]s?|evacuaron)\b",
+        r"|estamos (todos )?afuera|evacuad[oa]s?|evacuaron"
+        r"|(la gente|los clientes|los vecinos|todos|la familia) (ya )?sali\w*)\b",
     ),
     _p(
         S.PROPAGACION,
@@ -219,7 +220,18 @@ _PATTERNS: tuple[_Pattern, ...] = (
     _p(
         S.PROPAGACION,
         r"\b(se (esta |estan )?(propaga\w*|extiende\w*|expande\w*|agranda\w*"
-        r"|metiendo)|avanza\w*( hacia)?|linderos?)\b",
+        r")|avanza\w*( hacia)?|linderos?)\b",
+    ),
+    # Smoke or fire reaching another floor or the building next door (DESIGN §4, 0:30).
+    _p(
+        S.PROPAGACION,
+        r"\b(sale|salen|saliendo) (humo|fuego|llamas) (por|de|en) [\w ]{0,30}?"
+        r"\b(pisos?|departamentos?|deptos?)( de arriba)?\b",
+    ),
+    _p(
+        S.PROPAGACION,
+        r"\b(paso|pasaron|pasando|llego|llegando) (a|al) (los |las |la )?"
+        r"(locale?s?|casas?|departamentos?|edificios?|vecinos?)( de al lado)?\b",
     ),
     _p(
         S.AGUA_SUBE,
@@ -283,7 +295,9 @@ def _read_turn(turn: Turn) -> list[_Hit]:
             end = match.end()
             if pattern.extend:
                 end = extend_to_clause(folded, start, end, pattern.extend)
-            if any(_overlaps(h, start, end) for h in hits):
+            # One phrase may back several señales ("sale humo por el primer piso" is humo and
+            # propagación), but only one reading of the same señal.
+            if any(h.signal is pattern.signal and _overlaps(h, start, end) for h in hits):
                 continue
             hits.append(_Hit(turn.index, start, end, pattern.signal, value))
     return hits
