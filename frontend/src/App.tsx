@@ -230,13 +230,14 @@ export default function App() {
       else if (key === 'x') setSpeed((s) => (s === 1 ? 2 : 1))
       else if (key === 'c' && canConfirm && !busy) void act({ kind: 'confirm_location' })
       else if (key === 't' && canConfirmType && !busy) void act({ kind: 'confirm_type' })
+      // A pending aviso interrupts (DESIGN §Paso 8): its A goes before the A of a tipo en disputa.
+      else if (key === 'a' && aviso && !busy) resolve(aviso.id, 'aceptar')
+      else if (key === 'm' && aviso && !busy) resolve(aviso.id, 'mantener')
       else if (disputed && !busy) void act({ kind: 'choose_type', value: disputed.category })
       else if (key === 'v' && premark && !busy)
         void act({ kind: 'confirm_premark', target: premark.question_id })
       else if (key === 's' && !busy) skipNext()
       else if (key === 'l' && nextInstruction && !busy) markRead(nextInstruction.instruction_id)
-      else if (key === 'a' && aviso && !busy) resolve(aviso.id, 'aceptar')
-      else if (key === 'm' && aviso && !busy) resolve(aviso.id, 'mantener')
       else if (key === 'd' && call?.can_derive && !call.derived && !busy) void derive()
       else if (answer && !busy) answerNext(answer[1])
       else if (key === 'p' && call?.priority) {
