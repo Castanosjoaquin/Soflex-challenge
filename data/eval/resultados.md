@@ -8,15 +8,15 @@ Corpus: las 30 llamadas del dataset tal como vienen (*original*) y 7 variantes r
 
 | Métrica | Simulado · original | Simulado · ruidoso | Δ | IA · original | IA · ruidoso | Δ |
 |---|--:|--:|--:|--:|--:|--:|
-| Calle (nombre oficial) | 28/30 · 93 % | 197/210 · 94 % | 0 pp | pendiente | pendiente | — |
-| Altura | 29/30 · 97 % | 204/210 · 97 % | 0 pp | pendiente | pendiente | — |
-| Tipo | 30/30 · 100 % | 210/210 · 100 % | 0 pp | pendiente | pendiente | — |
-| Prioridad | 27/30 · 90 % | 188/210 · 90 % | 0 pp | pendiente | pendiente | — |
-| Pre-marcas · precisión | 12/18 · 67 % | 84/126 · 67 % | 0 pp | pendiente | pendiente | — |
-| Pre-marcas · recall | 12/25 · 48 % | 84/175 · 48 % | 0 pp | pendiente | pendiente | — |
-| Datos descartados antes del filtro | 0/116 · 0 % | 0/782 · 0 % | 0 pp | pendiente | pendiente | — |
-| Respuestas rotas de la IA | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
-| Fallbacks a reglas | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
+| Calle (nombre oficial) | 28/30 · 93 % | 197/210 · 94 % | 0 pp | 28/30 · 93 % | 193/210 · 92 % | −1 pp |
+| Altura | 29/30 · 97 % | 204/210 · 97 % | 0 pp | 29/30 · 97 % | 204/210 · 97 % | 0 pp |
+| Tipo | 30/30 · 100 % | 210/210 · 100 % | 0 pp | 30/30 · 100 % | 210/210 · 100 % | 0 pp |
+| Prioridad | 27/30 · 90 % | 188/210 · 90 % | 0 pp | 26/30 · 87 % | 173/210 · 82 % | −4 pp |
+| Pre-marcas · precisión | 12/18 · 67 % | 84/126 · 67 % | 0 pp | 14/22 · 64 % | 95/140 · 68 % | +4 pp |
+| Pre-marcas · recall | 12/25 · 48 % | 84/175 · 48 % | 0 pp | 14/25 · 56 % | 95/175 · 54 % | −2 pp |
+| Datos descartados antes del filtro | 0/116 · 0 % | 0/782 · 0 % | 0 pp | 2/99 · 2 % | 9/647 · 1 % | −1 pp |
+| Respuestas rotas de la IA | — (sin IA) | — (sin IA) | — | 0/30 · 0 % | 0/210 · 0 % | 0 pp |
+| Fallbacks a reglas | — (sin IA) | — (sin IA) | — | 6/30 · 20 % | 46/210 · 22 % | +2 pp |
 
 ## Degradación por tipo de ruido · Simulado
 
@@ -33,13 +33,20 @@ Corpus: las 30 llamadas del dataset tal como vienen (*original*) y 7 variantes r
 
 ## Degradación por tipo de ruido · IA
 
-**Pendiente.** Esta tabla se generó sin `LLM_API_KEY`, así que no hay corrida con IA y no se inventan sus números. Para completarla (el resultado se guarda en `data/eval/results/openai_compat.json` y esta tabla se regenera con las dos columnas):
+Modelo: `gemini-3.5-flash-lite`.
 
-```sh
-cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat --concurrency 1 --pause 20
-```
+**Ojo:** 52 de 240 lecturas cayeron a reglas (timeout, error del proveedor o respuesta inválida): en esas llamadas los números son los de las reglas.
 
-`LLM_BASE_URL` y `LLM_MODEL` eligen el endpoint compatible con OpenAI (por defecto, Groq con `qwen/qwen3.8-27b`). `--concurrency` limita las llamadas simultáneas y `--pause` espacia las lecturas para no pasar el límite de tokens por minuto del plan gratuito.
+| Variante | Con ruido | Calle | Altura | Tipo | Prioridad | Pre-marcas P | Pre-marcas R |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| original | — | 28/30 | 29/30 | 30/30 | 26/30 | 14/22 | 14/25 |
+| muletillas | 30/30 | 28/30 | 29/30 | 30/30 | 25/30 | 14/20 | 14/25 |
+| numeros_en_palabras | 21/30 | 28/30 | 29/30 | 30/30 | 26/30 | 13/20 | 13/25 |
+| typos_asr | 30/30 | 28/30 | 29/30 | 30/30 | 24/30 | 15/21 | 15/25 |
+| autocorreccion | 30/30 | 28/30 | 29/30 | 30/30 | 25/30 | 13/19 | 13/25 |
+| sin_av | 14/30 | 27/30 | 29/30 | 30/30 | 26/30 | 14/20 | 14/25 |
+| minusculas | 30/30 | 28/30 | 29/30 | 30/30 | 24/30 | 12/20 | 12/25 |
+| sin_direccion | 30/30 | 26/30 | 30/30 | 30/30 | 23/30 | 14/20 | 14/25 |
 
 ## Cómo se mide
 
