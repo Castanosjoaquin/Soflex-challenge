@@ -148,7 +148,8 @@ def test_case_001_is_incendio_en_comercio_p1_with_its_porque(client: TestClient)
         ("persona_atrapada", "adentro quedó el cocinero"),
         ("humo", "humo negro al salón"),
     ]
-    assert state["next_question"]["id"] == "universal"
+    # Who stayed inside cannot be checked by the llamante: the checklist goes on (SPEC §5.7).
+    assert state["next_question"]["id"] == "inc_gas"
     assert _stage(state, "que_pasa") == "actual"
 
 

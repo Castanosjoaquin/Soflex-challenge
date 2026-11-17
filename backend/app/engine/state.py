@@ -4,9 +4,11 @@ from collections.abc import Sequence
 
 from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category, Priority
+from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
 from app.engine.models import (
     CallState,
+    ChecklistItem,
     Confidence,
     Incident,
     Line,
@@ -15,6 +17,7 @@ from app.engine.models import (
     NextQuestion,
     PriorityAssessment,
     PriorityOverride,
+    QuestionStatus,
     SignalValue,
     Source,
     Stage,
@@ -40,6 +43,17 @@ class NoLocationError(ValueError):
 
 class NoIncidentError(ValueError):
     """The operador confirmed a tipo that the relato has not produced yet."""
+
+
+class UnknownQuestionError(ValueError):
+    """The operador acted on a pregunta that is not asked in this llamada right now."""
+
+
+class NoPremarkError(ValueError):
+    """The operador confirmed a pre-marca that the relato has not produced."""
+
+
+UNIVERSAL = "universal"
 
 
 def new_call(call_id: str, line: Line, mode: Mode, sample_id: str | None = None) -> CallState:
@@ -139,6 +153,66 @@ def set_priority(state: CallState, level: Priority, reason: str) -> CallState:
     return _derive(state.model_copy(update={"priority": priority}))
 
 
+def confirm_premark(state: CallState, question_id: str) -> CallState:
+    """The operador validates what the relato answered. The value and its evidence stay."""
+    item = _checklist_item(state, question_id)
+    signal = _signal(state, item.signal_id)
+    if signal is None or signal.confidence is Confidence.CONFIRMADO:
+        raise NoPremarkError(question_id)
+    confirmed = signal.model_copy(update={"confidence": Confidence.CONFIRMADO})
+    return _with_signal(state, confirmed, question_id)
+
+
+def answer_question(state: CallState, question_id: str, value: SignalAnswer) -> CallState:
+    """The operador answers a pregunta clave, or one of the universal ones (by its señal id).
+
+    The answer is the señal, confirmed and from the operador: no later lectura overwrites it.
+    """
+    signal_id = _answerable_signal(state, question_id)
+    answer = SignalValue(
+        signal_id=signal_id, value=value, source=Source.OPERADOR, confidence=Confidence.CONFIRMADO
+    )
+    return _with_signal(state, answer, question_id)
+
+
+def skip_question(state: CallState, question_id: str) -> CallState:
+    """The operador moves on without an answer: a pregunta clave, or the universal ones."""
+    if question_id != UNIVERSAL:
+        _checklist_item(state, question_id)
+    elif not _missing_vital_signs(state):
+        raise UnknownQuestionError(question_id)
+    if question_id in state.skipped_questions:
+        return state
+    skipped = [*state.skipped_questions, question_id]
+    return _derive(state.model_copy(update={"skipped_questions": skipped}))
+
+
+def _checklist_item(state: CallState, question_id: str) -> ChecklistItem:
+    for item in state.checklist:
+        if item.question_id == question_id:
+            return item
+    raise UnknownQuestionError(question_id)
+
+
+def _answerable_signal(state: CallState, question_id: str) -> SignalId:
+    if any(item.question_id == question_id for item in state.checklist):
+        return _checklist_item(state, question_id).signal_id
+    if _has_victims(state) and question_id in _UNIVERSAL_TEXT:
+        return SignalId(question_id)
+    raise UnknownQuestionError(question_id)
+
+
+def _signal(state: CallState, signal_id: SignalId) -> SignalValue | None:
+    return next((s for s in state.signals if s.signal_id is signal_id), None)
+
+
+def _with_signal(state: CallState, signal: SignalValue, question_id: str) -> CallState:
+    others = [s for s in state.signals if s.signal_id is not signal.signal_id]
+    signals = sorted([*others, signal], key=lambda s: list(SignalId).index(s.signal_id))
+    skipped = [q for q in state.skipped_questions if q != question_id]
+    return _derive(state.model_copy(update={"signals": signals, "skipped_questions": skipped}))
+
+
 # Location
 
 
@@ -232,16 +306,13 @@ def _verified(turns: Sequence[Turn], evidence: Sequence[Evidence]) -> list[Evide
 
 
 def _derive(state: CallState) -> CallState:
-    """Recompute prioridad, próxima pregunta and etapas from the data the state holds."""
+    """Recompute prioridad, checklist, próxima pregunta and etapas from the state's data."""
     priority = state.priority
     if priority is None or priority.overridden_by_operator is None:
         priority = assess(state.incident, state.signals)
+    state = state.model_copy(update={"priority": priority, "checklist": _checklist(state)})
     return state.model_copy(
-        update={
-            "priority": priority,
-            "next_question": _universal_question(state),
-            "stages": _stages(state),
-        }
+        update={"next_question": _next_question(state), "stages": _stages(state)}
     )
 
 
@@ -260,10 +331,24 @@ def _has_victims(state: CallState) -> bool:
 
 
 def _missing_vital_signs(state: CallState) -> list[SignalId]:
-    """Riesgo vital still to evaluate. Someone who does not breathe needs no other question."""
-    if not _has_victims(state) or _known(state, SignalId.RESPIRA) is SignalAnswer.NO:
+    """Riesgo vital still to evaluate. Someone who does not breathe needs no other question.
+
+    An operador's "no sabe" counts as evaluated, and so does skipping the universal questions.
+    """
+    if (
+        not _has_victims(state)
+        or UNIVERSAL in state.skipped_questions
+        or _known(state, SignalId.RESPIRA) is SignalAnswer.NO
+    ):
         return []
-    return [s for s in (SignalId.CONSCIENTE, SignalId.RESPIRA) if _known(state, s) is None]
+    return [s for s in (SignalId.CONSCIENTE, SignalId.RESPIRA) if not _evaluated(state, s)]
+
+
+def _evaluated(state: CallState, signal_id: SignalId) -> bool:
+    signal = _signal(state, signal_id)
+    if signal is None:
+        return False
+    return signal.value is not SignalAnswer.NO_SABE or signal.confidence is Confidence.CONFIRMADO
 
 
 _UNIVERSAL_TEXT = {
@@ -277,10 +362,81 @@ def _universal_question(state: CallState) -> NextQuestion | None:
     if not missing:
         return None
     return NextQuestion(
-        id="universal",
+        id=UNIVERSAL,
         text=" ".join(_UNIVERSAL_TEXT[s] for s in missing),
         signal_ids=missing,
     )
+
+
+def _next_question(state: CallState) -> NextQuestion | None:
+    """The first missing pregunta of the earliest etapa not done (SPEC §5.7)."""
+    return _location_question(state) or _universal_question(state) or _key_question(state)
+
+
+def _location_question(state: CallState) -> NextQuestion | None:
+    """Enough to pin the ubicación down; the detailed questions arrive with the street matcher."""
+    location = state.location
+    if location is None:
+        return NextQuestion(id="ubicacion", text="¿Dónde es la emergencia?")
+    if location.confidence is not Confidence.A_CONFIRMAR:
+        return None
+    if location.landmark:
+        return None if location.street else _WHERE_NEAR
+    if location.street and location.number is None and not location.cross_streets:
+        return NextQuestion(id="ubicacion", text=f"¿A qué altura de {location.street}?")
+    return None
+
+
+_WHERE_NEAR = NextQuestion(id="ubicacion", text="¿Entre qué calles o cerca de qué esquina?")
+
+
+def _key_question(state: CallState) -> NextQuestion | None:
+    for item in state.checklist:
+        if item.status is QuestionStatus.PENDIENTE:
+            return NextQuestion(id=item.question_id, text=item.text, signal_ids=[item.signal_id])
+    return None
+
+
+# Checklist
+
+
+def _checklist(state: CallState) -> list[ChecklistItem]:
+    """The preguntas clave of the tipo and subtipo, each with what the llamada knows of it."""
+    if state.incident is None:
+        return []
+    signals = {s.signal_id: s for s in state.signals}
+    items = []
+    for question in checklist_for(state.incident.category, state.incident.subtype):
+        signal = signals.get(question.signal_id)
+        items.append(
+            ChecklistItem(
+                question_id=question.id,
+                text=question.text,
+                signal_id=question.signal_id,
+                critical=question.critical,
+                status=_status(signal, skipped=question.id in state.skipped_questions),
+                value=signal.value if signal else None,
+                evidence=signal.evidence if signal else None,
+                source=signal.source if signal else None,
+            )
+        )
+    return items
+
+
+def _status(signal: SignalValue | None, *, skipped: bool) -> QuestionStatus:
+    """Answered beats skipped, and skipped beats a pre-marca: the operador decided to move on."""
+    if signal is not None and signal.confidence is Confidence.CONFIRMADO:
+        return QuestionStatus.RESPONDIDA
+    if skipped:
+        return QuestionStatus.SALTEADA
+    if signal is not None:
+        return QuestionStatus.PRE_MARCADA
+    return QuestionStatus.PENDIENTE
+
+
+def _checklist_done(state: CallState) -> bool:
+    closed = {QuestionStatus.RESPONDIDA, QuestionStatus.SALTEADA}
+    return all(item.status in closed for item in state.checklist if item.critical)
 
 
 def _is_confirmed(dato: Location | Incident | None) -> bool:
@@ -288,7 +444,7 @@ def _is_confirmed(dato: Location | Incident | None) -> bool:
 
 
 def _stages(state: CallState) -> list[Stage]:
-    """① and ② have a real status; the rest arrive with their tickets."""
+    """①, ② and ③ have a real status; the rest arrive with their tickets."""
     ubicar = StageStatus.HECHA if _is_confirmed(state.location) else StageStatus.ACTUAL
     if _is_confirmed(state.incident) and not _missing_vital_signs(state):
         que_pasa = StageStatus.HECHA
@@ -296,5 +452,11 @@ def _stages(state: CallState) -> list[Stage]:
         que_pasa = StageStatus.ACTUAL
     else:
         que_pasa = StageStatus.PENDIENTE
-    status = {StageId.UBICAR: ubicar, StageId.QUE_PASA: que_pasa}
+    if not state.checklist:
+        preguntas = StageStatus.PENDIENTE
+    elif _checklist_done(state):
+        preguntas = StageStatus.HECHA
+    else:
+        preguntas = StageStatus.ACTUAL
+    status = {StageId.UBICAR: ubicar, StageId.QUE_PASA: que_pasa, StageId.PREGUNTAS: preguntas}
     return [Stage(id=s, status=status.get(s, StageStatus.PENDIENTE)) for s in StageId]
