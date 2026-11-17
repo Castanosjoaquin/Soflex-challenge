@@ -8,11 +8,14 @@ import {
   type Health,
   type ParsedTurn,
   type SampleCall,
+  type SignalAnswer,
 } from './api'
+import { Checklist } from './components/Checklist'
 import { IncidentCard } from './components/IncidentCard'
 import { LocationCard } from './components/LocationCard'
 import { Relato } from './components/Relato'
 import { StageBar } from './components/StageBar'
+import { ANSWER_KEYS, answerTarget, skipTarget } from './questions'
 
 /** Pause before a turno: its own delay_ms if it has one, else roughly the time to say it. */
 function delayFor(turn: ParsedTurn, isFirst: boolean): number {
@@ -108,6 +111,16 @@ export default function App() {
   const finished = sample !== null && cursor >= sample.turns.length
   const canConfirm = call?.location != null && call.location.confidence !== 'confirmado'
   const canConfirmType = call?.incident != null && call.incident.confidence !== 'confirmado'
+  const nextQuestion = call?.next_question ?? null
+  const premark = call?.checklist.find((i) => i.status === 'pre_marcada') ?? null
+  const answerNext = (value: SignalAnswer) => {
+    const target = answerTarget(nextQuestion)
+    if (target) void act({ kind: 'answer_question', target, value })
+  }
+  const skipNext = () => {
+    const target = skipTarget(nextQuestion)
+    if (target) void act({ kind: 'skip_question', target })
+  }
   // Every phrase that backs a dato is marked in the relato.
   const evidence: Evidence[] = call
     ? [
@@ -125,6 +138,7 @@ export default function App() {
         e.target instanceof HTMLTextAreaElement
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return
       const key = e.key.toLowerCase()
+      const answer = ANSWER_KEYS.find(([k]) => k === key)
       if (key === ' ') {
         e.preventDefault()
         setPaused((p) => !p)
@@ -132,6 +146,10 @@ export default function App() {
       else if (key === 'x') setSpeed((s) => (s === 1 ? 2 : 1))
       else if (key === 'c' && canConfirm && !busy) void act({ kind: 'confirm_location' })
       else if (key === 't' && canConfirmType && !busy) void act({ kind: 'confirm_type' })
+      else if (key === 'v' && premark && !busy)
+        void act({ kind: 'confirm_premark', target: premark.question_id })
+      else if (key === 's' && !busy) skipNext()
+      else if (answer && !busy) answerNext(answer[1])
       else if (key === 'p' && call?.priority) {
         e.preventDefault()
         setEditingPriority(true)
@@ -177,7 +195,13 @@ export default function App() {
 
         {call && sample ? (
           <section className="workspace">
-            <StageBar stages={call.stages} nextQuestion={call.next_question} />
+            <StageBar
+              stages={call.stages}
+              nextQuestion={nextQuestion}
+              busy={busy}
+              onAnswer={answerNext}
+              onSkip={skipNext}
+            />
 
             <div className="playback" role="toolbar" aria-label="Reproducción">
               <span className="line">Línea {call.line}</span>
@@ -229,6 +253,14 @@ export default function App() {
                   onSetPriority={(level, reason) =>
                     void act({ kind: 'set_priority', value: level, reason })
                   }
+                  onFocus={setFocus}
+                />
+                <Checklist
+                  items={call.checklist}
+                  nextId={nextQuestion?.id ?? null}
+                  busy={busy}
+                  onConfirm={(target) => void act({ kind: 'confirm_premark', target })}
+                  onAnswer={(target, value) => void act({ kind: 'answer_question', target, value })}
                   onFocus={setFocus}
                 />
               </div>

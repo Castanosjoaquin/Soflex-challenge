@@ -1,4 +1,5 @@
-import type { CallState, NextQuestion, StageId } from '../api'
+import type { CallState, NextQuestion, SignalAnswer, StageId } from '../api'
+import { ANSWER_KEYS, ANSWER_TEXT, answerTarget } from '../questions'
 
 const LABELS: Record<StageId, string> = {
   ubicar: '① Ubicar',
@@ -13,9 +14,13 @@ const STATUS_TEXT = { hecha: 'hecha', actual: 'actual', pendiente: 'pendiente' }
 interface Props {
   stages: CallState['stages']
   nextQuestion: NextQuestion | null
+  busy: boolean
+  onAnswer: (value: SignalAnswer) => void
+  onSkip: () => void
 }
 
-export function StageBar({ stages, nextQuestion }: Props) {
+export function StageBar({ stages, nextQuestion, busy, onAnswer, onSkip }: Props) {
+  const answerable = answerTarget(nextQuestion) !== null
   return (
     <div className="stagebar">
       <ol className="stages" aria-label="Etapas del protocolo">
@@ -27,10 +32,24 @@ export function StageBar({ stages, nextQuestion }: Props) {
         ))}
       </ol>
       {nextQuestion && (
-        <p className="next-question" role="status">
-          <small>Próxima pregunta</small>
-          {nextQuestion.text}
-        </p>
+        <div className="next-question" role="status">
+          <p>
+            <small>Próxima pregunta</small>
+            {nextQuestion.text}
+          </p>
+          {answerable && (
+            <div className="actions">
+              {ANSWER_KEYS.map(([key, value]) => (
+                <button key={value} type="button" disabled={busy} onClick={() => onAnswer(value)}>
+                  {ANSWER_TEXT[value]} <kbd>{key}</kbd>
+                </button>
+              ))}
+              <button type="button" className="secondary" disabled={busy} onClick={onSkip}>
+                Saltear <kbd>S</kbd>
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
