@@ -164,6 +164,8 @@ export interface CartaDato {
   origin: CartaOrigin
   /** The llamante's phrase, when the dato was said. */
   quote: string | null
+  /** False for a pre-marca: said by the llamante, not yet confirmed by the operador. */
+  confirmed: boolean
 }
 
 /** Carta de Llamada: a template over confirmed data only. It carries no recursos. */

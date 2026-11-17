@@ -62,12 +62,12 @@ def _stage(state: CallState, stage_id: StageId) -> StageStatus:
     return next(s.status for s in state.stages if s.id is stage_id)
 
 
-def test_unconfirmed_data_stays_out_of_the_carta() -> None:
+def test_unconfirmed_ubicacion_and_tipo_stay_out_of_the_carta() -> None:
     state = _pizzeria()
     assert state.location is not None and state.location.confidence is Confidence.PROBABLE
-    assert state.signals, "the relato has señales, all probable"
     c = state.carta
-    assert (c.where, c.what, c.priority, c.at_risk, c.instructions) == ([], [], [], [], [])
+    assert (c.where, c.priority, c.instructions) == ([], [], [])
+    assert all(d.key.startswith("senal.") for d in c.what + c.at_risk)
     assert not state.can_derive
     assert _stage(state, StageId.DERIVAR) is StageStatus.PENDIENTE
 
@@ -88,30 +88,35 @@ def test_carta_with_ubicacion_and_tipo_confirmed_says_where_each_dato_comes_from
     assert tipo.quote
     priority = _line(state.carta.priority, "prioridad")
     assert (priority.value, priority.origin) == ("P1", CartaOrigin.SISTEMA)
-    # The persona atrapada is still a pre-marca: not in «quién está en riesgo».
-    assert state.carta.at_risk == []
+    # Deriving early must not hide the cocinero: the pre-marca goes, marked sin confirmar.
+    atrapada = _line(state.carta.at_risk, "senal.persona_atrapada")
+    assert (atrapada.value, atrapada.quote, atrapada.confirmed) == (
+        "Sí",
+        "adentro quedó el cocinero",
+        False,
+    )
     assert all(d.origin is not None for d in state.carta.where + state.carta.what)
 
 
-def test_carta_has_no_probable_or_a_confirmar_signal() -> None:
+def test_pre_marcas_go_unconfirmed_and_a_confirmar_never_goes() -> None:
     state = confirm_premark(_confirmed(), "inc_atrapados")
-    confirmed_keys = {
-        f"senal.{s.signal_id.value}" for s in state.signals if s.confidence is Confidence.CONFIRMADO
-    }
-    unconfirmed_keys = {
-        f"senal.{s.signal_id.value}"
-        for s in state.signals
-        if s.confidence is not Confidence.CONFIRMADO
-    }
-    keys = {d.key for d in state.carta.what + state.carta.at_risk if d.key.startswith("senal.")}
-    assert keys == confirmed_keys
-    assert not keys & unconfirmed_keys
     atrapada = _line(state.carta.at_risk, "senal.persona_atrapada")
-    assert (atrapada.value, atrapada.quote) == ("Sí", "adentro quedó el cocinero")
+    assert (atrapada.value, atrapada.confirmed) == ("Sí", True)
+    humo = _line(state.carta.what, "senal.humo")
+    assert (humo.origin, humo.confirmed) == (CartaOrigin.LLAMANTE, False)
+    # An incoherent pair (no respira, está consciente) is a_confirmar: neither reaches the Carta.
+    state = _say(state, "no respira pero está consciente")
+    doubtful = {s.signal_id.value for s in state.signals if s.confidence is Confidence.A_CONFIRMAR}
+    assert doubtful == {"respira", "consciente"}
+    keys = {d.key for d in state.carta.what + state.carta.at_risk}
+    assert not keys & {f"senal.{signal}" for signal in doubtful}
 
 
 def test_skipped_and_pending_preguntas_are_what_is_missing() -> None:
     state = skip_question(_confirmed(), "inc_propagacion")
+    # A pre-marca is not missing: the llamante already said it, and it is in the Carta.
+    atrapados = next(i for i in state.checklist if i.question_id == "inc_atrapados")
+    assert atrapados.text not in {m.text for m in state.carta.missing}
     missing = {m.text: m.skipped for m in state.carta.missing}
     propagacion = next(i for i in state.checklist if i.question_id == "inc_propagacion")
     assert missing[propagacion.text] is True
