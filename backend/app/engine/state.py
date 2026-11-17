@@ -1,11 +1,13 @@
 """Pure transitions of a llamada's state. Knows nothing about HTTP or the IA provider."""
 
+import re
 from collections.abc import Sequence
 
 from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
+from app.catalog.streets import MatchKind, StreetMatch, match_street
 from app.engine.models import (
     CallState,
     ChecklistItem,
@@ -34,7 +36,7 @@ from app.readers.models import (
     SignalReading,
     StreetNumber,
 )
-from app.transcript.models import Turn
+from app.transcript.models import Speaker, Turn
 
 
 class NoLocationError(ValueError):
@@ -109,7 +111,7 @@ def correct_location(
         confidence=Confidence.CONFIRMADO,
         source=Source.OPERADOR,
     )
-    return _derive(state.model_copy(update={"location": corrected}))
+    return _derive(state.model_copy(update={"location": _with_official_names(corrected)}))
 
 
 def confirm_type(
@@ -219,24 +221,56 @@ def _with_signal(state: CallState, signal: SignalValue, question_id: str) -> Cal
 def _location_from(turns: Sequence[Turn], reading: LocationReading) -> Location | None:
     if not reading.evidence or any(verify(ev, turns) is None for ev in reading.evidence):
         return None
-    return Location(
+    location = Location(
         said=reading.said,
         evidence=reading.evidence,
         street=reading.street,
         number=reading.number,
         cross_streets=reading.cross_streets,
         landmark=reading.landmark,
-        confidence=_location_confidence(reading),
+        confidence=Confidence.A_CONFIRMAR,
         source=Source.REGLAS,
     )
+    return _with_official_names(location)
 
 
-def _location_confidence(reading: LocationReading) -> Confidence:
-    """Probable when the dirección can be pinned down: a street plus an altura or a cross street."""
-    has_altura = reading.number is not None and reading.number.value is not None
-    if reading.street and (has_altura or reading.cross_streets):
-        return Confidence.PROBABLE
-    return Confidence.A_CONFIRMAR
+def _altura(location: Location) -> int | None:
+    return location.number.value if location.number else None
+
+
+def _street_match(location: Location) -> StreetMatch | None:
+    if location.street is None:
+        return None
+    return match_street(location.street, _altura(location))
+
+
+def _with_official_names(location: Location) -> Location:
+    """Take the streets said to their official names: the catalog decides, the lector proposes.
+
+    Probable only when the dirección can be pinned down: one official street, found by its name
+    or an alias (not by sound), plus an altura or a cross street. A confirmed one stays confirmed.
+    """
+    altura = _altura(location)
+    match = _street_match(location)
+    cross_official = []
+    for cross in location.cross_streets:
+        cross_match = match_street(cross)
+        cross_official.append(cross_match.official if cross_match else cross)
+    pinned = altura is not None or bool(location.cross_streets)
+    sure = match is not None and match.kind is not MatchKind.FUZZY and len(match.candidates) == 1
+    confidence = location.confidence
+    if confidence is not Confidence.CONFIRMADO:
+        confidence = Confidence.PROBABLE if sure and pinned else Confidence.A_CONFIRMAR
+    return location.model_copy(
+        update={
+            "street_official": match.official if match else None,
+            "candidates": [s.name for s in match.candidates]
+            if match and len(match.candidates) > 1
+            else [],
+            "cross_streets_official": cross_official,
+            "confidence": confidence,
+        }
+    )
 
 
 # Incidente
@@ -373,23 +407,6 @@ def _next_question(state: CallState) -> NextQuestion | None:
     return _location_question(state) or _universal_question(state) or _key_question(state)
 
 
-def _location_question(state: CallState) -> NextQuestion | None:
-    """Enough to pin the ubicación down; the detailed questions arrive with the street matcher."""
-    location = state.location
-    if location is None:
-        return NextQuestion(id="ubicacion", text="¿Dónde es la emergencia?")
-    if location.confidence is not Confidence.A_CONFIRMAR:
-        return None
-    if location.landmark:
-        return None if location.street else _WHERE_NEAR
-    if location.street and location.number is None and not location.cross_streets:
-        return NextQuestion(id="ubicacion", text=f"¿A qué altura de {location.street}?")
-    return None
-
-
-_WHERE_NEAR = NextQuestion(id="ubicacion", text="¿Entre qué calles o cerca de qué esquina?")
-
-
 def _key_question(state: CallState) -> NextQuestion | None:
     for item in state.checklist:
         if item.status is QuestionStatus.PENDIENTE:
@@ -439,6 +456,36 @@ def _checklist_done(state: CallState) -> bool:
     return all(item.status in closed for item in state.checklist if item.critical)
 
 
+def _llamante_spoke_without_location(state: CallState) -> bool:
+    return state.location is None and any(t.speaker is Speaker.LLAMANTE for t in state.turns)
+
+
+def _location_question(state: CallState) -> NextQuestion | None:
+    """What is still missing to pin the ubicación down (DESIGN §Paso 4). It goes first."""
+    location = state.location
+    if location is None:
+        return _ubicacion("¿Dónde es la emergencia?")
+    if _is_confirmed(location):
+        return None
+    if location.street is None:
+        return _ubicacion("¿Entre qué calles o cerca de qué entrada?")
+    if location.number is None and not location.cross_streets and location.landmark is None:
+        # Asked first: the altura also settles a name that is avenida and calle.
+        street = _AVENUE_PREFIX.sub("", location.street)
+        return _ubicacion(f"¿A qué altura de {street}?")
+    match = _street_match(location)
+    if match is not None and match.avenida_o_calle:
+        return _ubicacion("¿Es la avenida o la calle?")
+    return None
+
+
+_AVENUE_PREFIX = re.compile(r"^(?:av\.?|avda\.?|avenida|calle)\s+", re.IGNORECASE)
+
+
+def _ubicacion(text: str) -> NextQuestion:
+    return NextQuestion(id="ubicacion", text=text)
+
+
 def _is_confirmed(dato: Location | Incident | None) -> bool:
     return dato is not None and dato.confidence is Confidence.CONFIRMADO
 
@@ -459,4 +506,8 @@ def _stages(state: CallState) -> list[Stage]:
     else:
         preguntas = StageStatus.ACTUAL
     status = {StageId.UBICAR: ubicar, StageId.QUE_PASA: que_pasa, StageId.PREGUNTAS: preguntas}
-    return [Stage(id=s, status=status.get(s, StageStatus.PENDIENTE)) for s in StageId]
+    alert = {StageId.UBICAR: _llamante_spoke_without_location(state)}
+    return [
+        Stage(id=s, status=status.get(s, StageStatus.PENDIENTE), alert=alert.get(s, False))
+        for s in StageId
+    ]

@@ -1,6 +1,15 @@
 import pytest
 
-from app.engine.models import CallState, Confidence, Line, Mode, Source, StageId, StageStatus
+from app.engine.models import (
+    CallState,
+    Confidence,
+    Line,
+    Mode,
+    Source,
+    Stage,
+    StageId,
+    StageStatus,
+)
 from app.engine.state import (
     NoLocationError,
     add_turn,
@@ -83,3 +92,119 @@ def test_correct_keeps_what_was_said() -> None:
 def test_confirm_without_location_fails() -> None:
     with pytest.raises(NoLocationError):
         confirm_location(_call_with("Hola"))
+
+
+# Dirección oficial (SPEC §5.5)
+
+
+def test_the_dirección_uses_official_names() -> None:
+    state = _call_with("Es en Scalabrini Ortiz al 800, entre Vera y Velasco")
+    assert state.location is not None
+    assert state.location.street == "Scalabrini Ortiz"
+    assert state.location.street_official == "AV. RAUL SCALABRINI ORTIZ"
+    assert state.location.cross_streets_official == ["VERA", "JUAN RAMIREZ DE VELASCO"]
+    assert state.location.confidence is Confidence.PROBABLE
+
+
+def test_a_street_matched_by_sound_is_a_confirmar() -> None:
+    state = _call_with("Estoy en Biyinghurst 1845, casi Juncal")
+    assert state.location is not None
+    assert state.location.street_official == "BILLINGHURST"
+    assert state.location.confidence is Confidence.A_CONFIRMAR
+
+
+def test_a_street_not_in_the_list_stays_as_said_and_a_confirmar() -> None:
+    state = _call_with("Es en Pepito Inventado 1234")
+    assert state.location is not None
+    assert state.location.street == "Pepito Inventado"
+    assert state.location.said == "Pepito Inventado 1234"
+    assert state.location.street_official is None
+    assert state.location.confidence is Confidence.A_CONFIRMAR
+
+
+def test_ambiguous_names_list_their_candidates() -> None:
+    state = _call_with("Fue en Sarmiento 3900")
+    assert state.location is not None
+    assert state.location.candidates == ["SARMIENTO", "AV. SARMIENTO"]
+    assert state.location.confidence is Confidence.A_CONFIRMAR
+
+
+# Pregunta de ubicación faltante (DESIGN §Paso 4)
+
+
+def _ubicar(state: CallState) -> Stage:
+    return next(s for s in state.stages if s.id is StageId.UBICAR)
+
+
+def test_a_relato_without_dirección_asks_where_and_turns_ubicar_red() -> None:
+    state = _call_with("Hola, se está prendiendo fuego la cocina")
+    assert state.next_question is not None
+    assert state.next_question.text == "¿Dónde es la emergencia?"
+    assert _ubicar(state).alert
+
+
+def test_a_new_call_asks_where_but_is_not_alarmed_yet() -> None:
+    state = new_call("c1", Line.L911, Mode.SIMULADO)
+    assert state.next_question is not None
+    assert state.next_question.text == "¿Dónde es la emergencia?"
+    assert not _ubicar(state).alert
+
+
+@pytest.mark.parametrize(
+    ("relato", "question"),
+    [
+        (
+            "Estoy en la estación Carlos Pellegrini de la Línea B",
+            "¿Entre qué calles o cerca de qué entrada?",
+        ),
+        ("Fue en Sarmiento 3900", "¿Es la avenida o la calle?"),
+        ("En la esquina de Scalabrini Ortiz y Honduras", "¿Es la avenida o la calle?"),
+    ],
+)
+def test_an_incomplete_dirección_asks_what_is_missing(relato: str, question: str) -> None:
+    state = _call_with(relato)
+    assert state.next_question is not None
+    assert state.next_question.text == question
+    assert not _ubicar(state).alert
+
+
+@pytest.mark.parametrize(
+    "relato", ["Es en Av. Corrientes 1540 casi Montevideo", "En Serrano y Honduras"]
+)
+def test_a_complete_dirección_asks_nothing(relato: str) -> None:
+    assert _call_with(relato).next_question is None
+
+
+def test_a_confirmed_dirección_asks_nothing() -> None:
+    state = confirm_location(_call_with("Fue en Sarmiento 3900"))
+    assert state.next_question is None
+
+
+@pytest.mark.parametrize(
+    ("relato", "question"),
+    [
+        ("Estoy en Corrientes, se prendió fuego un auto", "¿A qué altura de Corrientes?"),
+        ("Choque sobre la Av. Rivadavia, vengan", "¿A qué altura de Rivadavia?"),
+        # Without altura, the altura is asked first: it also settles avenida o calle.
+        ("Estoy en Scalabrini Ortiz, vengan", "¿A qué altura de Scalabrini Ortiz?"),
+    ],
+)
+def test_a_street_without_altura_asks_for_it(relato: str, question: str) -> None:
+    state = _call_with(relato)
+    assert state.location is not None
+    assert state.location.confidence is Confidence.A_CONFIRMAR
+    assert state.next_question is not None
+    assert state.next_question.text == question
+
+
+def test_the_operador_correction_is_normalized_and_stays_confirmed() -> None:
+    state = correct_location(
+        _call_with("Es en Biyinghurst 1845"),
+        street="Biyinghurst",
+        number=StreetNumber(value=1845, kind=NumberKind.EXACTA),
+        cross_streets=["Juncal"],
+    )
+    assert state.location is not None
+    assert state.location.street_official == "BILLINGHURST"
+    assert state.location.cross_streets_official == ["JUNCAL"]
+    assert state.location.confidence is Confidence.CONFIRMADO
