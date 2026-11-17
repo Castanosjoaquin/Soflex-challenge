@@ -2,9 +2,10 @@ import type { Evidence, Turn } from '../api'
 
 interface Props {
   turns: Turn[]
+  /** Every phrase that backs a dato: shown marked. */
   evidence: Evidence[]
-  /** Emphasize the evidence while the operador looks at the dato it backs. */
-  focused: boolean
+  /** The phrases of the dato the operador is looking at: shown lit. */
+  focus: Evidence[]
   waiting: boolean
 }
 
@@ -23,31 +24,43 @@ function segments(text: string, ranges: Evidence[]): { text: string; mark: boole
   return out
 }
 
-export function Relato({ turns, evidence, focused, waiting }: Props) {
+function isLit(turnIndex: number, start: number, end: number, focus: Evidence[]): boolean {
+  return focus.some((f) => f.turn_index === turnIndex && f.start < end && start < f.end)
+}
+
+export function Relato({ turns, evidence, focus, waiting }: Props) {
   if (turns.length === 0 && !waiting) {
     return <p className="muted">Todavía no hay turnos.</p>
   }
   return (
     <ol className="relato">
-      {turns.map((turn) => (
-        <li key={turn.index} className={`turn turn-${turn.speaker}`}>
-          <span className="speaker">{turn.speaker === 'operador' ? 'Operador' : 'Llamante'}</span>
-          <p>
-            {segments(
-              turn.text,
-              evidence.filter((e) => e.turn_index === turn.index),
-            ).map((seg, i) =>
-              seg.mark ? (
-                <mark key={i} className={focused ? 'focused' : undefined}>
-                  {seg.text}
-                </mark>
-              ) : (
-                <span key={i}>{seg.text}</span>
-              ),
-            )}
-          </p>
-        </li>
-      ))}
+      {turns.map((turn) => {
+        let offset = 0
+        return (
+          <li key={turn.index} className={`turn turn-${turn.speaker}`}>
+            <span className="speaker">{turn.speaker === 'operador' ? 'Operador' : 'Llamante'}</span>
+            <p>
+              {segments(
+                turn.text,
+                evidence.filter((e) => e.turn_index === turn.index),
+              ).map((seg, i) => {
+                const start = offset
+                offset += seg.text.length
+                return seg.mark ? (
+                  <mark
+                    key={i}
+                    className={isLit(turn.index, start, offset, focus) ? 'focused' : undefined}
+                  >
+                    {seg.text}
+                  </mark>
+                ) : (
+                  <span key={i}>{seg.text}</span>
+                )
+              })}
+            </p>
+          </li>
+        )
+      })}
       {waiting && <li className="turn turn-waiting muted">…</li>}
     </ol>
   )
