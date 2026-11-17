@@ -163,7 +163,7 @@ Ejemplos de enriquecimiento que hace la etiqueta:
 | parcial / implícita (P) | 23 (26%) |
 | no surge del relato (N) | 57 (63%) |
 
-EMERGENCIA_MEDICA tiene 0 respondidas sobre 18: las preguntas clínicas (antecedentes, EpiPen, tiempo de crisis) nunca aparecen en el relato espontáneo. El detalle está en `scripts/_out/mandatorias_anotacion_manual.csv`.
+EMERGENCIA_MEDICA tiene 0 respondidas sobre 18: las preguntas clínicas (antecedentes, EpiPen, tiempo de crisis) nunca aparecen en el relato espontáneo. El detalle está en `data/eval/mandatorias_anotacion_manual.csv` (el gold de la evaluación).
 
 **Temas recurrentes por categoría → catálogo canónico propuesto.** Lo armé agrupando las 90 mandatorias por intención y completándolas con las pendientes:
 
@@ -232,7 +232,7 @@ Los errores tienen sentido: las inundaciones y los anegamientos se confunden ent
 **Checklist dinámico:**
 8. Como el dataset no trae checklist por categoría (90/90 preguntas únicas), hay que **curar el catálogo canónico** (tabla de la §5), con preguntas compartidas por categoría y un par de preguntas por subtipo (casco en moto, litio, ascensor). El estado de cada pregunta lo decide un matcher de evidencia: el LLM propone "respondida + cita" y el verificador comprueba que la cita esté en el texto. Si no hay cita, queda pendiente.
 9. Lo esperable es que ~60% del checklist arranque pendiente. La UI tiene que priorizar **"próxima pregunta a hacer"** ordenada por criticidad, no un tablero de checks.
-10. No usar `preguntas_respondidas/pendientes` del CSV como gold automático: su redacción no coincide con las mandatorias. Para evaluar, usar mi anotación manual de las 90 mandatorias (`mandatorias_anotacion_manual.csv`, idealmente revisada por una segunda persona).
+10. No usar `preguntas_respondidas/pendientes` del CSV como gold automático: su redacción no coincide con las mandatorias. Para evaluar, usar mi anotación manual de las 90 mandatorias (`data/eval/mandatorias_anotacion_manual.csv`, idealmente revisada por una segunda persona).
 
 **Instrucciones pre-arribo:**
 11. Catálogo por categoría **y subtipo**, con contraindicaciones explícitas como reglas: "no agua" solo para eléctrico, litio o aceite; "no retirar casco" solo para moto; la posición del paciente según el cuadro. Las 30 instrucciones del CSV sirven de semilla, pero están escritas para cada caso. Para un operador bajo estrés: 1–3 frases cortas en imperativo, con la prohibición crítica primero.

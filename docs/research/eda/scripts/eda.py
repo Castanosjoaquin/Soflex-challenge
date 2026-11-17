@@ -20,7 +20,7 @@ import pandas as pd
 import seaborn as sns
 
 from common import (
-    CAT_ORDER, FIG_DIR, OUT_DIR, PRIO_COLORS, PRIO_ORDER, caller_text, jaccard, load,
+    CAT_ORDER, EVAL_DIR, FIG_DIR, OUT_DIR, PRIO_COLORS, PRIO_ORDER, caller_text, jaccard, load,
     md_table, norm, split_answer, split_pipe, strip_accents, tokens,
 )
 
@@ -606,7 +606,7 @@ for _, r in df.iterrows():
     for q, code in zip(split_pipe(r.preguntas_protocolo_mandatorias), MANUAL[k]):
         man.append({"id": k, "cat": r.categoria, "prio": r.prioridad_sugerida, "mandatoria": q, "estado_manual": code})
 MAN = pd.DataFrame(man)
-MAN.to_csv(OUT_DIR / "mandatorias_anotacion_manual.csv", index=False)
+MAN.to_csv(EVAL_DIR / "mandatorias_anotacion_manual.csv", index=False)  # gold of the evaluación
 lab = {"A": "respondida", "P": "parcial/implícita", "N": "no surge del relato"}
 out("Anotación manual: estado de las 90 mandatorias según el relato", MAN.estado_manual.map(lab).value_counts().rename("preguntas").to_frame())
 out("Anotación manual por categoría", pd.crosstab(MAN.cat, MAN.estado_manual.map(lab)).reindex(CAT_ORDER))
