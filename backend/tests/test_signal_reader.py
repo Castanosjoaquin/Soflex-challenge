@@ -88,6 +88,36 @@ def test_a_negation_after_the_phrase(
         assert found.evidence.quote == quote
 
 
+@pytest.mark.parametrize(
+    ("text", "signal", "quote"),
+    [
+        # Variante typos_asr, cases 013 and 018: an ASR mixes up b/v, s/z and c/s by sound.
+        (
+            "En el carril del Metrobus se abrió un poso de unos dos metros de diámetro",
+            S.ESTRUCTURA_CEDE,
+            "se abrió un poso",
+        ),
+        (
+            "El chico quedó devajo del estribo, esta consciente",
+            S.ATRAPADO_VEHICULO,
+            "quedó devajo del estribo",
+        ),
+        (
+            "Se le está serrando la garganta",
+            S.DIFICULTAD_RESPIRAR,
+            "se le está serrando la garganta",
+        ),
+    ],
+)
+def test_a_phrase_misspelled_by_sound_is_still_read(
+    text: str, signal: SignalId, quote: str
+) -> None:
+    found = _read(text)[signal]
+    assert found.value is SI
+    assert found.evidence.quote.lower() == quote.lower()
+    assert text[found.evidence.start : found.evidence.end] == found.evidence.quote
+
+
 def test_one_phrase_backs_one_signal() -> None:
     signals = _read("no le entra el aire")
     assert signals[S.RESPIRA].value is NO

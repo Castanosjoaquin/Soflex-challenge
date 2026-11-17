@@ -1,8 +1,9 @@
 """Rules-based señales: weighted phrase patterns over the llamante's turnos (SPEC §5.3).
 
 Each pattern proposes one value (sí, no, no se sabe) for one señal of the catalog. Patterns run
-on a folded copy (lowercase, no accents, same length) of the normalized turno (SPEC §5.2), and
-every evidence is taken back to the original text before it leaves the lector.
+on a folded copy (lowercase, no accents, same length) of the normalized turno (SPEC §5.2), as it
+sounds (b/v, s/z, s/c: "se abrió un poso" is "se abrió un pozo"), and every evidence is taken
+back to the original text before it leaves the lector.
 
 Negation: a "sí" pattern preceded, within its clause and its last three words, by "no", "nadie",
 "sin", "ni"… reads as "no" ("No hay fuego"), and by "no sé si…" reads as "no se sabe". A "no"
@@ -25,17 +26,19 @@ from app.catalog.signals import SignalAnswer, SignalId
 from app.readers.models import Evidence, SignalReading
 from app.readers.rules.text import NormalizedTurn, clause_start, extend_to_clause
 from app.transcript.models import Speaker, Turn
-from app.transcript.text import fold
+from app.transcript.text import by_sound, fold
 
 S = SignalId
 SI, NO = SignalAnswer.SI, SignalAnswer.NO
 
 _NEGATIONS = frozenset({"no", "nadie", "sin", "ni", "nunca", "tampoco", "ningun", "ninguna"})
-_UNKNOWN = re.compile(r"\bno (se|sabe|sabemos|sabria decir) si\b")
+_UNKNOWN = re.compile(by_sound(r"\bno (se|sabe|sabemos|sabria decir) si\b"))
 # "Heridos no.", "Disparos no escuché": the negation said after the phrase (on the folded text).
 _NEGATION_AFTER = re.compile(
-    r",?\s+no(?:(?=\s*(?:[.,;:!…]|$))|\s+(?:hay|habia|hubo|tiene\w*|tenia\w*|veo|vemos|vi|vimos"
-    r"|se ve|se vio|escuch\w+|se escucho|oi|oimos|senti\w*|siento)\b)"
+    by_sound(
+        r",?\s+no(?:(?=\s*(?:[.,;:!…]|$))|\s+(?:hay|habia|hubo|tiene\w*|tenia\w*|veo|vemos|vi|vimos"
+        r"|se ve|se vio|escuch\w+|se escucho|oi|oimos|senti\w*|siento)\b)"
+    )
 )
 
 
@@ -60,7 +63,7 @@ def _p(
     return _Pattern(
         signal=signal,
         value=value,
-        regex=re.compile(pattern),
+        regex=re.compile(by_sound(pattern)),
         negatable=value is SI and not pattern.startswith(r"\bno "),
         extend=extend,
         accept=accept,
@@ -289,7 +292,7 @@ def read_signals(turns: Sequence[Turn]) -> list[SignalReading]:
 
 
 def _read_turn(turn: Turn) -> list[_Hit]:
-    folded = fold(turn.text)
+    folded = by_sound(fold(turn.text))
     hits: list[_Hit] = []
     for pattern in _PATTERNS:
         for match in pattern.regex.finditer(folded):
