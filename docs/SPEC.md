@@ -154,8 +154,9 @@ Mantiene un **mapa de offsets** de normalizado a original para poder resaltar la
   señales entran confirmadas o como **pre-marca** (dichas por el llamante, con su frase verificada y
   marcadas "sin confirmar"): derivar temprano no puede esconderle al despachador «adentro quedó el
   cocinero». Lo *a confirmar* nunca entra. Lleva dónde (dicho y normalizado), qué pasa (tipo, subtipo
-  y resumen de señales), prioridad y porqué, quién está en riesgo, instrucciones dadas, preguntas que
-  nadie contestó (pendientes o salteadas sin respuesta) y el origen de cada dato. **No lleva
+  y resumen de señales), prioridad y porqué, quién está en riesgo, instrucciones dadas, las notas del
+  operador (tal cual las escribió), preguntas que nadie contestó (pendientes o salteadas sin
+  respuesta) y el origen de cada dato. **No lleva
   recursos.**
 - Al derivar, la Carta se guarda en SQLite y aparece en la **bandeja del despachador** (`/despacho`,
   con polling cada 2 s).

@@ -44,6 +44,7 @@ class ActionKind(StrEnum):
     SKIP_QUESTION = "skip_question"
     MARK_INSTRUCTION_READ = "mark_instruction_read"
     RESOLVE_CONTRADICTION = "resolve_contradiction"
+    ADD_NOTE = "add_note"
 
 
 class CallNotFoundError(LookupError):
@@ -289,6 +290,11 @@ class CallService:
                         f"El aviso {aviso_id!r} no existe o ya fue resuelto"
                     ) from None
                 return resolved, aviso_id
+            case ActionKind.ADD_NOTE:
+                text = (value or "").strip()
+                if not text:
+                    raise InvalidActionValueError("Falta el texto de la nota")
+                return engine.add_note(state, text), f"{_NOTE}{len(state.notes) + 1}"
 
     def _act_on_question(
         self, state: CallState, kind: ActionKind, question_id: str, value: str | None
@@ -379,7 +385,13 @@ _SUMMARY_FIELDS: dict[str, set[str]] = {
 }
 
 
+_NOTE = "nota."
+
+
 def _summary(state: CallState, target: str) -> str | None:
+    if target.startswith(_NOTE):
+        n = int(target.removeprefix(_NOTE))
+        return json.dumps(state.notes[n - 1], ensure_ascii=False) if n <= len(state.notes) else None
     for aviso in state.avisos:
         if aviso.id == target:
             return _aviso_summary(state, aviso)

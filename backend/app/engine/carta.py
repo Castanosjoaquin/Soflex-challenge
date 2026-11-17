@@ -62,6 +62,12 @@ def build(state: CallState) -> Carta:
             for i in state.instructions
             if i.read
         ],
+        notes=[
+            CartaDato(
+                key=f"nota.{n}", label="Nota del operador", value=text, origin=CartaOrigin.OPERADOR
+            )
+            for n, text in enumerate(state.notes, start=1)
+        ],
         missing=_missing(state),
     )
 
@@ -94,7 +100,14 @@ def _shown(dato: CartaDato) -> str:
 
 
 def _lines(carta: Carta) -> list[CartaDato]:
-    return [*carta.where, *carta.what, *carta.priority, *carta.at_risk, *carta.instructions]
+    return [
+        *carta.where,
+        *carta.what,
+        *carta.priority,
+        *carta.at_risk,
+        *carta.instructions,
+        *carta.notes,
+    ]
 
 
 def _quote(evidence: list[Evidence]) -> str | None:

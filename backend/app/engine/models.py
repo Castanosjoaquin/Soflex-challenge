@@ -240,6 +240,8 @@ class Carta(BaseModel):
     priority: list[CartaDato] = Field(default_factory=list)
     at_risk: list[CartaDato] = Field(default_factory=list)
     instructions: list[CartaDato] = Field(default_factory=list)
+    # The operador's own notas, in the order written: the only free text in the Carta.
+    notes: list[CartaDato] = Field(default_factory=list)
     missing: list[MissingQuestion] = Field(default_factory=list)
 
 
@@ -320,6 +322,8 @@ class CallState(BaseModel):
     critical_instruction: InstructionItem | None = None
     # Instrucciones the operador already read aloud (ids).
     read_instructions: list[str] = Field(default_factory=list)
+    # Notas the operador wrote (the only free-text box), in order; they go to the Carta.
+    notes: list[str] = Field(default_factory=list)
     stages: list[Stage]
     # Etapa ④: the Carta en vivo, whether it can be derivada now, and what was sent after.
     carta: Carta = Field(default_factory=Carta)
