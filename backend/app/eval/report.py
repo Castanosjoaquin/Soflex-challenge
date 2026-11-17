@@ -154,6 +154,7 @@ def render(results: dict[LLMProviderName, RunResult | None]) -> str:
             continue
         if result.model:
             lines += [f"Modelo: `{result.model}`.", ""]
+        lines += _fallback_warning(result.outcomes)
         lines += _by_kind(result.outcomes)
 
     lines += ["", *_HOW]
@@ -189,6 +190,19 @@ def _by_kind(outcomes: Sequence[Outcome]) -> list[str]:
         cells = [_count(m(subset)) for m in metrics]
         lines.append(f"| {variant} | {applied} | " + " | ".join(cells) + " |")
     return lines
+
+
+def _fallback_warning(outcomes: Sequence[Outcome]) -> list[str]:
+    """A run where the IA fell back measures the rules: say so before anyone reads it as IA."""
+    fallbacks = sum(o.fallbacks for o in outcomes)
+    if not fallbacks:
+        return []
+    lecturas = sum(o.lecturas for o in outcomes)
+    return [
+        f"**Ojo:** {fallbacks} de {lecturas} lecturas cayeron a reglas (timeout, error del "
+        "proveedor o respuesta inválida): en esas llamadas los números son los de las reglas.",
+        "",
+    ]
 
 
 def _count(r: Rate) -> str:
