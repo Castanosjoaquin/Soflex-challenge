@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import type { Catalog, Confidence, Evidence, Incident, Priority, PriorityAssessment } from '../api'
+import type {
+  Catalog,
+  Confidence,
+  Evidence,
+  Incident,
+  Priority,
+  PriorityAssessment,
+  Source,
+  TypeDispute,
+} from '../api'
+import { DISPUTE_KEYS } from '../questions'
 
 const CONFIDENCE_TEXT: Record<Confidence, string> = {
   confirmado: 'Confirmado',
@@ -9,14 +19,18 @@ const CONFIDENCE_TEXT: Record<Confidence, string> = {
 
 const LEVELS: Priority[] = ['P1', 'P2', 'P3', 'P4']
 
+const SOURCE_TEXT: Record<Source, string> = { reglas: 'reglas', ia: 'IA', operador: 'operador' }
+
 interface Props {
   incident: Incident | null
+  dispute: TypeDispute | null
   priority: PriorityAssessment | null
   catalog: Catalog | null
   busy: boolean
   editingPriority: boolean
   onEditPriority: (editing: boolean) => void
   onConfirmType: (value?: string) => void
+  onChooseType: (category: string) => void
   onSetPriority: (level: Priority, reason: string) => void
   onFocus: (evidence: Evidence[]) => void
 }
@@ -31,12 +45,14 @@ function labelOf(list: Named[] | undefined, id: string | null): string {
 /** ② ¿Qué pasa?: tipo, subtipo, prioridad and its porqué, each lighting its phrase on hover. */
 export function IncidentCard({
   incident,
+  dispute,
   priority,
   catalog,
   busy,
   editingPriority,
   onEditPriority,
   onConfirmType,
+  onChooseType,
   onSetPriority,
   onFocus,
 }: Props) {
@@ -67,6 +83,34 @@ export function IncidentCard({
           </span>
         )}
       </header>
+
+      {dispute && (
+        <div className="dispute" role="group" aria-label="Tipo en disputa">
+          <p>
+            <strong>
+              ¿{dispute.options.map((o) => labelOf(catalog?.types, o.category)).join(' o ')}?
+            </strong>{' '}
+            <span className="muted">Los lectores no coinciden; mientras, rige la más urgente.</span>
+          </p>
+          <div className="actions">
+            {dispute.options.map((o, i) => (
+              <button
+                key={o.category}
+                type="button"
+                className={o.category === incident?.category ? '' : 'secondary'}
+                disabled={busy}
+                onClick={() => onChooseType(o.category)}
+                {...lit(o.evidence)}
+              >
+                {labelOf(catalog?.types, o.category)}
+                {o.subtype ? ` · ${labelOf(catalog?.subtypes, o.subtype)}` : ''}
+                <span className="muted"> ({SOURCE_TEXT[o.source]})</span>{' '}
+                <kbd>{DISPUTE_KEYS[i]?.toUpperCase()}</kbd>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {incident && (
         <>

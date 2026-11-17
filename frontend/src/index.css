@@ -943,3 +943,30 @@ button.primary {
 a.badge {
   text-decoration: none;
 }
+
+/* Modo: reglas is the fallback when the IA failed, shown as a discreet warning. */
+.badge.mode-reglas {
+  color: var(--p2);
+  border-color: currentColor;
+}
+
+.badge.mode-ia {
+  color: var(--accent);
+  border-color: currentColor;
+}
+
+/* Tipo en disputa: the two lectores point to different tipos. */
+.dispute {
+  border: 1px dashed var(--p2);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dispute p {
+  margin: 0 0 0.5rem;
+}
+
+.question-answer.alternative {
+  color: var(--p2);
+}
