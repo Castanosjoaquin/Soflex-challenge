@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import time
 import uuid
 from collections.abc import Callable
@@ -17,18 +18,23 @@ from app.catalog.models import Category, Priority
 from app.catalog.signals import SignalAnswer
 from app.dispatch.store import DispatchStore
 from app.engine import carta as cartas
+from app.engine import merge
 from app.engine import state as engine
 from app.engine.contradictions import Resolution, UnknownAvisoError
 from app.engine.models import Ampliacion, Aviso, CallState, Carta, Line, Mode
+from app.readers.ia.reader import IAReader, IAReading
 from app.readers.rules.location import read_turn_location
 from app.readers.rules.reader import RulesReader
 from app.transcript.models import Speaker, Turn
+
+logger = logging.getLogger(__name__)
 
 
 class ActionKind(StrEnum):
     CONFIRM_LOCATION = "confirm_location"
     CORRECT_LOCATION = "correct_location"
     CONFIRM_TYPE = "confirm_type"
+    CHOOSE_TYPE = "choose_type"
     SET_PRIORITY = "set_priority"
     CONFIRM_PREMARK = "confirm_premark"
     ANSWER_QUESTION = "answer_question"
@@ -61,6 +67,8 @@ class _Call:
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     # The Carta as the despachador has it: as derivada plus every ampliación sent.
     sent: Carta | None = None
+    # What the Lector con IA did in each lectura (attempts, errors, fallback), for the trazas.
+    ia_readings: list[IAReading] = field(default_factory=list)
 
 
 class CallService:
@@ -71,8 +79,11 @@ class CallService:
         dispatch: DispatchStore,
         mode: Mode,
         clock: Callable[[], float] = time.monotonic,
+        ia_reader: IAReader | None = None,
     ) -> None:
+        """With an `ia_reader`, every lectura runs both lectores; without it, only the rules."""
         self._reader = reader
+        self._ia_reader = ia_reader
         self._log = log
         self._dispatch = dispatch
         self._mode = mode
@@ -94,8 +105,16 @@ class CallService:
             at_ms = round((self._clock() - call.opened_at) * 1000)
             turn = Turn(index=len(call.state.turns), at_ms=at_ms, speaker=speaker, text=text)
             state = engine.add_turn(call.state, turn)
-            reading = self._reader.read(state.turns, state.line)
-            call.state = engine.apply_reading(state, reading)
+            rules = self._reader.read(state.turns, state.line)
+            ia, mode = None, self._mode
+            if self._ia_reader is not None:
+                ia_reading = await self._ia_reader.read(state.turns, state.line)
+                call.ia_readings.append(ia_reading)
+                if ia_reading.fell_back:
+                    logger.warning("Lector con IA: %s (%s)", ia_reading.status, ia_reading.error)
+                ia, mode = ia_reading.output, Mode.REGLAS if ia_reading.fell_back else Mode.IA
+            state = state.model_copy(update={"mode": mode})
+            call.state = merge.apply_readings(state, rules, ia)
             return call.state
 
     async def act(
@@ -204,6 +223,14 @@ class CallService:
                 if category is None and state.incident is None:
                     raise InvalidActionError("Todavía no hay un tipo para confirmar")
                 return engine.confirm_type(state, category, subtype), "incident"
+            case ActionKind.CHOOSE_TYPE:
+                category, _ = _parse_type(value)
+                if category is None:
+                    raise InvalidActionValueError("Falta el tipo elegido")
+                try:
+                    return merge.choose_type(state, category), "incident"
+                except merge.NoTypeDisputeError:
+                    raise InvalidActionError(f"{category} no es un tipo en disputa") from None
             case ActionKind.SET_PRIORITY:
                 if not (reason or "").strip():
                     raise InvalidActionValueError("Cambiar la prioridad requiere un motivo")
