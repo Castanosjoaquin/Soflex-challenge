@@ -1,7 +1,7 @@
 import pytest
 
 from app.catalog.loader import parse_dataset
-from app.catalog.streets import MatchKind, match_street
+from app.catalog.streets import MatchKind, match_street, street_names_in
 from tests.conftest import DATASET
 
 
@@ -142,3 +142,9 @@ def test_an_old_name_reused_elsewhere_is_not_a_stretch() -> None:
     match = match_street("San Juan")
     assert match is not None
     assert [s.name for s in match.candidates] == ["AV. SAN JUAN"]
+
+
+def test_names_in_a_text_without_capitals() -> None:
+    """Exact names and aliases, word for word; connectors or numbers alone are not a name."""
+    text = "en un bodegón de av. san juan 2800, de la esquina, calle 5"
+    assert [text[a:b] for a, b in street_names_in(text)] == ["av. san juan", "esquina"]

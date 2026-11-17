@@ -12,6 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
+from itertools import pairwise
 from pathlib import Path
 
 from rapidfuzz import fuzz, process
@@ -145,6 +146,11 @@ def _short_forms(short: str | None) -> list[str]:
 
 _MIN_PREFIX = 4
 
+_WORD = re.compile(r"[0-9A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+")
+# Between the words of a name: spaces, or the dot of an abbreviation ("av. corrientes").
+_NAME_GAP = re.compile(r"\.?\s+")
+_CONNECTORS = frozenset({"de", "del", "la", "las", "los", "el", "y", "e"})
+
 
 class StreetList:
     def __init__(self, streets: list[Street]) -> None:
@@ -159,6 +165,7 @@ class StreetList:
             for key, found in index.items():
                 self._by_sound[_sound(key)].update(found)
         self._sounds = list(self._by_sound)
+        self._longest = max((len(k.split()) for k in (*self._exact, *self._alias)), default=0)
 
     @classmethod
     def load(cls, path: Path) -> "StreetList":
@@ -200,6 +207,36 @@ class StreetList:
                 ranked = sorted(set(found), key=lambda s: -s.length_m)
                 return StreetMatch(kind=kind, candidates=tuple(ranked))
         return None
+
+    def names_in(self, text: str) -> list[tuple[int, int]]:
+        """Where ``text`` says an official name or alias, word for word: the spans, longest first.
+
+        It is how a relato written without capitals ("en av. san juan 2800") shows its street
+        names. Only exact names and aliases: a bare word that merely sounds like a street is too
+        loose. A run of words made only of connectors or numbers ("de la", "5") is not a name.
+        """
+        words = list(_WORD.finditer(text))
+        spans: list[tuple[int, int]] = []
+        i = 0
+        while i < len(words):
+            for n in range(min(self._longest, len(words) - i), 0, -1):
+                run = words[i : i + n]
+                if self._is_name(text, run):
+                    spans.append((run[0].start(), run[-1].end()))
+                    i += n
+                    break
+            else:
+                i += 1
+        return spans
+
+    def _is_name(self, text: str, run: list[re.Match[str]]) -> bool:
+        joined = all(_NAME_GAP.fullmatch(text, a.end(), b.start()) for a, b in pairwise(run))
+        if not joined:
+            return False
+        key = _key(" ".join(w.group() for w in run))
+        if not key or all(w in _CONNECTORS or w.isdigit() for w in key.split()):
+            return False
+        return key in self._exact or key in self._alias
 
     def _renamed_stretches(self, key: str, streets: list[Street]) -> list[Street]:
         """Stretches that once had this name and continue its numbering.
@@ -255,3 +292,8 @@ def official_streets() -> StreetList:
 def match_street(said: str, altura: int | None = None) -> StreetMatch | None:
     """The official street the llamante meant, or None when nothing in the list is close."""
     return official_streets().match(said, altura)
+
+
+def street_names_in(text: str) -> list[tuple[int, int]]:
+    """Where ``text`` says an official street name or alias, word for word."""
+    return official_streets().names_in(text)

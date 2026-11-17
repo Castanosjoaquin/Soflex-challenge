@@ -1,6 +1,7 @@
 import pytest
 
 from app.catalog.loader import parse_dataset
+from app.catalog.streets import match_street
 from app.config import REPO_ROOT
 from app.readers.models import LocationReading, NumberKind
 from app.readers.rules.location import read_location
@@ -215,3 +216,72 @@ def test_numbers_that_are_not_an_altura_change_nothing(later: str) -> None:
 
 def test_altura_alone_without_a_street_before_is_not_a_location() -> None:
     assert read_location(_llamante("Hay humo", "es en el 1450")) is None
+
+
+# --- Relatos without capitals (ASR) --------------------------------------------------------------
+
+
+def _lowercase(raw: str) -> list[Turn]:
+    return [t.model_copy(update={"text": t.text.lower()}) for t in _turns(raw)]
+
+
+def _official(reading: LocationReading | None) -> tuple[str | None, int | None]:
+    if reading is None or reading.street is None:
+        return None, None
+    altura = reading.number.value if reading.number else None
+    found = match_street(reading.street, altura)
+    return (found.official if found else reading.street), altura
+
+
+@pytest.mark.parametrize("case", sorted(CASES))
+def test_a_relato_without_capitals_reads_the_same_street(case: str) -> None:
+    """Variante minusculas: an ASR seldom writes capitals, and the street is still there."""
+    cased = read_location(_turns(CASES[case].transcript))
+    lowercase = read_location(_lowercase(CASES[case].transcript))
+    assert _official(lowercase) == _official(cased)
+
+
+def test_a_lowercase_street_keeps_its_evidence_on_what_was_said() -> None:
+    text = "hola, en un bodegón de av. san juan 2800 en san cristóbal. un hombre convulsiona"
+    reading = read_location(_llamante(text))
+    assert reading is not None
+    assert reading.street == "Av. San Juan"
+    assert reading.said == "av. san juan 2800"
+    (ev,) = reading.evidence
+    assert text[ev.start : ev.end] == ev.quote
+
+
+@pytest.mark.parametrize(
+    ("said", "street", "altura"),
+    [
+        ("es por la calle defensa, vengan", "Defensa", None),
+        ("sobre la av. rivadavia, vengan", "Av. Rivadavia", None),
+        ("es en la rivadavia al 6300", "Rivadavia", 6300),
+        ("estoy en lavalle y florida", "Lavalle", None),
+        ("choque en la avenida general paz y constituyentes", "Avenida General Paz", None),
+    ],
+)
+def test_lowercase_streets_by_the_official_list(said: str, street: str, altura: int | None) -> None:
+    reading = read_location(_llamante(said))
+    assert reading is not None
+    assert reading.street == street
+    assert (reading.number.value if reading.number else None) == altura
+
+
+@pytest.mark.parametrize(
+    "said",
+    [
+        "estoy en la esquina, vengan rápido",
+        "dejé las llaves sobre la mesa y salí corriendo",
+        "sí, juan y maría están adentro todavía",
+        "se prendió fuego la campana de la cocina",
+        "se escapó por la ventana del fondo",
+        "quedó cruzado en el carril central a la altura de la bajada",
+        "tiene 80 años y vive en el tercer piso",
+        "en serio, vengan ya, está en el piso",
+        "vive en el barrio norte, en la casa de mi abuela",
+        "llamo por mi vecina rosa, se cayó en el baño",
+    ],
+)
+def test_lowercase_words_that_are_also_street_names_are_not_a_ubicacion(said: str) -> None:
+    assert read_location(_llamante(said)) is None

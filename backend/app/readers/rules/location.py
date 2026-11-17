@@ -19,16 +19,21 @@ replace the ubicación said before. The layers run on the normalized turno (SPEC
 mil quinientos cuarenta" reads as ``Corrientes 1540``, "en Corrientes… no, perdón, en Montevideo"
 as Montevideo), and every evidence is taken back to the **original** turno text.
 Street names are kept as said: the engine takes them to their official name.
+
+The layers find a name by its capitals. A turno without capitals of its own (most ASR output:
+"en av. san juan 2800") first gets the official street names capitalized, by the official list
+and never by sound, and there "la" before a bare name is an article ("por la ventana").
 """
 
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from app.catalog.streets import MatchKind, match_street
+from app.catalog.streets import MatchKind, match_street, street_names_in
 from app.readers.models import Evidence, LocationReading, NumberKind, StreetNumber
 from app.readers.rules.text import NormalizedTurn
 from app.transcript.models import Speaker, Turn
+from app.transcript.text import fold
 
 _UPPER = "A-ZÁÉÍÓÚÑ"
 _LETTER = "A-Za-zÁÉÍÓÚÑáéíóúñü"
@@ -79,6 +84,11 @@ _ALTURA_ALONE = re.compile(
 )
 
 _STREET_ALONE = re.compile(rf"\b(?:en|sobre|por)\s+(?:la\s+)?(?:calle\s+)?(?P<street>{_NAME})")
+# Without capitals, "la" before a bare word is an article ("por la ventana", and there is a street
+# Ventana): it leads to a street only when "calle" or "Av." says so ("sobre la av. rivadavia").
+_STREET_ALONE_UNCASED = re.compile(
+    rf"\b(?:en|sobre|por)\s+(?:(?:la\s+)?calle\s+|la\s+(?=Av\.|Avda|Avenida))?(?P<street>{_NAME})"
+)
 
 # Capitalized words that open a sentence but are never part of a street name.
 _LEADING_NOISE = frozenset(
@@ -265,7 +275,15 @@ def _read_landmark(turn: Turn) -> LocationReading | None:
 
 
 def _read_street_alone(turn: Turn) -> LocationReading | None:
-    for match in _STREET_ALONE.finditer(turn.text):
+    return _street_alone(turn, _STREET_ALONE)
+
+
+def _read_street_alone_uncased(turn: Turn) -> LocationReading | None:
+    return _street_alone(turn, _STREET_ALONE_UNCASED)
+
+
+def _street_alone(turn: Turn, pattern: re.Pattern[str]) -> LocationReading | None:
+    for match in pattern.finditer(turn.text):
         street = match.group("street")
         found = match_street(street)
         if found is None or found.kind is MatchKind.FUZZY:
@@ -275,22 +293,83 @@ def _read_street_alone(turn: Turn) -> LocationReading | None:
     return None
 
 
-_LAYERS = (
+_Layer = Callable[[Turn], LocationReading | None]
+_LAYERS: tuple[_Layer, ...] = (
     _read_street_number,
     _read_intersection,
     _read_street_reference,
     _read_landmark,
     _read_street_alone,
 )
+_LAYERS_UNCASED: tuple[_Layer, ...] = (*_LAYERS[:-1], _read_street_alone_uncased)
 
 
 def read_turn_location(turn: Turn) -> LocationReading | None:
     """The best ubicación said in one turno, by layer order, with evidence on the original text."""
     normalized = NormalizedTurn.of(turn)
-    for layer in _LAYERS:
-        if reading := layer(normalized.turn):
+    text, layers = normalized.turn.text, _LAYERS
+    if is_uncased(text):
+        text, layers = restore_case(text), _LAYERS_UNCASED
+    cased = normalized.turn.model_copy(update={"text": text})
+    for layer in layers:
+        if reading := layer(cased):
             return _on_original(reading, normalized)
     return None
+
+
+# Words the layers read as structure, not as a name, even if a street is called so ("Esquina").
+_STRUCTURE = frozenset(
+    {
+        "altura",
+        "bajada",
+        "calle",
+        "casi",
+        "entre",
+        "esquina",
+        "estacion",
+        "parque",
+        "plaza",
+        "puente",
+        "rotonda",
+        "subestacion",
+        "viaducto",
+    }
+)
+# Lowercase within a name, as the layers read them: "27 de Febrero", "calle Defensa".
+_LOWERCASE_IN_NAME = frozenset({"de", "del", "la", "las", "los", "y", "e", "calle"})
+_CASED = re.compile(rf"[{_UPPER}]")
+
+
+def is_uncased(text: str) -> bool:
+    """Written without capitals of its own, beyond the ones that open a sentence (most ASR).
+
+    In a turno with capitals, a lowercase word is a word, even if a street is called so ("se
+    prendió fuego la campana": there is a street Campana).
+    """
+    return all(_opens_sentence(text, m.start()) for m in _CASED.finditer(text))
+
+
+def restore_case(text: str) -> str:
+    """The text with its official street names capitalized, for a turno without capitals.
+
+    The layers find a name by its capitals, and an ASR seldom writes them: "en av. san juan
+    2800" reads as "en Av. San Juan 2800". Only the official list decides what is a name (exact
+    or alias, never by sound). Same length, so every offset stays valid.
+    """
+    chars = list(text)
+    for start, end in street_names_in(text):
+        words = list(re.finditer(r"\S+", text[start:end]))
+        if len(words) == 1 and fold(words[0].group()).strip(".") in _STRUCTURE:
+            continue
+        for word in words:
+            if word.group().lower() not in _LOWERCASE_IN_NAME:
+                chars[start + word.start()] = chars[start + word.start()].upper()
+    return "".join(chars)
+
+
+def _opens_sentence(text: str, pos: int) -> bool:
+    head = text[:pos].rstrip()
+    return not head or head[-1] in ".!?¡¿:…"
 
 
 def _on_original(reading: LocationReading, normalized: NormalizedTurn) -> LocationReading:
