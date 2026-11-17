@@ -140,6 +140,20 @@ class ChecklistItem(BaseModel):
     source: Source | None = None
 
 
+class InstructionItem(BaseModel):
+    """One instrucción of the protocol to read aloud in this llamada (SPEC §5.8).
+
+    `critical` is set only on the active instrucción crítica: there is at most one.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    instruction_id: str
+    text: str
+    critical: bool = False
+    read: bool = False
+
+
 class StageId(StrEnum):
     UBICAR = "ubicar"
     QUE_PASA = "que_pasa"
@@ -178,4 +192,9 @@ class CallState(BaseModel):
     # Preguntas the operador skipped: a pregunta clave id, or "universal".
     skipped_questions: list[str] = Field(default_factory=list)
     next_question: NextQuestion | None = None
+    # Applicable instrucciones in reading order, the active crítica first.
+    instructions: list[InstructionItem] = Field(default_factory=list)
+    critical_instruction: InstructionItem | None = None
+    # Instrucciones the operador already read aloud (ids).
+    read_instructions: list[str] = Field(default_factory=list)
     stages: list[Stage]

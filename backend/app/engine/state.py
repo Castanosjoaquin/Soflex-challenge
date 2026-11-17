@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 
 from app.catalog.incidents import SUBTYPES, Subtype
+from app.catalog.instructions import instructions_for
 from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
@@ -12,6 +13,7 @@ from app.engine.models import (
     ChecklistItem,
     Confidence,
     Incident,
+    InstructionItem,
     Line,
     Location,
     Mode,
@@ -25,7 +27,7 @@ from app.engine.models import (
     StageId,
     StageStatus,
 )
-from app.engine.priority import assess
+from app.engine.priority import assess, fired_rules
 from app.engine.verification import verify
 from app.readers.models import (
     Evidence,
@@ -52,6 +54,10 @@ class UnknownQuestionError(ValueError):
 
 class NoPremarkError(ValueError):
     """The operador confirmed a pre-marca that the relato has not produced."""
+
+
+class UnknownInstructionError(ValueError):
+    """The operador marked an instrucción that does not apply to this llamada right now."""
 
 
 UNIVERSAL = "universal"
@@ -186,6 +192,16 @@ def skip_question(state: CallState, question_id: str) -> CallState:
         return state
     skipped = [*state.skipped_questions, question_id]
     return _derive(state.model_copy(update={"skipped_questions": skipped}))
+
+
+def mark_instruction_read(state: CallState, instruction_id: str) -> CallState:
+    """The operador read an instrucción aloud. Marking it twice changes nothing."""
+    if all(i.instruction_id != instruction_id for i in state.instructions):
+        raise UnknownInstructionError(instruction_id)
+    if instruction_id in state.read_instructions:
+        return state
+    read = [*state.read_instructions, instruction_id]
+    return _derive(state.model_copy(update={"read_instructions": read}))
 
 
 def _checklist_item(state: CallState, question_id: str) -> ChecklistItem:
@@ -344,6 +360,11 @@ def _derive(state: CallState) -> CallState:
     if priority is None or priority.overridden_by_operator is None:
         priority = assess(state.incident, state.signals)
     state = state.model_copy(update={"priority": priority, "checklist": _checklist(state)})
+    instructions = _instructions(state)
+    critical = instructions[0] if instructions and instructions[0].critical else None
+    state = state.model_copy(
+        update={"instructions": instructions, "critical_instruction": critical}
+    )
     return state.model_copy(
         update={"next_question": _next_question(state), "stages": _stages(state)}
     )
@@ -411,6 +432,38 @@ def _key_question(state: CallState) -> NextQuestion | None:
         if item.status is QuestionStatus.PENDIENTE:
             return NextQuestion(id=item.question_id, text=item.text, signal_ids=[item.signal_id])
     return None
+
+
+# Instrucciones
+
+
+def _instructions(state: CallState) -> list[InstructionItem]:
+    """The instrucciones that apply now; the first crítica among them is the active one.
+
+    The crítica depends only on the señales that fire a P1 rule, not on the prioridad shown: an
+    operador who lowers the prioridad does not hide what keeps someone alive.
+    """
+    incident = state.incident
+    signals = {s.signal_id: s.value for s in state.signals}
+    fired = frozenset(r.id for r in fired_rules(state.signals) if r.level is Priority.P1)
+    applicable = instructions_for(
+        incident.category if incident else None,
+        incident.subtype if incident else None,
+        signals,
+        fired,
+    )
+    critical_id = next((i.id for i in applicable if i.critical), None)
+    # The active crítica goes first; any other crítica that applies is read as a normal one.
+    applicable.sort(key=lambda i: i.id != critical_id)
+    return [
+        InstructionItem(
+            instruction_id=i.id,
+            text=i.text,
+            critical=i.id == critical_id,
+            read=i.id in state.read_instructions,
+        )
+        for i in applicable
+    ]
 
 
 # Checklist
@@ -493,7 +546,7 @@ def _is_confirmed(dato: Location | Incident | None) -> bool:
 
 
 def _stages(state: CallState) -> list[Stage]:
-    """①, ② and ③ have a real status; the rest arrive with their tickets."""
+    """①, ②, ③ and ⑤ have a real status; ④ arrives with Derivar."""
     ubicar = StageStatus.HECHA if _is_confirmed(state.location) else StageStatus.ACTUAL
     if _is_confirmed(state.incident) and not _missing_vital_signs(state):
         que_pasa = StageStatus.HECHA
@@ -507,8 +560,23 @@ def _stages(state: CallState) -> list[Stage]:
         preguntas = StageStatus.HECHA
     else:
         preguntas = StageStatus.ACTUAL
-    status = {StageId.UBICAR: ubicar, StageId.QUE_PASA: que_pasa, StageId.PREGUNTAS: preguntas}
-    alert = {StageId.UBICAR: _llamante_spoke_without_location(state)}
+    if not state.instructions:
+        instrucciones = StageStatus.PENDIENTE
+    elif all(i.read for i in state.instructions):
+        instrucciones = StageStatus.HECHA
+    else:
+        instrucciones = StageStatus.ACTUAL
+    status = {
+        StageId.UBICAR: ubicar,
+        StageId.QUE_PASA: que_pasa,
+        StageId.PREGUNTAS: preguntas,
+        StageId.INSTRUCCIONES: instrucciones,
+    }
+    critical = state.critical_instruction
+    alert = {
+        StageId.UBICAR: _llamante_spoke_without_location(state),
+        StageId.INSTRUCCIONES: critical is not None and not critical.read,
+    }
     return [
         Stage(id=s, status=status.get(s, StageStatus.PENDIENTE), alert=alert.get(s, False))
         for s in StageId
