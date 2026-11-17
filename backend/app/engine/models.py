@@ -1,5 +1,6 @@
 """State of a llamada as the copiloto understands it. Mirrored in frontend/src/api.ts."""
 
+from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -176,6 +177,67 @@ class Stage(BaseModel):
     alert: bool = False  # the llamada already needs what this etapa lacks: shown in red
 
 
+class CartaOrigin(StrEnum):
+    """Where a dato of the Carta comes from (DESIGN §Paso 7)."""
+
+    LLAMANTE = "llamante"  # said by the llamante: it carries the phrase
+    SISTEMA = "sistema"  # normalized or calculated by the system from confirmed data
+    OPERADOR = "operador"  # loaded by the operador
+
+
+class CartaDato(BaseModel):
+    """One line of the Carta. `key` is stable across versions: ampliaciones diff by it."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    value: str
+    origin: CartaOrigin
+    quote: str | None = None
+
+
+class MissingQuestion(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    text: str
+    skipped: bool = False
+
+
+class Carta(BaseModel):
+    """Carta de Llamada: a template over confirmed data only. It carries no recursos."""
+
+    model_config = ConfigDict(frozen=True)
+
+    where: list[CartaDato] = Field(default_factory=list)
+    what: list[CartaDato] = Field(default_factory=list)
+    priority: list[CartaDato] = Field(default_factory=list)
+    at_risk: list[CartaDato] = Field(default_factory=list)
+    instructions: list[CartaDato] = Field(default_factory=list)
+    missing: list[MissingQuestion] = Field(default_factory=list)
+
+
+class CartaChange(BaseModel):
+    """What an ampliación changed in the Carta: the line, its value before and after."""
+
+    model_config = ConfigDict(frozen=True)
+
+    key: str
+    label: str
+    before: str | None = None
+    after: str | None = None
+
+
+class Ampliacion(BaseModel):
+    """A dato confirmed after derivar, added to the Carta already derivada."""
+
+    model_config = ConfigDict(frozen=True)
+
+    at: datetime
+    action: str
+    changes: list[CartaChange]
+
+
 class CallState(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -198,3 +260,8 @@ class CallState(BaseModel):
     # Instrucciones the operador already read aloud (ids).
     read_instructions: list[str] = Field(default_factory=list)
     stages: list[Stage]
+    # Etapa ④: the Carta en vivo, whether it can be derivada now, and what was sent after.
+    carta: Carta = Field(default_factory=Carta)
+    can_derive: bool = False
+    derived: bool = False
+    ampliaciones: list[Ampliacion] = Field(default_factory=list)

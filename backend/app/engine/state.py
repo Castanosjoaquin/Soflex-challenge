@@ -8,7 +8,9 @@ from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
 from app.catalog.streets import MatchKind, StreetMatch, bare_name, match_street
+from app.engine import carta
 from app.engine.models import (
+    Ampliacion,
     CallState,
     ChecklistItem,
     Confidence,
@@ -58,6 +60,14 @@ class NoPremarkError(ValueError):
 
 class UnknownInstructionError(ValueError):
     """The operador marked an instrucción that does not apply to this llamada right now."""
+
+
+class NotDerivableError(ValueError):
+    """Derivar needs the ubicación and the tipo confirmed (SPEC §5.9)."""
+
+
+class AlreadyDerivedError(ValueError):
+    """The Carta was already derivada: what follows goes as ampliaciones."""
 
 
 UNIVERSAL = "universal"
@@ -202,6 +212,19 @@ def mark_instruction_read(state: CallState, instruction_id: str) -> CallState:
         return state
     read = [*state.read_instructions, instruction_id]
     return _derive(state.model_copy(update={"read_instructions": read}))
+
+
+def derive(state: CallState) -> CallState:
+    """The operador derives the Carta to the despachador. Etapa ④ is done."""
+    if state.derived:
+        raise AlreadyDerivedError
+    if not state.can_derive:
+        raise NotDerivableError
+    return _derive(state.model_copy(update={"derived": True}))
+
+
+def add_ampliacion(state: CallState, ampliacion: Ampliacion) -> CallState:
+    return state.model_copy(update={"ampliaciones": [*state.ampliaciones, ampliacion]})
 
 
 def _checklist_item(state: CallState, question_id: str) -> ChecklistItem:
@@ -365,9 +388,13 @@ def _derive(state: CallState) -> CallState:
     state = state.model_copy(
         update={"instructions": instructions, "critical_instruction": critical}
     )
-    return state.model_copy(
-        update={"next_question": _next_question(state), "stages": _stages(state)}
+    state = state.model_copy(
+        update={
+            "next_question": _next_question(state),
+            "can_derive": _is_confirmed(state.location) and _is_confirmed(state.incident),
+        }
     )
+    return state.model_copy(update={"stages": _stages(state), "carta": carta.build(state)})
 
 
 def _known(state: CallState, signal_id: SignalId) -> SignalAnswer | None:
@@ -551,7 +578,7 @@ def _is_confirmed(dato: Location | Incident | None) -> bool:
 
 
 def _stages(state: CallState) -> list[Stage]:
-    """①, ②, ③ and ⑤ have a real status; ④ arrives with Derivar."""
+    """Each etapa from the data. ④ is actual once it can be derivada, and an alert in a P1."""
     ubicar = StageStatus.HECHA if _is_confirmed(state.location) else StageStatus.ACTUAL
     if _is_confirmed(state.incident) and not _missing_vital_signs(state):
         que_pasa = StageStatus.HECHA
@@ -571,8 +598,15 @@ def _stages(state: CallState) -> list[Stage]:
         instrucciones = StageStatus.HECHA
     else:
         instrucciones = StageStatus.ACTUAL
+    if state.derived:
+        derivar = StageStatus.HECHA
+    elif state.can_derive:
+        derivar = StageStatus.ACTUAL
+    else:
+        derivar = StageStatus.PENDIENTE
     status = {
         StageId.UBICAR: ubicar,
+        StageId.DERIVAR: derivar,
         StageId.QUE_PASA: que_pasa,
         StageId.PREGUNTAS: preguntas,
         StageId.INSTRUCCIONES: instrucciones,
@@ -581,6 +615,11 @@ def _stages(state: CallState) -> list[Stage]:
     alert = {
         StageId.UBICAR: _llamante_spoke_without_location(state),
         StageId.INSTRUCCIONES: critical is not None and not critical.read,
+        # "P1 · derivá ahora y seguí preguntando": the rest of the interrogatorio can wait.
+        StageId.DERIVAR: state.can_derive
+        and not state.derived
+        and state.priority is not None
+        and state.priority.level is Priority.P1,
     }
     return [
         Stage(id=s, status=status.get(s, StageStatus.PENDIENTE), alert=alert.get(s, False))
