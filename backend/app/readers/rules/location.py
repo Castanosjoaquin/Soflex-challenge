@@ -7,6 +7,8 @@ Layers, in order of preference within a turno:
 2. intersection: ``(esquina de) X y Y``.
 3. street + reference: ``Av. Lugones altura Parque Norte``.
 4. landmark alone: ``Parque``, ``Plaza``, ``estación``, ``puente``, ``viaducto``, ``bajada``…
+5. street alone, without altura: ``en Corrientes``, ``sobre la Av. Rivadavia``, only when the name
+   is an official street by name or alias (not by sound: too loose for a bare word).
 
 The last llamante turno that mentions a ubicación wins (autocorrección across turnos), as long as
 its street is in the official list: "Sí, Juan y María están adentro" is not a corner and does not
@@ -18,7 +20,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.catalog.streets import match_street
+from app.catalog.streets import MatchKind, match_street
 from app.readers.models import Evidence, LocationReading, NumberKind, StreetNumber
 from app.transcript.models import Speaker, Turn
 
@@ -61,6 +63,8 @@ _STREET_REFERENCE = re.compile(
     rf"(?P<street>{_NAME})(?:,[^.,]{{1,40}})?,?\s+(?:a\s+la\s+)?altura\s+(?:de\s+)?(?:la\s+)?"
     rf"(?P<ref>{_LANDMARK.pattern}|{_NAME})"
 )
+
+_STREET_ALONE = re.compile(rf"\b(?:en|sobre|por)\s+(?:la\s+)?(?:calle\s+)?(?P<street>{_NAME})")
 
 # Capitalized words that open a sentence but are never part of a street name.
 _LEADING_NOISE = frozenset(
@@ -246,7 +250,24 @@ def _read_landmark(turn: Turn) -> LocationReading | None:
     )
 
 
-_LAYERS = (_read_street_number, _read_intersection, _read_street_reference, _read_landmark)
+def _read_street_alone(turn: Turn) -> LocationReading | None:
+    for match in _STREET_ALONE.finditer(turn.text):
+        street = match.group("street")
+        found = match_street(street)
+        if found is None or found.kind is MatchKind.FUZZY:
+            continue
+        main = _evidence(turn, match.start("street"), match.end("street"))
+        return LocationReading(said=main.quote, evidence=[main], street=street)
+    return None
+
+
+_LAYERS = (
+    _read_street_number,
+    _read_intersection,
+    _read_street_reference,
+    _read_landmark,
+    _read_street_alone,
+)
 
 
 def read_turn_location(turn: Turn) -> LocationReading | None:
