@@ -51,11 +51,13 @@ def apply_readings(state: CallState, rules: ReaderOutput, ia: ReaderOutput | Non
         if i not in disputed and (i not in by_rules or (_unknown(by_rules[i]) and not _unknown(s)))
     }
 
+    # The rules' value of a señal en desacuerdo goes in too: it is the value the señal keeps, and
+    # over a confirmed señal it raises the same aviso as with the rules alone.
     state = apply_reading(
         state,
         ReaderOutput(
             location=rules.location,
-            signals=[s for i, s in by_rules.items() if i not in disputed | ia_wins],
+            signals=[s for i, s in by_rules.items() if i not in ia_wins],
         ),
     )
     state = apply_reading(
@@ -143,7 +145,13 @@ def _with_incident(
     state: CallState, rules: IncidentReading | None, ia: IncidentReading | None
 ) -> CallState:
     if state.incident is not None and state.incident.confidence is Confidence.CONFIRMADO:
-        return state.model_copy(update={"type_dispute": None})
+        # The confirmed tipo stays; a lectura that changes it raises the aviso (contradictions).
+        state = state.model_copy(update={"type_dispute": None})
+        if rules is not None:
+            return apply_reading(state, ReaderOutput(incident=rules))
+        if ia is not None:
+            return apply_reading(state, ReaderOutput(incident=ia), Source.IA)
+        return state
     if rules is not None and ia is not None and rules.category is not ia.category:
         options = [_option(rules, Source.REGLAS), _option(ia, Source.IA)]
         incident = min(options, key=lambda o: _rank(state, o))  # ties go to the rules

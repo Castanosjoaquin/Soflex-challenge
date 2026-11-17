@@ -15,10 +15,13 @@ from app.catalog.models import Category, Priority
 from app.catalog.signals import SignalAnswer, SignalId
 from app.config import LLMProviderName, Settings
 from app.dispatch.store import DispatchStore
-from app.engine.models import CallState, Confidence, Line, Mode, Source
+from app.engine import merge
+from app.engine.models import AvisoStatus, CallState, Confidence, Line, Mode, Source
+from app.engine.state import add_turn, answer_question, confirm_type, new_call
 from app.main import _provider
+from app.readers.models import Evidence, IncidentReading, ReaderOutput, SignalReading
 from app.readers.rules.reader import RulesReader
-from app.transcript.models import Speaker
+from app.transcript.models import Speaker, Turn
 from tests.ia_fakes import SLOW, FakeEndpoint, ia_reader
 
 PIZZERIA = (
@@ -220,3 +223,65 @@ def test_instruction_inside_the_relato_changes_nothing(tmp_path: Path) -> None:
     assert state.signals == rules_only.signals
     assert state.instructions == rules_only.instructions
     assert state.type_dispute is None
+
+
+# Both lectores over confirmed data: the combination raises the same avisos as the rules alone.
+
+
+def _llamante(state: CallState, text: str) -> CallState:
+    turn = Turn(index=len(state.turns), at_ms=0, speaker=Speaker.LLAMANTE, text=text)
+    return add_turn(state, turn)
+
+
+def _ev(state: CallState, quote: str) -> Evidence:
+    for turn in state.turns:
+        if (start := turn.text.find(quote)) >= 0:
+            return Evidence(turn_index=turn.index, start=start, end=start + len(quote), quote=quote)
+    raise AssertionError(quote)
+
+
+def _tipo(state: CallState, category: Category, quote: str) -> ReaderOutput:
+    return ReaderOutput(incident=IncidentReading(category=category, evidence=[_ev(state, quote)]))
+
+
+def test_both_lectores_changing_a_confirmed_tipo_raise_the_aviso() -> None:
+    state = _llamante(new_call("c1", Line.L911, Mode.IA), "Hay humo en la cocina")
+    reading = _tipo(state, Category.INCENDIO_RESCATE, "humo")
+    state = confirm_type(merge.apply_readings(state, reading, reading))
+    state = _llamante(state, "No, es un choque")
+    reading = _tipo(state, Category.ACCIDENTE_VIAL, "un choque")
+    state = merge.apply_readings(state, reading, reading)
+    assert state.incident is not None
+    assert state.incident.category is Category.INCENDIO_RESCATE
+    assert state.incident.confidence is Confidence.CONFIRMADO
+    [aviso] = state.avisos
+    assert (aviso.target, aviso.status) == ("incident", AvisoStatus.PENDIENTE)
+
+
+def test_lectores_disagreeing_over_a_confirmed_senal_raise_the_aviso_of_the_rules() -> None:
+    state = _llamante(new_call("c1", Line.L911, Mode.IA), "Mi papá se descompuso, respira")
+    medical = _tipo(state, Category.EMERGENCIA_MEDICA, "se descompuso")
+    breathes = SignalReading(
+        signal_id=SignalId.RESPIRA, value=SignalAnswer.SI, evidence=_ev(state, "respira")
+    )
+    reading = medical.model_copy(update={"signals": [breathes]})
+    state = answer_question(
+        merge.apply_readings(state, reading, reading), "respira", SignalAnswer.SI
+    )
+    state = _llamante(state, "Ahora no respira")
+    rules = reading.model_copy(
+        update={
+            "signals": [
+                SignalReading(
+                    signal_id=SignalId.RESPIRA,
+                    value=SignalAnswer.NO,
+                    evidence=_ev(state, "no respira"),
+                )
+            ]
+        }
+    )
+    state = merge.apply_readings(state, rules, reading)
+    respira = signal(state, SignalId.RESPIRA)
+    assert (respira.value, respira.confidence) == (SignalAnswer.SI, Confidence.CONFIRMADO)
+    [aviso] = state.avisos
+    assert aviso.text == "Antes dijo «Respira: sí», ahora dice «Respira: no»"
