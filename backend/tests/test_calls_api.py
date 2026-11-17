@@ -255,3 +255,29 @@ def test_catalog_lists_signals_types_and_subtypes(client: TestClient) -> None:
     assert len(catalog["types"]) == 6
     assert any(s["id"] == "incendio_comercio" for s in catalog["subtypes"])
     assert catalog["priority_rules"][0]["level"] == "P1"
+
+
+def test_case_001_reads_the_instrucciones_into_the_action_log(client: TestClient) -> None:
+    state = _replay(client, CASE_001)
+    call_id = state["call_id"]
+    critical = state["critical_instruction"]
+    assert critical["text"] == "No vuelva a entrar al local por ningún motivo."
+    assert state["instructions"][0] == critical
+    assert _stage(state, "instrucciones") == "actual"
+    for item in state["instructions"]:
+        state = _act(
+            client, call_id, kind="mark_instruction_read", target=item["instruction_id"]
+        ).json()
+    assert all(i["read"] for i in state["instructions"])
+    assert _stage(state, "instrucciones") == "hecha"
+    records = _log(client).for_call(call_id)
+    assert [r.target for r in records] == [i["instruction_id"] for i in state["instructions"]]
+    assert records[0].before == '{"read":false}' and records[0].after == '{"read":true}'
+
+
+def test_mark_instruction_read_checks_its_target(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    assert _act(client, call_id, kind="mark_instruction_read").status_code == 422
+    missing = _act(client, call_id, kind="mark_instruction_read", target="no_agua_electrico")
+    assert missing.status_code == 409
+    assert _log(client).for_call(call_id) == []

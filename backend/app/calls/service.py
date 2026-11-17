@@ -30,6 +30,7 @@ class ActionKind(StrEnum):
     CONFIRM_PREMARK = "confirm_premark"
     ANSWER_QUESTION = "answer_question"
     SKIP_QUESTION = "skip_question"
+    MARK_INSTRUCTION_READ = "mark_instruction_read"
 
 
 class CallNotFoundError(LookupError):
@@ -141,6 +142,14 @@ class CallService:
             case ActionKind.CONFIRM_PREMARK | ActionKind.ANSWER_QUESTION | ActionKind.SKIP_QUESTION:
                 question_id = _question_target(target)
                 return self._act_on_question(state, kind, question_id, value), question_id
+            case ActionKind.MARK_INSTRUCTION_READ:
+                instruction_id = _instruction_target(target)
+                try:
+                    return engine.mark_instruction_read(state, instruction_id), instruction_id
+                except engine.UnknownInstructionError:
+                    raise InvalidActionError(
+                        f"La instrucción {instruction_id!r} no corresponde a esta llamada"
+                    ) from None
 
     def _act_on_question(
         self, state: CallState, kind: ActionKind, question_id: str, value: str | None
@@ -196,6 +205,12 @@ def _question_target(target: str | None) -> str:
     return (target or "").strip()
 
 
+def _instruction_target(target: str | None) -> str:
+    if not (target or "").strip():
+        raise InvalidActionValueError("Falta la instrucción (target)")
+    return (target or "").strip()
+
+
 def _parse_answer(value: str | None) -> SignalAnswer:
     try:
         return SignalAnswer(value or "")
@@ -211,6 +226,9 @@ _SUMMARY_FIELDS: dict[str, set[str]] = {
 
 
 def _summary(state: CallState, target: str) -> str | None:
+    for item in state.instructions:
+        if item.instruction_id == target:
+            return item.model_dump_json(include={"read"})
     if target not in _SUMMARY_FIELDS:
         return _question_summary(state, target)
     dato = getattr(state, target)
