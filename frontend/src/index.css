@@ -10,7 +10,12 @@
   --p3: #f5d90a;
   --p4: #52c41a;
   color-scheme: dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   color: var(--text);
   background: var(--bg);
 }
@@ -84,12 +89,47 @@ h2 {
   padding: 1rem;
 }
 
+.samples {
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.samples h2 + * {
+  margin-bottom: 1rem;
+}
+
 .samples ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: calc(100vh - 140px);
-  overflow-y: auto;
+}
+
+.paste textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.paste-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.paste-actions select {
+  flex: 1;
+}
+
+.samples .paste-actions button {
+  width: auto;
+  border-color: var(--border);
 }
 
 .samples button {
@@ -515,7 +555,7 @@ mark.focused {
 .reasons q {
   font-style: italic;
   color: var(--muted);
-  quotes: '«' '»';
+  quotes: "«" "»";
 }
 
 .override {
@@ -608,11 +648,11 @@ mark.focused {
 }
 
 .question-answer q::before {
-  content: '«';
+  content: "«";
 }
 
 .question-answer q::after {
-  content: '»';
+  content: "»";
 }
 
 .critical {
@@ -801,7 +841,7 @@ button.primary {
 .carta-origin q {
   margin-left: 0.4rem;
   font-style: italic;
-  quotes: '«' '»';
+  quotes: "«" "»";
 }
 
 .carta-unconfirmed {
