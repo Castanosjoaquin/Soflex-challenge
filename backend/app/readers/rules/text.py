@@ -1,6 +1,11 @@
-"""Text helpers for the rules: match on a folded copy, keep offsets on the original."""
+"""Text helpers for the rules: match on a normalized, folded copy; keep offsets on the original."""
 
 import re
+from dataclasses import dataclass
+
+from app.readers.models import Evidence
+from app.transcript.models import Turn
+from app.transcript.normalize import Normalized, normalize
 
 _CLAUSE_END = re.compile(r"[.,;:!?¡¿]")
 # Function words a cut phrase should not end on ("humo negro con olor a" → "humo negro con olor").
@@ -26,3 +31,30 @@ def clause_start(text: str, pos: int) -> int:
     starts = [m.end() for m in _CLAUSE_END.finditer(head)]
     starts += [m.end() for m in re.finditer(r"\bpero\b", head)]
     return max(starts, default=0)
+
+
+@dataclass(frozen=True)
+class NormalizedTurn:
+    """A llamante turno as the rules read it: normalized text, evidence on the original one."""
+
+    original: Turn
+    normalized: Normalized
+
+    @classmethod
+    def of(cls, turn: Turn) -> "NormalizedTurn":
+        return cls(turn, normalize(turn.text))
+
+    @property
+    def turn(self) -> Turn:
+        """The turno with its normalized text, for the patterns to run on."""
+        return self.original.model_copy(update={"text": self.normalized.text})
+
+    def evidence(self, start: int, end: int) -> Evidence:
+        """Evidence for a span of the normalized text, located on the original turno text."""
+        first, last = self.normalized.to_original(start, end)
+        return Evidence(
+            turn_index=self.original.index,
+            start=first,
+            end=last,
+            quote=self.original.text[first:last],
+        )

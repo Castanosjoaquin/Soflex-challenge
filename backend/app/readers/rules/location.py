@@ -12,7 +12,9 @@ Layers, in order of preference within a turno:
 
 The last llamante turno that mentions a ubicación wins (autocorrección across turnos), as long as
 its street is in the official list: "Sí, Juan y María están adentro" is not a corner and does not
-replace the ubicación said before. Every evidence carries offsets on the **original** turno text.
+replace the ubicación said before. The layers run on the normalized turno (SPEC §5.2: "Corrientes
+mil quinientos cuarenta" reads as ``Corrientes 1540``, "en Corrientes… no, perdón, en Montevideo"
+as Montevideo), and every evidence is taken back to the **original** turno text.
 Street names are kept as said: the engine takes them to their official name.
 """
 
@@ -22,6 +24,7 @@ from dataclasses import dataclass
 
 from app.catalog.streets import MatchKind, match_street
 from app.readers.models import Evidence, LocationReading, NumberKind, StreetNumber
+from app.readers.rules.text import NormalizedTurn
 from app.transcript.models import Speaker, Turn
 
 _UPPER = "A-ZÁÉÍÓÚÑ"
@@ -271,11 +274,17 @@ _LAYERS = (
 
 
 def read_turn_location(turn: Turn) -> LocationReading | None:
-    """The best ubicación said in one turno, by layer order."""
+    """The best ubicación said in one turno, by layer order, with evidence on the original text."""
+    normalized = NormalizedTurn.of(turn)
     for layer in _LAYERS:
-        if reading := layer(turn):
-            return reading
+        if reading := layer(normalized.turn):
+            return _on_original(reading, normalized)
     return None
+
+
+def _on_original(reading: LocationReading, normalized: NormalizedTurn) -> LocationReading:
+    evidence = [normalized.evidence(e.start, e.end) for e in reading.evidence]
+    return reading.model_copy(update={"evidence": evidence, "said": evidence[0].quote})
 
 
 def read_location(turns: Sequence[Turn]) -> LocationReading | None:

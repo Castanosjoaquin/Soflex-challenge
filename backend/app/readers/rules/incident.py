@@ -5,7 +5,8 @@ keywords found in the llamante's turnos; the línea adds a prior (107 → médic
 civil, 147 → servicios) that only breaks ties between tipos the relato already mentions: with no
 keyword there is no tipo. The subtipo is the best scored within the chosen tipo.
 
-Negation does not matter here: "no hay fuego" still talks about a fire.
+Negation does not matter here: "no hay fuego" still talks about a fire. Keywords run on the
+normalized turno (SPEC §5.2); their evidence is located on the original text.
 """
 
 import re
@@ -17,6 +18,7 @@ from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category
 from app.engine.models import Line
 from app.readers.models import Evidence, IncidentReading
+from app.readers.rules.text import NormalizedTurn
 from app.transcript.models import Speaker, Turn
 from app.transcript.text import fold
 
@@ -166,16 +168,11 @@ def _hits(turns: Sequence[Turn]) -> list[_Hit]:
     for turn in turns:
         if turn.speaker is not Speaker.LLAMANTE:
             continue
-        folded = fold(turn.text)
+        normalized = NormalizedTurn.of(turn)
+        folded = fold(normalized.turn.text)
         for keyword in _KEYWORDS:
             for match in keyword.regex.finditer(folded):
-                evidence = Evidence(
-                    turn_index=turn.index,
-                    start=match.start(),
-                    end=match.end(),
-                    quote=turn.text[match.start() : match.end()],
-                )
-                hits.append(_Hit(keyword, evidence))
+                hits.append(_Hit(keyword, normalized.evidence(match.start(), match.end())))
     return hits
 
 
