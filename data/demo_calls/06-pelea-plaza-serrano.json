@@ -1,0 +1,38 @@
+{
+  "id": "DEMO-06",
+  "line": "911",
+  "title": "Pelea a la salida de un bar: aparece un cuchillo",
+  "based_on": "SFX-REC-2026-015",
+  "turns": [
+    {
+      "speaker": "operador",
+      "text": "911, ¿su emergencia?",
+      "delay_ms": 600
+    },
+    {
+      "speaker": "llamante",
+      "text": "Hay una pelea de un grupo de pibes a la salida de un bar en Serrano y Honduras, en Plaza Serrano. Se están tirando sillas y botellas, rompieron la vidriera de un kiosco.",
+      "delay_ms": 2500
+    },
+    {
+      "speaker": "operador",
+      "text": "¿Hay armas? ¿Alguien tiene un cuchillo o escuchó disparos?",
+      "delay_ms": 5500
+    },
+    {
+      "speaker": "llamante",
+      "text": "Eh, este… uno sacó un cuchillo, lo estoy viendo desde la esquina. No escuché disparos.",
+      "delay_ms": 3000
+    },
+    {
+      "speaker": "operador",
+      "text": "No se acerque. ¿Hay heridos? ¿Siguen ahí?",
+      "delay_ms": 5000
+    },
+    {
+      "speaker": "llamante",
+      "text": "Hay un herido, un chico con un corte en el brazo que sangra, está sentado en el cordón. Los demás siguen ahí, están que arden, no paran de gritarse.",
+      "delay_ms": 3000
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "DEMO-01",
+  "line": "911",
+  "title": "Pizzería en llamas, el cocinero adentro",
+  "based_on": "SFX-REC-2026-001",
+  "turns": [
+    {
+      "speaker": "operador",
+      "text": "911 emergencias, ¿dónde es su urgencia?",
+      "delay_ms": 600
+    },
+    {
+      "speaker": "llamante",
+      "text": "Hola, por favor manden a los bomberos ya! En la pizzería de Av. Corrientes 1540 casi Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro al salón, la gente salió corriendo a la calle pero adentro quedó el cocinero!",
+      "delay_ms": 2500
+    },
+    {
+      "speaker": "operador",
+      "text": "No vuelva a entrar al local. ¿Hay garrafas o gas cerca del fuego?",
+      "delay_ms": 7000
+    },
+    {
+      "speaker": "llamante",
+      "text": "Sí, hay una garrafa grande al lado de la cocina.",
+      "delay_ms": 3000
+    },
+    {
+      "speaker": "operador",
+      "text": "Entendido. ¿El humo pasa a otros locales o a los pisos de arriba?",
+      "delay_ms": 6000
+    },
+    {
+      "speaker": "llamante",
+      "text": "Arriba hay departamentos, ya sale humo por la ventana del primer piso.",
+      "delay_ms": 3000
+    }
+  ]
+}
