@@ -12,6 +12,7 @@ DATA = ROOT / "data" / "dataset_challenge_soflex.csv"
 EDA_DIR = Path(__file__).resolve().parents[1]
 FIG_DIR = EDA_DIR / "figures"
 OUT_DIR = EDA_DIR / "scripts" / "_out"
+EVAL_DIR = ROOT / "data" / "eval"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
