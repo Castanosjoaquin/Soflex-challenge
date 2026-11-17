@@ -147,7 +147,7 @@ async def add_turn(call_id: str, body: TurnRequest, request: Request) -> CallSta
 @router.post("/calls/{call_id}/actions")
 async def act(call_id: str, body: ActionRequest, request: Request) -> CallState:
     try:
-        return await _calls(request).act(call_id, body.kind, body.value, body.reason)
+        return await _calls(request).act(call_id, body.kind, body.value, body.reason, body.target)
     except CallNotFoundError:
         raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
     except InvalidActionError as exc:
