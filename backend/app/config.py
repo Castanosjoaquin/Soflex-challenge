@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     llm_provider: LLMProviderName = LLMProviderName.MOCK
     llm_base_url: str = "https://api.groq.com/openai/v1"
-    llm_model: str = "llama-3.3-70b-versatile"
+    llm_model: str = "qwen/qwen3.8-27b"
     llm_api_key: SecretStr | None = None
     llm_timeout_seconds: float = 8.0
 
