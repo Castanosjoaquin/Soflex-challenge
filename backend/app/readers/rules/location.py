@@ -8,15 +8,17 @@ Layers, in order of preference within a turno:
 3. street + reference: ``Av. Lugones altura Parque Norte``.
 4. landmark alone: ``Parque``, ``Plaza``, ``estación``, ``puente``, ``viaducto``, ``bajada``…
 
-The last llamante turno that mentions a ubicación wins (autocorrección across turnos). Every
-evidence carries offsets on the **original** turno text. Street names are kept as said: matching
-them to the official street list is a separate step.
+The last llamante turno that mentions a ubicación wins (autocorrección across turnos), as long as
+its street is in the official list: "Sí, Juan y María están adentro" is not a corner and does not
+replace the dirección said before. Every evidence carries offsets on the **original** turno text.
+Street names are kept as said: the engine takes them to their official name.
 """
 
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from app.catalog.streets import match_street
 from app.readers.models import Evidence, LocationReading, NumberKind, StreetNumber
 from app.transcript.models import Speaker, Turn
 
@@ -196,11 +198,14 @@ def _read_street_number(turn: Turn) -> LocationReading | None:
 
 
 def _read_intersection(turn: Turn) -> LocationReading | None:
+    """``X y Y`` is the loosest pattern, so both names have to be official streets."""
     for match in _INTERSECTION.finditer(turn.text):
         trimmed = _trim_leading_noise(turn.text, match.start("street"), match.end("street"))
         if trimmed is None:
             continue
         street, start = trimmed
+        if match_street(street) is None or match_street(match.group("cross")) is None:
+            continue
         if match.group(0).lower().startswith("esquina"):
             start = match.start()
         return _reading(
@@ -253,9 +258,20 @@ def read_turn_location(turn: Turn) -> LocationReading | None:
 
 
 def read_location(turns: Sequence[Turn]) -> LocationReading | None:
-    """The ubicación of the relato: the latest llamante turno that mentions one."""
+    """The ubicación of the relato: the latest llamante turno that names an official street.
+
+    The first ubicación is taken as said, even off the list (it stays to be confirmed); a later
+    one replaces it only when its street is in the list.
+    """
     latest: LocationReading | None = None
     for turn in turns:
-        if turn.speaker is Speaker.LLAMANTE and (reading := read_turn_location(turn)):
+        if turn.speaker is not Speaker.LLAMANTE or not (reading := read_turn_location(turn)):
+            continue
+        if latest is None or _names_official_street(reading):
             latest = reading
     return latest
+
+
+def _names_official_street(reading: LocationReading) -> bool:
+    altura = reading.number.value if reading.number else None
+    return reading.street is not None and match_street(reading.street, altura) is not None
