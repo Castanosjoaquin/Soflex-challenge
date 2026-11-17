@@ -5,6 +5,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
+from app.calls.action_log import ActionLog
 from app.calls.service import (
     ActionKind,
     CallNotFoundError,
@@ -21,8 +22,10 @@ from app.catalog.signals import SIGNALS, SignalDef
 from app.config import LLMProviderName
 from app.dispatch.store import DerivedCarta, DispatchStore
 from app.engine.models import CallState, Line
+from app.trace import metrics
 from app.trace.models import ReadingTrace
 from app.trace.narrate import TraceLine, narrate
+from app.trace.store import TraceStore
 from app.transcript.models import ParsedTurn, Speaker
 from app.transcript.parser import parse_transcript
 
@@ -253,3 +256,11 @@ def dispatch(request: Request) -> list[DerivedCarta]:
     """The bandeja del despachador: Cartas derivadas, the most recent first."""
     store: DispatchStore = request.app.state.dispatch
     return store.inbox()
+
+
+@router.get("/metrics")
+def get_metrics(request: Request) -> metrics.Metrics:
+    """Números generales, recomputed from the trazas and the registro de acciones."""
+    traces: TraceStore = request.app.state.traces
+    log: ActionLog = request.app.state.action_log
+    return metrics.compute(traces.all(), log.all())

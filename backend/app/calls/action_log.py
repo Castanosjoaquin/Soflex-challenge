@@ -67,11 +67,18 @@ class ActionLog:
             )
 
     def for_call(self, call_id: str) -> list[ActionRecord]:
+        return self._select("WHERE call_id = ?", (call_id,))
+
+    def all(self) -> list[ActionRecord]:
+        """Every record of every llamada, in order: the métricas read them."""
+        return self._select("", ())
+
+    def _select(self, where: str, params: tuple[str, ...]) -> list[ActionRecord]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT call_id, at, action, target, before, after, reason "
-                "FROM action_log WHERE call_id = ? ORDER BY id",
-                (call_id,),
+                f"FROM action_log {where} ORDER BY id",
+                params,
             ).fetchall()
         return [
             ActionRecord(
