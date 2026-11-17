@@ -36,10 +36,10 @@ Corpus: las 30 llamadas del dataset tal como vienen (*original*) y 7 variantes r
 **Pendiente.** Esta tabla se generó sin `LLM_API_KEY`, así que no hay corrida con IA y no se inventan sus números. Para completarla (el resultado se guarda en `data/eval/results/openai_compat.json` y esta tabla se regenera con las dos columnas):
 
 ```sh
-cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat
+cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat --concurrency 1 --pause 20
 ```
 
-`LLM_BASE_URL` y `LLM_MODEL` eligen el endpoint compatible con OpenAI (por defecto, Groq con `llama-3.3-70b-versatile`). `--concurrency` limita las llamadas simultáneas.
+`LLM_BASE_URL` y `LLM_MODEL` eligen el endpoint compatible con OpenAI (por defecto, Groq con `qwen/qwen3.8-27b`). `--concurrency` limita las llamadas simultáneas y `--pause` espacia las lecturas para no pasar el límite de tokens por minuto del plan gratuito.
 
 ## Cómo se mide
 
