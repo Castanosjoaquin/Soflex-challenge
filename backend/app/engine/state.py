@@ -21,8 +21,10 @@ class NoLocationError(ValueError):
     """The operador acted on a ubicación that the relato has not produced yet."""
 
 
-def new_call(call_id: str, line: Line, mode: Mode) -> CallState:
-    return CallState(call_id=call_id, line=line, mode=mode, stages=_stages(None))
+def new_call(call_id: str, line: Line, mode: Mode, sample_id: str | None = None) -> CallState:
+    return CallState(
+        call_id=call_id, line=line, mode=mode, sample_id=sample_id, stages=_stages(None)
+    )
 
 
 def add_turn(state: CallState, turn: Turn) -> CallState:

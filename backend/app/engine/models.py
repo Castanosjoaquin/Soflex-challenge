@@ -78,6 +78,7 @@ class CallState(BaseModel):
     call_id: str
     line: Line
     mode: Mode
+    sample_id: str | None = None
     turns: list[Turn] = Field(default_factory=list)
     location: Location | None = None
     stages: list[Stage]
