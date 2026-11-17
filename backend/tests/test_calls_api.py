@@ -132,3 +132,82 @@ def test_action_log_is_append_only(client: TestClient) -> None:
         with pytest.raises(sqlite3.IntegrityError):
             conn.execute("DELETE FROM action_log")
     assert not hasattr(ActionLog, "update") and not hasattr(ActionLog, "delete")
+
+
+def _act(client: TestClient, call_id: str, **action: str) -> Any:
+    return client.post(f"/api/calls/{call_id}/actions", json=action)
+
+
+def test_case_001_is_incendio_en_comercio_p1_with_its_porque(client: TestClient) -> None:
+    state = _replay(client, CASE_001)
+    assert state["incident"]["category"] == "INCENDIO_RESCATE"
+    assert state["incident"]["subtype"] == "incendio_comercio"
+    priority = state["priority"]
+    assert priority["level"] == "P1"
+    assert [(r["signal_id"], r["evidence"]["quote"]) for r in priority["reasons"]] == [
+        ("persona_atrapada", "adentro quedó el cocinero"),
+        ("humo", "humo negro al salón"),
+    ]
+    assert state["next_question"]["id"] == "universal"
+    assert _stage(state, "que_pasa") == "actual"
+
+
+def test_confirm_type_goes_to_the_action_log(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    confirmed = _act(client, call_id, kind="confirm_type").json()
+    assert confirmed["incident"]["confidence"] == "confirmado"
+    changed = _act(client, call_id, kind="confirm_type", value="DEFENSA_CIVIL:fuga_gas").json()
+    assert (changed["incident"]["category"], changed["incident"]["source"]) == (
+        "DEFENSA_CIVIL",
+        "operador",
+    )
+    records = _log(client).for_call(call_id)
+    assert [(r.action, r.target) for r in records] == [("confirm_type", "incident")] * 2
+    assert records[1].after is not None and "fuga_gas" in records[1].after
+
+
+def test_confirm_type_with_an_unknown_or_mismatched_value_is_422(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    assert _act(client, call_id, kind="confirm_type", value="VOLCANES").status_code == 422
+    mismatch = _act(client, call_id, kind="confirm_type", value="DEFENSA_CIVIL:convulsion")
+    assert mismatch.status_code == 422
+
+
+def test_confirm_type_without_tipo_is_409(client: TestClient) -> None:
+    call_id = client.post("/api/calls", json={"line": "911"}).json()["call_id"]
+    assert _act(client, call_id, kind="confirm_type").status_code == 409
+
+
+def test_set_priority_without_reason_is_422_and_not_logged(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    assert _act(client, call_id, kind="set_priority", value="P3").status_code == 422
+    assert _act(client, call_id, kind="set_priority", value="P3", reason=" ").status_code == 422
+    assert _log(client).for_call(call_id) == []
+
+
+def test_set_priority_with_reason_is_logged(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    state = _act(
+        client, call_id, kind="set_priority", value="P2", reason="el cocinero ya salió"
+    ).json()
+    assert state["priority"]["level"] == "P2"
+    assert state["priority"]["overridden_by_operator"] == {
+        "from_level": "P1",
+        "reason": "el cocinero ya salió",
+    }
+    (record,) = _log(client).for_call(call_id)
+    assert (record.action, record.target, record.reason) == (
+        "set_priority",
+        "priority",
+        "el cocinero ya salió",
+    )
+    assert record.before is not None and '"P1"' in record.before
+    assert record.after is not None and '"P2"' in record.after
+
+
+def test_catalog_lists_signals_types_and_subtypes(client: TestClient) -> None:
+    catalog = client.get("/api/catalog").json()
+    assert len(catalog["signals"]) == 25
+    assert len(catalog["types"]) == 6
+    assert any(s["id"] == "incendio_comercio" for s in catalog["subtypes"])
+    assert catalog["priority_rules"][0]["level"] == "P1"

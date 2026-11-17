@@ -8,9 +8,13 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 
+from pydantic import BaseModel
+
 from app.calls.action_log import ActionLog, ActionRecord
+from app.catalog.incidents import SUBTYPES, Subtype
+from app.catalog.models import Category, Priority
 from app.engine import state as engine
-from app.engine.models import CallState, Line, Location, Mode
+from app.engine.models import CallState, Line, Mode
 from app.readers.rules.location import read_turn_location
 from app.readers.rules.reader import RulesReader
 from app.transcript.models import Speaker, Turn
@@ -19,6 +23,8 @@ from app.transcript.models import Speaker, Turn
 class ActionKind(StrEnum):
     CONFIRM_LOCATION = "confirm_location"
     CORRECT_LOCATION = "correct_location"
+    CONFIRM_TYPE = "confirm_type"
+    SET_PRIORITY = "set_priority"
 
 
 class CallNotFoundError(LookupError):
@@ -26,7 +32,11 @@ class CallNotFoundError(LookupError):
 
 
 class InvalidActionError(ValueError):
-    pass
+    """The action does not fit the llamada as it is now (e.g. nothing to confirm yet)."""
+
+
+class InvalidActionValueError(ValueError):
+    """The action itself is malformed: a missing motivo or an unknown value."""
 
 
 @dataclass
@@ -66,7 +76,7 @@ class CallService:
             at_ms = round((self._clock() - call.opened_at) * 1000)
             turn = Turn(index=len(call.state.turns), at_ms=at_ms, speaker=speaker, text=text)
             state = engine.add_turn(call.state, turn)
-            reading = self._reader.read(state.turns)
+            reading = self._reader.read(state.turns, state.line)
             call.state = engine.apply_reading(state, reading)
             return call.state
 
@@ -79,27 +89,44 @@ class CallService:
     ) -> CallState:
         call = self._call(call_id)
         async with call.lock:
-            before = call.state.location
-            match kind:
-                case ActionKind.CONFIRM_LOCATION:
-                    if before is None:
-                        raise InvalidActionError("Todavía no hay una ubicación para confirmar")
-                    state = engine.confirm_location(call.state)
-                case ActionKind.CORRECT_LOCATION:
-                    state = self._correct_location(call.state, value)
+            state, target = self._apply(call.state, kind, value, reason)
             self._log.append(
                 ActionRecord(
                     call_id=call_id,
                     at=datetime.now(UTC),
                     action=kind.value,
-                    target="location",
-                    before=_summary(before),
-                    after=_summary(state.location),
+                    target=target,
+                    before=_summary(call.state, target),
+                    after=_summary(state, target),
                     reason=reason,
                 )
             )
             call.state = state
             return state
+
+    def _apply(
+        self, state: CallState, kind: ActionKind, value: str | None, reason: str | None
+    ) -> tuple[CallState, str]:
+        match kind:
+            case ActionKind.CONFIRM_LOCATION:
+                if state.location is None:
+                    raise InvalidActionError("Todavía no hay una ubicación para confirmar")
+                return engine.confirm_location(state), "location"
+            case ActionKind.CORRECT_LOCATION:
+                return self._correct_location(state, value), "location"
+            case ActionKind.CONFIRM_TYPE:
+                category, subtype = _parse_type(value)
+                if category is None and state.incident is None:
+                    raise InvalidActionError("Todavía no hay un tipo para confirmar")
+                return engine.confirm_type(state, category, subtype), "incident"
+            case ActionKind.SET_PRIORITY:
+                if not (reason or "").strip():
+                    raise InvalidActionValueError("Cambiar la prioridad requiere un motivo")
+                try:
+                    level = Priority(value or "")
+                except ValueError:
+                    raise InvalidActionValueError(f"Prioridad desconocida: {value!r}") from None
+                return engine.set_priority(state, level, reason or ""), "priority"
 
     def _correct_location(self, state: CallState, value: str | None) -> CallState:
         text = (value or "").strip()
@@ -120,9 +147,30 @@ class CallService:
             raise CallNotFoundError(call_id) from None
 
 
-def _summary(location: Location | None) -> str | None:
-    if location is None:
+def _parse_type(value: str | None) -> tuple[Category | None, Subtype | None]:
+    """`None` confirms the suggestion; `TIPO` or `TIPO:subtipo` sets it."""
+    if not value:
+        return None, None
+    raw_category, _, raw_subtype = value.partition(":")
+    try:
+        category = Category(raw_category)
+        subtype = Subtype(raw_subtype) if raw_subtype else None
+    except ValueError:
+        raise InvalidActionValueError(f"Tipo desconocido: {value!r}") from None
+    if subtype is not None and SUBTYPES[subtype].category is not category:
+        raise InvalidActionValueError(f"{subtype} no es un subtipo de {category}")
+    return category, subtype
+
+
+_SUMMARY_FIELDS: dict[str, set[str]] = {
+    "location": {"street", "number", "cross_streets", "landmark", "confidence", "source"},
+    "incident": {"category", "subtype", "confidence", "source"},
+    "priority": {"level", "rule", "overridden_by_operator"},
+}
+
+
+def _summary(state: CallState, target: str) -> str | None:
+    dato = getattr(state, target)
+    if not isinstance(dato, BaseModel):
         return None
-    return location.model_dump_json(
-        include={"street", "number", "cross_streets", "landmark", "confidence", "source"}
-    )
+    return dato.model_dump_json(include=_SUMMARY_FIELDS[target])

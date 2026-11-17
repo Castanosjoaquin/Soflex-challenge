@@ -3,8 +3,17 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from app.calls.service import ActionKind, CallNotFoundError, CallService, InvalidActionError
+from app.calls.service import (
+    ActionKind,
+    CallNotFoundError,
+    CallService,
+    InvalidActionError,
+    InvalidActionValueError,
+)
+from app.catalog.incidents import SUBTYPES, TYPES, SubtypeDef, TypeDef
 from app.catalog.models import CatalogCase, Category, Priority
+from app.catalog.priority import PRIORITY_RULES, PriorityRule
+from app.catalog.signals import SIGNALS, SignalDef
 from app.config import LLMProviderName
 from app.engine.models import CallState, Line
 from app.transcript.models import ParsedTurn, Speaker
@@ -29,6 +38,15 @@ class SampleCall(BaseModel):
     priority: Priority
     transcript: str
     turns: list[ParsedTurn]
+
+
+class CatalogResponse(BaseModel):
+    """The closed lists the panel shows by name: señales, tipos, subtipos and the tabla."""
+
+    signals: list[SignalDef]
+    types: list[TypeDef]
+    subtypes: list[SubtypeDef]
+    priority_rules: list[PriorityRule]
 
 
 class OpenCallRequest(BaseModel):
@@ -88,6 +106,16 @@ def health(request: Request) -> HealthResponse:
     )
 
 
+@router.get("/catalog")
+def catalog() -> CatalogResponse:
+    return CatalogResponse(
+        signals=list(SIGNALS.values()),
+        types=list(TYPES.values()),
+        subtypes=list(SUBTYPES.values()),
+        priority_rules=list(PRIORITY_RULES),
+    )
+
+
 @router.get("/samples")
 def list_samples(request: Request) -> list[SampleCall]:
     return [_sample(c) for c in _cases(request)]
@@ -124,3 +152,5 @@ async def act(call_id: str, body: ActionRequest, request: Request) -> CallState:
         raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
     except InvalidActionError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
+    except InvalidActionValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
