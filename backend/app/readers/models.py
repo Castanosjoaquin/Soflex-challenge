@@ -4,6 +4,10 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.catalog.incidents import Subtype
+from app.catalog.models import Category
+from app.catalog.signals import SignalAnswer, SignalId
+
 
 class Evidence(BaseModel):
     """A verbatim phrase of the relato, located by offsets on the original turno text."""
@@ -44,9 +48,35 @@ class LocationReading(BaseModel):
     landmark: str | None = None
 
 
+class SignalReading(BaseModel):
+    """A señal of the catalog the relato affirms, denies or leaves open, with its evidence."""
+
+    model_config = ConfigDict(frozen=True)
+
+    signal_id: SignalId
+    value: SignalAnswer
+    evidence: Evidence
+
+
+class IncidentReading(BaseModel):
+    """The tipo and subtipo the relato points to, with the phrases that point there.
+
+    `runner_up` is set when another tipo came close: the lector is not sure which one it is.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    category: Category
+    subtype: Subtype | None = None
+    evidence: list[Evidence]
+    runner_up: Category | None = None
+
+
 class ReaderOutput(BaseModel):
     """One lectura of the whole relato."""
 
     model_config = ConfigDict(frozen=True)
 
     location: LocationReading | None = None
+    incident: IncidentReading | None = None
+    signals: list[SignalReading] = Field(default_factory=list)
