@@ -54,6 +54,40 @@ def test_negations_and_unknowns(text: str, signal: SignalId, value: SignalAnswer
     assert (found.value if found else None) is value
 
 
+@pytest.mark.parametrize(
+    ("text", "signal", "value", "quote"),
+    [
+        # The demo turnos as first written (#24), before they were reworded around this.
+        (
+            "Heridos no. Un colectivo quedó parado en el medio del agua.",
+            S.HERIDOS,
+            NO,
+            "Heridos no",
+        ),
+        (
+            "uno sacó un cuchillo, lo estoy viendo desde la esquina. Disparos no escuché.",
+            S.ARMA_FUEGO,
+            NO,
+            "Disparos no escuché",
+        ),
+        ("Fuego no hay, pero sale mucho humo", S.FUEGO_ACTIVO, NO, "Fuego no hay"),
+        ("¿Heridos? Heridos, no.", S.HERIDOS, NO, "Heridos, no"),
+        # A "no" after the phrase that opens something else, or asks, leaves it as said.
+        ("Hay humo, no?", S.HUMO, SI, None),
+        ("hay un herido no sabemos si respira", S.HERIDOS, SI, "herido"),
+        ("está herido no responde", S.HERIDOS, SI, "herido"),
+        ("hay humo no puedo respirar", S.HUMO, SI, None),
+    ],
+)
+def test_a_negation_after_the_phrase(
+    text: str, signal: SignalId, value: SignalAnswer, quote: str | None
+) -> None:
+    found = _read(text)[signal]
+    assert found.value is value
+    if quote is not None:
+        assert found.evidence.quote == quote
+
+
 def test_one_phrase_backs_one_signal() -> None:
     signals = _read("no le entra el aire")
     assert signals[S.RESPIRA].value is NO
