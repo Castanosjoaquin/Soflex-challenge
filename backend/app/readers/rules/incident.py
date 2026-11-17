@@ -17,8 +17,8 @@ from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category
 from app.engine.models import Line
 from app.readers.models import Evidence, IncidentReading
-from app.readers.rules.text import fold
 from app.transcript.models import Speaker, Turn
+from app.transcript.text import fold
 
 C, T = Category, Subtype
 

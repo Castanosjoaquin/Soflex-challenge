@@ -2,19 +2,9 @@
 
 import re
 
-_FOLD = str.maketrans("ÁÉÍÓÚÜÑáéíóúüñ", "AEIOUUNaeiouun")
 _CLAUSE_END = re.compile(r"[.,;:!?¡¿]")
 # Function words a cut phrase should not end on ("humo negro con olor a" → "humo negro con olor").
 _DANGLING = re.compile(r"(?:\s+(?:a|al|con|de|del|el|la|las|los|que|y|en|por|un|una))+$", re.I)
-
-
-def fold(text: str) -> str:
-    """Lowercase without accents. Same length as `text`, so every offset stays valid."""
-    folded = text.translate(_FOLD)
-    lowered = folded.lower()
-    if len(lowered) == len(folded):
-        return lowered
-    return "".join(c.lower() if len(c.lower()) == 1 else c for c in folded)
 
 
 def extend_to_clause(text: str, start: int, end: int, limit: int) -> int:

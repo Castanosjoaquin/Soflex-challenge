@@ -20,8 +20,9 @@ from dataclasses import dataclass
 
 from app.catalog.signals import SignalAnswer, SignalId
 from app.readers.models import Evidence, SignalReading
-from app.readers.rules.text import clause_start, extend_to_clause, fold
+from app.readers.rules.text import clause_start, extend_to_clause
 from app.transcript.models import Speaker, Turn
+from app.transcript.text import fold
 
 S = SignalId
 SI, NO = SignalAnswer.SI, SignalAnswer.NO
