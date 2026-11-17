@@ -2,8 +2,9 @@
 
 Four steps, in this order:
 
-1. Muletillas out: "eh", "mmm", "o sea", "viste", "digamos", and "este" only when a pause follows
-   it ("este…", "este,"), so the demonstrative ("este edificio") stays.
+1. Muletillas out: "eh", "mmm", "o sea", "viste", "digamos", and "este" or "bueno" only when a
+   pause follows ("este…", "bueno,"), so the demonstrative ("este edificio") and the adjective
+   ("está bueno que vengan") stay.
 2. Autocorrección within the turno: "en Corrientes… no, perdón, en Montevideo" → "en Montevideo".
    The corrected part is dropped and the last value wins (CONTEXT.md, Autocorrección).
 3. Números en palabras to digits, 0 to 99999: "mil quinientos cuarenta" → "1540".
@@ -86,7 +87,8 @@ def normalize(text: str) -> Normalized:
 # --- 1. Muletillas -------------------------------------------------------------------------------
 
 _FILLER = re.compile(
-    rf"(?<!\w)(?:e+h+|e+hm+|m{{2,}}|o sea|digamos|viste(?={_PAUSE}|\s*[?.]|$)|este(?={_PAUSE}))"
+    rf"(?<!\w)(?:e+h+|e+hm+|m{{2,}}|o sea|digamos|viste(?={_PAUSE}|\s*[?.]|$)"
+    rf"|(?:este|bueno)(?={_PAUSE}))"
     rf"(?!\w)(?:{_PAUSE}|\s*\?)*\s*",
     re.IGNORECASE,
 )

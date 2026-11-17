@@ -18,6 +18,13 @@ from app.transcript.normalize import MAX_NUMBER, Normalized, normalize
         ("hay humo, viste.", "hay humo."),
         ("este… se cayó", "se cayó"),
         ("en eh Corrientes", "en Corrientes"),
+        # Variante muletillas, cases 026 and 011.
+        (
+            "en un bodegón de Av. San Juan bueno, 2800 en San Cristóbal",
+            "en un bodegón de Av. San Juan 2800 en San Cristóbal",
+        ),
+        ("en Av. Forest bueno, al eh, 1200, entre", "en Av. Forest al 1200, entre"),
+        ("Bueno, hay humo", "hay humo"),
     ],
 )
 def test_fillers_are_dropped(said: str, normalized: str) -> None:
@@ -31,6 +38,8 @@ def test_fillers_are_dropped(said: str, normalized: str) -> None:
         "en este momento no respira",
         "lo viste al chofer",
         "hay humo en el depto",
+        "está bueno que vengan",
+        "un vecino bueno nos ayudó",
     ],
 )
 def test_words_that_mean_something_stay(said: str) -> None:
