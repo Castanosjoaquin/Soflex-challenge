@@ -42,6 +42,9 @@ cd frontend && npm install && npm run dev
 
 # Calidad
 cd backend && uv run pytest && uv run ruff check . && uv run mypy
+
+# Evaluación (no es parte de pytest): reescribe data/eval/resultados.md
+cd backend && uv run python -m app.eval [--provider mock|openai_compat]
 ```
 
 ## Estructura
@@ -49,7 +52,7 @@ cd backend && uv run pytest && uv run ruff check . && uv run mypy
 ```
 backend/   FastAPI + Pydantic: API, catálogo de referencia, extracción
 frontend/  Panel del operador (React + TypeScript + Vite)
-data/      Dataset sintético provisto y lista oficial de calles (streets.json)
+data/      Dataset sintético provisto, lista oficial de calles (streets.json) y evaluación (eval/)
 scripts/   build_streets.py: regenera data/streets.json desde BA Data
 docs/      Configuración para agentes y ADRs
 ```
