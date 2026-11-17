@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.groq.com/openai/v1"
     llm_model: str = "llama-3.3-70b-versatile"
     llm_api_key: SecretStr | None = None
-    llm_timeout_seconds: float = 20.0
+    llm_timeout_seconds: float = 8.0
 
     dataset_path: Path = REPO_ROOT / "data" / "dataset_challenge_soflex.csv"
     demo_calls_dir: Path = REPO_ROOT / "data" / "demo_calls"
