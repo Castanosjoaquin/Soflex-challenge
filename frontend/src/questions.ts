@@ -6,10 +6,10 @@ export const ANSWER_TEXT: Record<SignalAnswer, string> = {
   no_sabe: 'No sabe',
 }
 
-/** Keys that answer the próxima pregunta, in the order the buttons show them. */
 /** One key per option of a tipo en disputa, in the order of `TypeDispute.options`. */
 export const DISPUTE_KEYS = ['a', 'b']
 
+/** Keys that answer the próxima pregunta, in the order the buttons show them. */
 export const ANSWER_KEYS: [string, SignalAnswer][] = [
   ['1', 'si'],
   ['2', 'no'],
