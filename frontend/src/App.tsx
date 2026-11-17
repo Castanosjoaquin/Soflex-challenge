@@ -22,6 +22,7 @@ import { Instructions } from './components/Instructions'
 import { LocationCard } from './components/LocationCard'
 import { Relato } from './components/Relato'
 import { StageBar } from './components/StageBar'
+import { TracePanel } from './components/TracePanel'
 import { ANSWER_KEYS, DISPUTE_KEYS, answerTarget, skipTarget } from './questions'
 
 type Mode = CallState['mode']
@@ -420,6 +421,8 @@ export default function App() {
             </div>
 
             <CartaPanel call={call} busy={busy} onDerive={() => void derive()} />
+
+            <TracePanel callId={call.call_id} lecturas={call.turns.length} />
           </section>
         ) : (
           <section className="workspace card">
