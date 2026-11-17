@@ -10,6 +10,9 @@ Layers, in order of preference within a turno:
 5. street alone, without altura: ``en Corrientes``, ``sobre la Av. Rivadavia``, only when the name
    is an official street by name or alias (not by sound: too loose for a bare word).
 
+A later turno that only says an altura ("No, perdón, es en el 1450") changes the altura of the
+street already said: the llamante corrects the number, not the whole dirección.
+
 The last llamante turno that mentions a ubicación wins (autocorrección across turnos), as long as
 its street is in the official list: "Sí, Juan y María están adentro" is not a corner and does not
 replace the ubicación said before. The layers run on the normalized turno (SPEC §5.2: "Corrientes
@@ -65,6 +68,14 @@ _LANDMARK = re.compile(
 _STREET_REFERENCE = re.compile(
     rf"(?P<street>{_NAME})(?:,[^.,]{{1,40}})?,?\s+(?:a\s+la\s+)?altura\s+(?:de\s+)?(?:la\s+)?"
     rf"(?P<ref>{_LANDMARK.pattern}|{_NAME})"
+)
+
+# An altura with no street: "es en el 1450", "al 1400". Three digits at least unless it is "al":
+# "el 60" is as likely a colectivo as an altura.
+_ALTURA_ALONE = re.compile(
+    r"\b(?:(?P<al>al)\s+(?P<al_number>\d{2,5})|(?:en\s+el|el|altura(?:\s+de)?|n[uú]mero)\s+"
+    r"(?P<number>\d{3,5}))"
+    r"(?!\d|\s*(?:años|metros|minutos|personas|pesos|%)|\s+de\s+[A-Z])"
 )
 
 _STREET_ALONE = re.compile(rf"\b(?:en|sobre|por)\s+(?:la\s+)?(?:calle\s+)?(?P<street>{_NAME})")
@@ -291,15 +302,39 @@ def read_location(turns: Sequence[Turn]) -> LocationReading | None:
     """The ubicación of the relato: the latest llamante turno that names an official street.
 
     The first ubicación is taken as said, even off the list (it stays to be confirmed); a later
-    one replaces it only when its street is in the list.
+    one replaces it only when its street is in the list. A later turno with only an altura
+    changes the altura of the street already said.
     """
     latest: LocationReading | None = None
     for turn in turns:
-        if turn.speaker is not Speaker.LLAMANTE or not (reading := read_turn_location(turn)):
+        if turn.speaker is not Speaker.LLAMANTE:
             continue
-        if latest is None or _names_official_street(reading):
-            latest = reading
+        if reading := read_turn_location(turn):
+            if latest is None or _names_official_street(reading):
+                latest = reading
+        elif latest is not None:
+            latest = _with_altura_alone(latest, turn) or latest
     return latest
+
+
+def _with_altura_alone(latest: LocationReading, turn: Turn) -> LocationReading | None:
+    """The street said before, at the altura this turno says. None if it says no altura."""
+    if latest.street is None or (latest.number is not None and latest.number.kind is NumberKind.KM):
+        return None
+    normalized = NormalizedTurn.of(turn)
+    match = _ALTURA_ALONE.search(normalized.turn.text)
+    if match is None:
+        return None
+    is_al = match.group("al") is not None
+    value = int(match.group("al_number") if is_al else match.group("number"))
+    evidence = normalized.evidence(match.start(), match.end())
+    return latest.model_copy(
+        update={
+            "said": f"{latest.said} … {evidence.quote}",
+            "evidence": [*latest.evidence, evidence],
+            "number": StreetNumber(value=value, kind=NumberKind.AL if is_al else NumberKind.EXACTA),
+        }
+    )
 
 
 def _names_official_street(reading: LocationReading) -> bool:

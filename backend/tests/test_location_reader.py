@@ -175,3 +175,43 @@ def test_an_official_street_alone_is_read_without_altura(raw: str, street: str) 
 )
 def test_a_street_alone_must_be_in_the_list_by_name(raw: str) -> None:
     assert read_location(_turns(raw)) is None
+
+
+def _llamante(*texts: str) -> list[Turn]:
+    return [Turn(index=i, at_ms=0, speaker=Speaker.LLAMANTE, text=t) for i, t in enumerate(texts)]
+
+
+def test_later_altura_alone_changes_the_altura_of_the_street_said() -> None:
+    reading = read_location(
+        _llamante("Es en Av. Corrientes 1540 casi Montevideo", "No, perdón, es en el 1450")
+    )
+    assert reading is not None
+    assert reading.street == "Av. Corrientes"
+    assert reading.number is not None
+    assert (reading.number.value, reading.number.kind) == (1450, NumberKind.EXACTA)
+    assert reading.cross_streets == ["Montevideo"]
+    assert [e.quote for e in reading.evidence] == [
+        "Av. Corrientes 1540 casi Montevideo",
+        "en el 1450",
+    ]
+
+
+def test_later_altura_alone_in_words_is_read_on_the_normalized_text() -> None:
+    turns = _llamante("Corrientes 1540", "no, es en el mil cuatrocientos cincuenta")
+    reading = read_location(turns)
+    assert reading is not None
+    assert reading.number is not None
+    assert reading.number.value == 1450
+    assert reading.evidence[-1].quote == "en el mil cuatrocientos cincuenta"
+
+
+@pytest.mark.parametrize("later", ["Tiene 80 años", "Tomé el 60", "Somos 1500 personas"])
+def test_numbers_that_are_not_an_altura_change_nothing(later: str) -> None:
+    reading = read_location(_llamante("Corrientes 1540", later))
+    assert reading is not None
+    assert reading.number is not None
+    assert reading.number.value == 1540
+
+
+def test_altura_alone_without_a_street_before_is_not_a_location() -> None:
+    assert read_location(_llamante("Hay humo", "es en el 1450")) is None
