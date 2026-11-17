@@ -446,7 +446,7 @@ Todo se puede hacer con teclado. El operador no escribe lo que dice el llamante.
 | Derivar la Carta | Atajo de derivar |
 | Agregar una nota propia | La única caja de texto libre |
 
-Las teclas exactas se definen al construir el panel.
+Las teclas exactas están en la ayuda del panel (`?`) y salen de una sola tabla, `frontend/src/shortcuts.ts`.
 
 ---
 
