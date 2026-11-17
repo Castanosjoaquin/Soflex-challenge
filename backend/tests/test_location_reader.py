@@ -139,3 +139,16 @@ def test_sin_numero_and_km() -> None:
     km = _read("Llamante: En la Panamericana km 12.")
     assert km.number is not None
     assert (km.street, km.number.value, km.number.kind) == ("Panamericana", 12, NumberKind.KM)
+
+
+def test_names_joined_by_y_are_not_a_corner_unless_they_are_streets() -> None:
+    assert read_location(_turns("Llamante: Sí, Juan y María están adentro todavía.")) is None
+
+
+def test_a_later_turno_only_replaces_the_ubicación_with_real_streets() -> None:
+    raw = (
+        "Operador: ¿Dónde? Llamante: En Thames 1900. "
+        "Operador: ¿Quiénes están? Llamante: Sí, Juan y María están adentro todavía."
+    )
+    reading = _read(raw)
+    assert reading.street == "Thames"
