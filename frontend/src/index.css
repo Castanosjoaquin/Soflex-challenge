@@ -1,0 +1,158 @@
+:root {
+  --bg: #0f1216;
+  --panel: #171b21;
+  --border: #262c35;
+  --text: #e6e9ee;
+  --muted: #8a93a1;
+  --accent: #4da3ff;
+  --p1: #ff4d4f;
+  --p2: #ff9f1a;
+  --p3: #f5d90a;
+  --p4: #52c41a;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+h1,
+h2 {
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: 1.15rem;
+}
+
+h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.topbar h1 {
+  margin: 0;
+}
+
+.badge {
+  font-size: 0.8rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.samples,
+.transcript {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.samples ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+}
+
+.samples button {
+  width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: left;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.45rem 0.5rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.samples button:hover {
+  background: #1e242c;
+}
+
+.samples button.active {
+  border-color: var(--accent);
+}
+
+.prio {
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  color: #000;
+}
+
+.prio-P1 {
+  background: var(--p1);
+}
+.prio-P2 {
+  background: var(--p2);
+}
+.prio-P3 {
+  background: var(--p3);
+}
+.prio-P4 {
+  background: var(--p4);
+}
+
+.transcript p {
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  margin: 1rem;
+  color: var(--p1);
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
