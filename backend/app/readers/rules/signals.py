@@ -5,8 +5,11 @@ on a folded copy (lowercase, no accents, same length) of the normalized turno (S
 every evidence is taken back to the original text before it leaves the lector.
 
 Negation: a "sí" pattern preceded, within its clause and its last three words, by "no", "nadie",
-"sin", "ni"… reads as "no" ("No hay fuego"), and by "no sé si…" reads as "no se sabe". Patterns
-that already carry their negation ("no respira", "no le entra el aire") are not negatable.
+"sin", "ni"… reads as "no" ("No hay fuego"), and by "no sé si…" reads as "no se sabe". A "no"
+right after it also reads as "no" when it closes the phrase ("Heridos no.") or comes with a verb
+of seeing or there being ("Disparos no escuché", "Fuego no hay"); any other "no" there opens
+something else ("hay humo no puedo respirar") or asks ("Hay humo, no?"). Patterns that already
+carry their negation ("no respira", "no le entra el aire") are not negatable.
 
 One phrase backs one señal: patterns run in order and a span already claimed is not reused
 ("no le entra el aire" is respira=no, not also dificultad_respirar; "se prendió fuego" is one
@@ -29,6 +32,11 @@ SI, NO = SignalAnswer.SI, SignalAnswer.NO
 
 _NEGATIONS = frozenset({"no", "nadie", "sin", "ni", "nunca", "tampoco", "ningun", "ninguna"})
 _UNKNOWN = re.compile(r"\bno (se|sabe|sabemos|sabria decir) si\b")
+# "Heridos no.", "Disparos no escuché": the negation said after the phrase (on the folded text).
+_NEGATION_AFTER = re.compile(
+    r",?\s+no(?:(?=\s*(?:[.,;:!…]|$))|\s+(?:hay|habia|hubo|tiene\w*|tenia\w*|veo|vemos|vi|vimos"
+    r"|se ve|se vio|escuch\w+|se escucho|oi|oimos|senti\w*|siento)\b)"
+)
 
 
 @dataclass(frozen=True)
@@ -287,8 +295,7 @@ def _read_turn(turn: Turn) -> list[_Hit]:
         for match in pattern.regex.finditer(folded):
             if pattern.accept is not None and not pattern.accept(match):
                 continue
-            start, value = _qualify(folded, match.start(), pattern)
-            end = match.end()
+            start, end, value = _qualify(folded, match.start(), match.end(), pattern)
             if pattern.extend:
                 end = extend_to_clause(folded, start, end, pattern.extend)
             # One phrase may back several señales ("sale humo por el primer piso" is humo and
@@ -299,19 +306,22 @@ def _read_turn(turn: Turn) -> list[_Hit]:
     return hits
 
 
-def _qualify(folded: str, start: int, pattern: _Pattern) -> tuple[int, SignalAnswer]:
-    """Apply a negation or a "no sé si" that precedes the match within its clause."""
+def _qualify(folded: str, start: int, end: int, pattern: _Pattern) -> tuple[int, int, SignalAnswer]:
+    """Apply a negation or a "no sé si" said around the match: before it within its clause, or
+    right after it ("Heridos no"). The span grows to take the negation in."""
     if not pattern.negatable:
-        return start, pattern.value
+        return start, end, pattern.value
     head_start = clause_start(folded, start)
     head = folded[head_start:start]
     unknowns = list(_UNKNOWN.finditer(head))
     if unknowns and len(head[unknowns[-1].end() :].split()) <= 2:
-        return head_start + unknowns[-1].start(), SignalAnswer.NO_SABE
+        return head_start + unknowns[-1].start(), end, SignalAnswer.NO_SABE
     for word in list(re.finditer(r"\S+", head))[-3:]:
         if word.group() in _NEGATIONS:
-            return head_start + word.start(), NO
-    return start, pattern.value
+            return head_start + word.start(), end, NO
+    if after := _NEGATION_AFTER.match(folded, end):
+        return start, after.end(), NO
+    return start, end, pattern.value
 
 
 def _overlaps(hit: _Hit, start: int, end: int) -> bool:
