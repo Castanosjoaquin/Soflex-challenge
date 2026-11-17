@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 20.0
 
     dataset_path: Path = REPO_ROOT / "data" / "dataset_challenge_soflex.csv"
+    demo_calls_dir: Path = REPO_ROOT / "data" / "demo_calls"
     database_path: Path = REPO_ROOT / "var" / "copiloto.db"
     static_dir: Path = REPO_ROOT / "frontend" / "dist"
 
