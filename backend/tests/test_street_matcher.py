@@ -129,3 +129,16 @@ def test_every_street_of_the_dataset_is_in_the_official_list() -> None:
         if match_street(case.street.split("(")[0], altura) is None:
             misses.append(f"{case.id}: {case.street}")
     assert misses == []
+
+
+def test_without_altura_a_street_renamed_in_part_offers_both_stretches() -> None:
+    match = match_street("Serrano")
+    assert match is not None
+    assert [s.name for s in match.candidates] == ["SERRANO", "JORGE LUIS BORGES"]
+
+
+def test_an_old_name_reused_elsewhere_is_not_a_stretch() -> None:
+    # Ramos Mejía was once partly called San Juan, but its alturas overlap the avenida's.
+    match = match_street("San Juan")
+    assert match is not None
+    assert [s.name for s in match.candidates] == ["AV. SAN JUAN"]
