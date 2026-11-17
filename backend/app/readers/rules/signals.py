@@ -1,8 +1,8 @@
 """Rules-based señales: weighted phrase patterns over the llamante's turnos (SPEC §5.3).
 
 Each pattern proposes one value (sí, no, no se sabe) for one señal of the catalog. Patterns run
-on a folded copy of the turno (lowercase, no accents, same length), so the evidence offsets are
-offsets on the original text.
+on a folded copy (lowercase, no accents, same length) of the normalized turno (SPEC §5.2), and
+every evidence is taken back to the original text before it leaves the lector.
 
 Negation: a "sí" pattern preceded, within its clause and its last three words, by "no", "nadie",
 "sin", "ni"… reads as "no" ("No hay fuego"), and by "no sé si…" reads as "no se sabe". Patterns
@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 from app.catalog.signals import SignalAnswer, SignalId
 from app.readers.models import Evidence, SignalReading
-from app.readers.rules.text import clause_start, extend_to_clause
+from app.readers.rules.text import NormalizedTurn, clause_start, extend_to_clause
 from app.transcript.models import Speaker, Turn
 from app.transcript.text import fold
 
@@ -260,25 +260,21 @@ class _Hit:
 
 def read_signals(turns: Sequence[Turn]) -> list[SignalReading]:
     """The señales the llamante's turnos affirm, deny or leave open: the last mention wins."""
-    latest: dict[SignalId, tuple[_Hit, Evidence]] = {}
+    latest: dict[SignalId, tuple[SignalAnswer, Evidence]] = {}
     for turn in turns:
         if turn.speaker is not Speaker.LLAMANTE:
             continue
-        for hit in _read_turn(turn):
-            evidence = Evidence(
-                turn_index=hit.turn_index,
-                start=hit.start,
-                end=hit.end,
-                quote=turn.text[hit.start : hit.end],
-            )
+        normalized = NormalizedTurn.of(turn)
+        for hit in _read_turn(normalized.turn):
+            evidence = normalized.evidence(hit.start, hit.end)
             previous = latest.get(hit.signal)
-            if previous is None or (hit.turn_index, hit.start) >= (
-                previous[0].turn_index,
-                previous[0].start,
+            if previous is None or (evidence.turn_index, evidence.start) >= (
+                previous[1].turn_index,
+                previous[1].start,
             ):
-                latest[hit.signal] = (hit, evidence)
+                latest[hit.signal] = (hit.value, evidence)
     return [
-        SignalReading(signal_id=signal, value=latest[signal][0].value, evidence=latest[signal][1])
+        SignalReading(signal_id=signal, value=latest[signal][0], evidence=latest[signal][1])
         for signal in SignalId
         if signal in latest
     ]
