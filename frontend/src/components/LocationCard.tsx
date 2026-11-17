@@ -53,6 +53,18 @@ export function LocationCard({ location, busy, onConfirm, onCorrect, onFocus }: 
         <dd className="said">“{location.said || '—'}”</dd>
         <dt>Dirección</dt>
         <dd className="address">{formatAddress(location)}</dd>
+        {location.candidates.length > 1 && (
+          <>
+            <dt>¿Cuál?</dt>
+            <dd className="candidates">{location.candidates.join(' · ')}</dd>
+          </>
+        )}
+        {location.street && !location.street_official && (
+          <>
+            <dt />
+            <dd className="muted">“{location.street}” no está en la lista oficial de calles.</dd>
+          </>
+        )}
       </dl>
       {editing ? (
         <form

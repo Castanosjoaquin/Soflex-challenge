@@ -25,7 +25,10 @@ export function StageBar({ stages, nextQuestion, busy, onAnswer, onSkip }: Props
     <div className="stagebar">
       <ol className="stages" aria-label="Etapas del protocolo">
         {stages.map((stage) => (
-          <li key={stage.id} className={`stage stage-${stage.status}`}>
+          <li
+            key={stage.id}
+            className={`stage stage-${stage.status}${stage.alert ? ' stage-alert' : ''}`}
+          >
             <span>{LABELS[stage.id]}</span>
             <small>{stage.status === 'hecha' ? '✓ ' : ''}{STATUS_TEXT[stage.status]}</small>
           </li>
