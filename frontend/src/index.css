@@ -719,6 +719,53 @@ mark.focused {
   font-size: 1.05rem;
 }
 
+/* Avisos: contradicción and señal de P1, the only two that interrupt. Never a modal. */
+.aviso-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 2px solid var(--p2);
+  border-radius: 8px;
+  background: rgba(255, 159, 26, 0.14);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.aviso-band p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.aviso-band small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--p2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.aviso-quote {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.aviso-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.aviso-actions button {
+  font-weight: 400;
+  border-color: var(--p2);
+}
+
 /* ⑤ Instrucciones */
 .instruction-list {
   margin: 0;

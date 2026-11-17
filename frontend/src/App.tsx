@@ -8,9 +8,11 @@ import {
   type Health,
   type Line,
   type ParsedTurn,
+  type Resolution,
   type SampleCall,
   type SignalAnswer,
 } from './api'
+import { AvisoBand } from './components/AvisoBand'
 import { CartaPanel } from './components/CartaPanel'
 import { Checklist } from './components/Checklist'
 import { CriticalBand } from './components/CriticalBand'
@@ -178,9 +180,14 @@ export default function App() {
   const nextInstruction = call?.instructions.find((i) => !i.read) ?? null
   const markRead = (instructionId: string) =>
     void act({ kind: 'mark_instruction_read', target: instructionId })
-  // Every phrase that backs a dato is marked in the relato.
+  // A and M resolve the first aviso still pending, the one the band shows.
+  const aviso = call?.avisos.find((a) => a.status === 'pendiente') ?? null
+  const resolve = (avisoId: string, resolution: Resolution) =>
+    void act({ kind: 'resolve_contradiction', target: avisoId, value: resolution })
+  // Every phrase that backs a dato is marked in the relato, and so is what a pending aviso heard.
   const evidence: Evidence[] = call
     ? [
+        ...(aviso?.evidence ?? []),
         ...(call.location?.evidence ?? []),
         ...(call.incident?.evidence ?? []),
         ...call.signals.flatMap((s) => (s.evidence ? [s.evidence] : [])),
@@ -207,6 +214,8 @@ export default function App() {
         void act({ kind: 'confirm_premark', target: premark.question_id })
       else if (key === 's' && !busy) skipNext()
       else if (key === 'l' && nextInstruction && !busy) markRead(nextInstruction.instruction_id)
+      else if (key === 'a' && aviso && !busy) resolve(aviso.id, 'aceptar')
+      else if (key === 'm' && aviso && !busy) resolve(aviso.id, 'mantener')
       else if (key === 'd' && call?.can_derive && !call.derived && !busy) void derive()
       else if (answer && !busy) answerNext(answer[1])
       else if (key === 'p' && call?.priority) {
@@ -308,6 +317,8 @@ export default function App() {
                 call.critical_instruction && markRead(call.critical_instruction.instruction_id)
               }
             />
+
+            <AvisoBand avisos={call.avisos} busy={busy} onResolve={resolve} onFocus={setFocus} />
 
             <div className="playback" role="toolbar" aria-label="Reproducción">
               <span className="line">Línea {call.line}</span>

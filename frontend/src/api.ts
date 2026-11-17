@@ -155,6 +155,26 @@ export interface CallState {
   can_derive: boolean
   derived: boolean
   ampliaciones: Ampliacion[]
+  /** Contradicciones and señales de P1 for the operador to resolve, in order of appearance. */
+  avisos: Aviso[]
+}
+
+export type AvisoKind = 'contradiccion' | 'senal_p1'
+export type AvisoStatus = 'pendiente' | 'aceptado' | 'mantenido'
+export type Resolution = 'aceptar' | 'mantener'
+
+/** «Antes dijo X, ahora dice Y»: the confirmed dato stays until the operador decides. */
+export interface Aviso {
+  id: string
+  kind: AvisoKind
+  /** "location", "incident", a señal id or "priority". */
+  target: string
+  label: string
+  before: string
+  after: string
+  text: string
+  evidence: Evidence[]
+  status: AvisoStatus
 }
 
 export type CartaOrigin = 'llamante' | 'sistema' | 'operador'
@@ -212,6 +232,7 @@ export type ActionKind =
   | 'answer_question'
   | 'skip_question'
   | 'mark_instruction_read'
+  | 'resolve_contradiction'
 
 export interface Action {
   kind: ActionKind
