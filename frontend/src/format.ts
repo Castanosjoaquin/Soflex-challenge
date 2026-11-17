@@ -1,0 +1,24 @@
+import type { Location } from './api'
+
+/** One-line dirección for the ubicación card, e.g. "Av. Corrientes 1540, casi Montevideo". */
+export function formatAddress(location: Location): string {
+  const street = location.street_official ?? location.street
+  const { number, cross_streets: cross } = location
+  const parts: string[] = []
+  if (street) {
+    if (number?.kind === 'esquina' && cross.length > 0) {
+      parts.push(`${street} y ${cross[0]}`)
+    } else {
+      let head = street
+      if (number?.kind === 'exacta' && number.value !== null) head += ` ${number.value}`
+      if (number?.kind === 'al' && number.value !== null) head += ` al ${number.value}`
+      if (number?.kind === 'km' && number.value !== null) head += ` km ${number.value}`
+      if (number?.kind === 'sn') head += ' s/n'
+      parts.push(head)
+      if (cross.length === 1) parts.push(`casi ${cross[0]}`)
+      if (cross.length >= 2) parts.push(`entre ${cross[0]} y ${cross[1]}`)
+    }
+  }
+  if (location.landmark) parts.push(location.landmark)
+  return parts.join(', ') || '—'
+}
