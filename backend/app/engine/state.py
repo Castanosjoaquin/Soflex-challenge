@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 
 from app.catalog.incidents import SUBTYPES, Subtype
-from app.catalog.instructions import instructions_for
+from app.catalog.instructions import Instruction, instructions_for
 from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
@@ -455,6 +455,11 @@ def _instructions(state: CallState) -> list[InstructionItem]:
     critical_id = next((i.id for i in applicable if i.critical), None)
     # The active crítica goes first; any other crítica that applies is read as a normal one.
     applicable.sort(key=lambda i: i.id != critical_id)
+    # A crítica may repeat a normal instrucción ("No le saque el casco"): read it once.
+    unique: list[Instruction] = []
+    for instruction in applicable:
+        if all(instruction.text != kept.text for kept in unique):
+            unique.append(instruction)
     return [
         InstructionItem(
             instruction_id=i.id,
@@ -462,7 +467,7 @@ def _instructions(state: CallState) -> list[InstructionItem]:
             critical=i.id == critical_id,
             read=i.id in state.read_instructions,
         )
-        for i in applicable
+        for i in unique
     ]
 
 

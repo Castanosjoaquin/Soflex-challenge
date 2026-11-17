@@ -136,6 +136,13 @@ def test_no_le_saque_el_casco_only_with_a_motociclista() -> None:
         signals={SignalId.MOTOCICLISTA: SignalAnswer.SI, SignalId.HERIDOS: SignalAnswer.SI},
         rules=frozenset({"motociclista_herido"}),
     )
+    # A moto crash says it even before anyone reports a herido.
+    assert "no_sacar_casco" in _ids(
+        Category.ACCIDENTE_VIAL,
+        Subtype.CHOQUE_MOTO,
+        signals={SignalId.MOTOCICLISTA: SignalAnswer.SI},
+        rules=frozenset(),
+    )
 
 
 @pytest.mark.parametrize(
