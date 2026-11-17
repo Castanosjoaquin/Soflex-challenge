@@ -136,7 +136,7 @@ def _ubicar(state: CallState) -> Stage:
     return next(s for s in state.stages if s.id is StageId.UBICAR)
 
 
-def test_a_relato_without_dirección_asks_where_and_turns_ubicar_red() -> None:
+def test_a_relato_without_ubicación_asks_where_and_turns_ubicar_red() -> None:
     state = _call_with("Hola, se está prendiendo fuego la cocina")
     assert state.next_question is not None
     assert state.next_question.text == "¿Dónde es la emergencia?"
@@ -161,7 +161,7 @@ def test_a_new_call_asks_where_but_is_not_alarmed_yet() -> None:
         ("En la esquina de Scalabrini Ortiz y Honduras", "¿Es la avenida o la calle?"),
     ],
 )
-def test_an_incomplete_dirección_asks_what_is_missing(relato: str, question: str) -> None:
+def test_an_incomplete_ubicación_asks_what_is_missing(relato: str, question: str) -> None:
     state = _call_with(relato)
     assert state.next_question is not None
     assert state.next_question.text == question
@@ -169,13 +169,13 @@ def test_an_incomplete_dirección_asks_what_is_missing(relato: str, question: st
 
 
 @pytest.mark.parametrize(
-    "relato", ["Es en Av. Corrientes 1540 casi Montevideo", "En Serrano y Honduras"]
+    "relato", ["Es en Av. Corrientes 1540 casi Montevideo", "En Thames y Nicaragua"]
 )
-def test_a_complete_dirección_asks_nothing(relato: str) -> None:
+def test_a_complete_ubicación_asks_nothing(relato: str) -> None:
     assert _call_with(relato).next_question is None
 
 
-def test_a_confirmed_dirección_asks_nothing() -> None:
+def test_a_confirmed_ubicación_asks_nothing() -> None:
     state = confirm_location(_call_with("Fue en Sarmiento 3900"))
     assert state.next_question is None
 
@@ -208,3 +208,12 @@ def test_the_operador_correction_is_normalized_and_stays_confirmed() -> None:
     assert state.location.street_official == "BILLINGHURST"
     assert state.location.cross_streets_official == ["JUNCAL"]
     assert state.location.confidence is Confidence.CONFIRMADO
+
+
+def test_a_corner_on_a_street_renamed_in_part_asks_for_the_altura() -> None:
+    state = _call_with("En Serrano y Honduras, frente a la plaza")
+    assert state.location is not None
+    assert state.location.candidates == ["SERRANO", "JORGE LUIS BORGES"]
+    assert state.location.confidence is Confidence.A_CONFIRMAR
+    assert state.next_question is not None
+    assert state.next_question.text == "¿A qué altura de Serrano?"

@@ -84,6 +84,14 @@ _TITLES = {
 }
 
 
+_KIND_PREFIX = re.compile(r"^(?:av\.?|avda\.?|avenida|calle)\s+", re.IGNORECASE)
+
+
+def bare_name(said: str) -> str:
+    """The name without "Av."/"calle", as said in a question: "Av. Rivadavia" → "Rivadavia"."""
+    return _KIND_PREFIX.sub("", said)
+
+
 def _said_kind(said: str) -> str | None:
     """ "avenida" or "calle" when the llamante said so ("Av. Scalabrini Ortiz")."""
     words = fold(said).split()
@@ -178,6 +186,9 @@ class StreetList:
         ]
         if not tiers and (found := self._sounds_like(key)):
             tiers = [(MatchKind.FUZZY, found)]
+        if altura is None and tiers and tiers[0][0] is MatchKind.EXACTO:
+            exact = tiers[0][1]
+            tiers[0] = (MatchKind.EXACTO, exact + self._renamed_stretches(key, exact))
         if altura is not None:
             # A street renamed in part ("Serrano" → "Jorge Luis Borges" from 1601): the stretch
             # that has that altura wins, whatever tier it comes from.
@@ -190,15 +201,37 @@ class StreetList:
                 return StreetMatch(kind=kind, candidates=tuple(ranked))
         return None
 
+    def _renamed_stretches(self, key: str, streets: list[Street]) -> list[Street]:
+        """Stretches that once had this name and continue its numbering.
+
+        "Serrano" is still SERRANO up to 1600; from 1601 it was renamed JORGE LUIS BORGES. Without
+        an altura both are possible. An old name reused elsewhere (RAMOS MEJIA was once partly
+        "San Juan", within the alturas of AV. SAN JUAN) is not a continuation and is left out.
+        """
+        return [
+            renamed
+            for renamed in self._alias.get(key, [])
+            if renamed not in streets
+            and key in {_key(p) for p in renamed.previous}
+            and all(_continues(street, renamed) for street in streets)
+        ]
+
     def _sounds_like(self, key: str) -> list[Street]:
         """The streets whose name sounds most like the key, if any is close enough."""
-        if len(key) < _MIN_PREFIX:
+        if len(key) < _MIN_FUZZY:
             return []
         hits = process.extract(
             _sound(key), self._sounds, scorer=fuzz.ratio, score_cutoff=_FUZZY_CUTOFF, limit=None
         )
         best = max((score for _, score, _ in hits), default=None)
         return [s for sound, score, _ in hits if score == best for s in self._by_sound[sound]]
+
+
+def _continues(street: Street, renamed: Street) -> bool:
+    """Both are numbered and their alturas do not overlap: one picks up where the other ends."""
+    if street.alturas is None or renamed.alturas is None:
+        return False
+    return renamed.alturas[0] > street.alturas[1] or renamed.alturas[1] < street.alturas[0]
 
 
 _Tiers = list[tuple[MatchKind, list[Street]]]
@@ -211,6 +244,7 @@ def _narrowed(tiers: _Tiers, keep: Callable[[Street], bool]) -> _Tiers:
 
 
 _FUZZY_CUTOFF = 85
+_MIN_FUZZY = 4  # shorter words sound like too many streets
 
 
 @lru_cache

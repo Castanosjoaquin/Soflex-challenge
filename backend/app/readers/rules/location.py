@@ -12,7 +12,7 @@ Layers, in order of preference within a turno:
 
 The last llamante turno that mentions a ubicación wins (autocorrección across turnos), as long as
 its street is in the official list: "Sí, Juan y María están adentro" is not a corner and does not
-replace the dirección said before. Every evidence carries offsets on the **original** turno text.
+replace the ubicación said before. Every evidence carries offsets on the **original** turno text.
 Street names are kept as said: the engine takes them to their official name.
 """
 

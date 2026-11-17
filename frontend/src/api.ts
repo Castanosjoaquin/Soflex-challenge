@@ -132,7 +132,7 @@ export interface CallState {
   checklist: ChecklistItem[]
   skipped_questions: string[]
   next_question: NextQuestion | null
-  /** `alert`: the llamada already needs what this etapa lacks (① without dirección). */
+  /** `alert`: the llamada already needs what this etapa lacks (① without ubicación). */
   stages: { id: StageId; status: StageStatus; alert: boolean }[]
 }
 

@@ -1,13 +1,12 @@
 """Pure transitions of a llamada's state. Knows nothing about HTTP or the IA provider."""
 
-import re
 from collections.abc import Sequence
 
 from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
-from app.catalog.streets import MatchKind, StreetMatch, match_street
+from app.catalog.streets import MatchKind, StreetMatch, bare_name, match_street
 from app.engine.models import (
     CallState,
     ChecklistItem,
@@ -471,15 +470,18 @@ def _location_question(state: CallState) -> NextQuestion | None:
         return _ubicacion("¿Entre qué calles o cerca de qué entrada?")
     if location.number is None and not location.cross_streets and location.landmark is None:
         # Asked first: the altura also settles a name that is avenida and calle.
-        street = _AVENUE_PREFIX.sub("", location.street)
-        return _ubicacion(f"¿A qué altura de {street}?")
+        return _altura_question(location.street)
     match = _street_match(location)
     if match is not None and match.avenida_o_calle:
         return _ubicacion("¿Es la avenida o la calle?")
+    if match is not None and len(match.candidates) > 1 and _altura(location) is None:
+        # A street renamed in part ("Serrano" or "Jorge Luis Borges"): the altura tells.
+        return _altura_question(location.street)
     return None
 
 
-_AVENUE_PREFIX = re.compile(r"^(?:av\.?|avda\.?|avenida|calle)\s+", re.IGNORECASE)
+def _altura_question(street: str) -> NextQuestion:
+    return _ubicacion(f"¿A qué altura de {bare_name(street)}?")
 
 
 def _ubicacion(text: str) -> NextQuestion:
