@@ -116,6 +116,10 @@ _Avoid_: despachar (eso lo hace el despachador), enviar
 Un dato confirmado después de derivar, que se agrega a la Carta ya derivada.
 _Avoid_: actualización, addendum
 
+**Nota del operador**:
+Lo único que el operador escribe con sus palabras: algo que el relato no dice. Va a la Carta tal cual; después de derivar, como ampliación.
+_Avoid_: comentario, observación
+
 **Registro de acciones**:
 La lista, que no se puede borrar, de todo lo que hizo el operador en una llamada.
 _Avoid_: log, historial, audit trail

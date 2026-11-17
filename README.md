@@ -15,6 +15,8 @@ docker compose up --build
 Panel en <http://localhost:8000>. Por defecto corre en **modo simulado** (`LLM_PROVIDER=mock`):
 no requiere credenciales ni conexión.
 
+Todo el flujo se hace con el teclado, sin mouse: `?` muestra los atajos (una tecla, una acción).
+
 ### Modo LLM real (opcional)
 
 ```bash
@@ -26,7 +28,7 @@ Funciona con cualquier endpoint compatible con OpenAI (Groq, Gemini, OpenAI, Oll
 
 Cada turno lo leen los dos lectores, el de reglas y el de IA, y se combinan: las señales se unen, los
 valores en desacuerdo quedan "a confirmar" con las dos frases y, si los tipos difieren, el operador
-elige con una tecla (`A` / `B`). La IA solo propone ubicación, tipo y señales, cada uno con su frase,
+elige con una tecla (`F` / `G`). La IA solo propone ubicación, tipo y señales, cada uno con su frase,
 que se verifica contra el relato; la prioridad, las preguntas y las instrucciones salen siempre de las
 reglas. Si la IA no responde en `LLM_TIMEOUT_SECONDS` (8 s) o responde mal dos veces, la lectura sigue
 solo con reglas y el panel muestra "Modo reglas". Sin `LLM_API_KEY`, todo queda en modo simulado.
