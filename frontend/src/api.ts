@@ -238,6 +238,34 @@ export interface DerivedCarta {
   ampliaciones: Ampliacion[]
 }
 
+/** One line of a traza told in natural language; `alert` when something went wrong. */
+export interface TraceLine {
+  text: string
+  alert: boolean
+}
+
+export type IAStatus = 'ok' | 'repaired' | 'retried' | 'invalid' | 'timeout' | 'error'
+
+/** One answer of the Lector con IA, as it came, and why it was not valid. */
+export interface IAAttempt {
+  raw: string
+  error: string | null
+  repaired: boolean
+}
+
+/** The traza of one lectura (detalle técnico): told in lines, plus the raw steps. */
+export interface ReadingDetail {
+  title: string
+  lines: TraceLine[]
+  trace: {
+    index: number
+    mode: CallState['mode']
+    steps: { step: 'relato' | 'reglas' | 'ia' | 'combinacion'; ms: number }[]
+    /** Null in modo simulado: the Lector con IA did not run. */
+    ia: { status: IAStatus; attempts: IAAttempt[] } | null
+  }
+}
+
 export type ActionKind =
   | 'confirm_location'
   | 'correct_location'
@@ -287,5 +315,6 @@ export const api = {
     request<CallState>(`/api/calls/${callId}/actions`, action),
   derive: (callId: string) => request<CallState>(`/api/calls/${callId}/derive`, {}),
   close: (callId: string) => request<void>(`/api/calls/${callId}/close`, {}, true),
+  readings: (callId: string) => request<ReadingDetail[]>(`/api/calls/${callId}/readings`),
   dispatch: () => request<DerivedCarta[]>('/api/dispatch'),
 }

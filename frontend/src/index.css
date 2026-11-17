@@ -970,3 +970,56 @@ a.badge {
 .question-answer.alternative {
   color: var(--p2);
 }
+
+/* Detalle técnico: the traza of each lectura, for the equipo técnico. Hidden by default. */
+.trace-panel > summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.trace-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trace-list > li > details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.trace-lines {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+  line-height: 1.5;
+}
+
+.trace-lines .alert,
+.trace-raw .alert {
+  color: var(--p2);
+  font-weight: 600;
+}
+
+.trace-raw summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.trace-raw pre {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.5rem;
+  max-height: 12rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
