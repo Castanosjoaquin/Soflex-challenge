@@ -110,6 +110,15 @@ export interface ChecklistItem {
   source: Source | null
 }
 
+/** An instrucción of the protocol, written beforehand: the IA never writes one. */
+export interface InstructionItem {
+  instruction_id: string
+  text: string
+  /** Only the active instrucción crítica: at most one per llamada. */
+  critical: boolean
+  read: boolean
+}
+
 export interface Catalog {
   signals: { id: string; label: string; question_hint: string }[]
   types: { id: string; label: string }[]
@@ -132,6 +141,10 @@ export interface CallState {
   checklist: ChecklistItem[]
   skipped_questions: string[]
   next_question: NextQuestion | null
+  /** In reading order, the active crítica first. */
+  instructions: InstructionItem[]
+  critical_instruction: InstructionItem | null
+  read_instructions: string[]
   /** `alert`: the llamada already needs what this etapa lacks (① without ubicación). */
   stages: { id: StageId; status: StageStatus; alert: boolean }[]
 }
@@ -144,6 +157,7 @@ export type ActionKind =
   | 'confirm_premark'
   | 'answer_question'
   | 'skip_question'
+  | 'mark_instruction_read'
 
 export interface Action {
   kind: ActionKind
