@@ -17,13 +17,16 @@ import { AvisoBand } from './components/AvisoBand'
 import { CartaPanel } from './components/CartaPanel'
 import { Checklist } from './components/Checklist'
 import { CriticalBand } from './components/CriticalBand'
-import { IncidentCard } from './components/IncidentCard'
+import { IncidentCard, TYPE_PICKER_ID } from './components/IncidentCard'
 import { Instructions } from './components/Instructions'
 import { LocationCard } from './components/LocationCard'
+import { NOTE_INPUT_ID, NoteBox } from './components/NoteBox'
 import { Relato } from './components/Relato'
+import { ShortcutHelp } from './components/ShortcutHelp'
 import { StageBar } from './components/StageBar'
 import { TracePanel } from './components/TracePanel'
-import { ANSWER_KEYS, DISPUTE_KEYS, answerTarget, skipTarget } from './questions'
+import { answerTarget, skipTarget } from './questions'
+import { ANSWER_KEYS, DISPUTE_KEYS, KEYS, keyLabel } from './shortcuts'
 
 type Mode = CallState['mode']
 
@@ -70,6 +73,12 @@ export default function App() {
   // The phrases of the dato under the pointer, lit in the relato.
   const [focus, setFocus] = useState<Evidence[]>([])
   const [editingPriority, setEditingPriority] = useState(false)
+  const [editingLocation, setEditingLocation] = useState(false)
+  const [traceOpen, setTraceOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  // The list of llamadas de prueba folds away during a llamada, to give the panel the width.
+  const [samplesOpen, setSamplesOpen] = useState(false)
+  const [openedAt, setOpenedAt] = useState(0)
   const [error, setError] = useState<string | null>(null)
   // Bumped on every new llamada so responses from a replaced one are ignored.
   const generation = useRef(0)
@@ -94,10 +103,15 @@ export default function App() {
     setPaused(false)
     setFocus([])
     setEditingPriority(false)
+    setEditingLocation(false)
+    setTraceOpen(false)
+    setSamplesOpen(false)
     setError(null)
     try {
       const opened = await api.openCall(picked.line, picked.sampleId ?? undefined)
-      if (gen === generation.current) setCall(opened)
+      if (gen !== generation.current) return
+      setCall(opened)
+      setOpenedAt(Date.now())
     } catch (e) {
       fail(e)
     }
@@ -214,37 +228,83 @@ export default function App() {
     (call?.signals ?? []).flatMap((s) => (s.alternative ? [[s.signal_id, s.alternative]] : [])),
   )
 
+  const disputeOptions = call?.type_dispute?.options ?? []
+  const openTypePicker = () => {
+    const picker = document.getElementById(TYPE_PICKER_ID)
+    if (!(picker instanceof HTMLSelectElement)) return
+    picker.focus()
+    try {
+      picker.showPicker()
+    } catch {
+      // Without showPicker the list stays focused: the arrows move through it.
+    }
+  }
+  const askClose = () => {
+    if (window.confirm('¿Cerrar la llamada? Sale de memoria; el registro y la bandeja quedan.'))
+      void close()
+  }
+
   useEffect(() => {
+    // What each key does now; null when its action does not apply. Actions that go to the
+    // server also wait for the one in flight.
+    const free = !busy
+    const shortcuts: Record<string, (() => void) | null> = {
+      [KEYS.nextTurn]: call ? () => void step() : null,
+      [KEYS.speed]: call ? () => setSpeed((s) => (s === 1 ? 2 : 1)) : null,
+      [KEYS.confirmLocation]:
+        canConfirm && free ? () => void act({ kind: 'confirm_location' }) : null,
+      [KEYS.correctLocation]: call ? () => setEditingLocation(true) : null,
+      [KEYS.confirmType]: canConfirmType && free ? () => void act({ kind: 'confirm_type' }) : null,
+      [KEYS.otherType]: call?.incident && free ? openTypePicker : null,
+      [KEYS.priority]: call?.priority ? () => setEditingPriority(true) : null,
+      [KEYS.skip]: skipTarget(nextQuestion) && free ? skipNext : null,
+      [KEYS.premark]:
+        premark && free
+          ? () => void act({ kind: 'confirm_premark', target: premark.question_id })
+          : null,
+      [KEYS.read]:
+        nextInstruction && free ? () => markRead(nextInstruction.instruction_id) : null,
+      [KEYS.avisoAccept]: aviso && free ? () => resolve(aviso.id, 'aceptar') : null,
+      [KEYS.avisoKeep]: aviso && free ? () => resolve(aviso.id, 'mantener') : null,
+      [KEYS.derive]: call?.can_derive && !call.derived && free ? () => void derive() : null,
+      [KEYS.note]: call ? () => document.getElementById(NOTE_INPUT_ID)?.focus() : null,
+      [KEYS.trace]: call ? () => setTraceOpen((o) => !o) : null,
+      [KEYS.close]: call ? askClose : null,
+    }
+    DISPUTE_KEYS.forEach((key, i) => {
+      const option = disputeOptions[i]
+      shortcuts[key] =
+        option && free ? () => void act({ kind: 'choose_type', value: option.category }) : null
+    })
+    for (const [key, value] of ANSWER_KEYS) {
+      shortcuts[key] = answerTarget(nextQuestion) && free ? () => answerNext(value) : null
+    }
+
     const onKey = (e: KeyboardEvent) => {
-      const typing =
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLSelectElement ||
-        e.target instanceof HTMLTextAreaElement
-      if (typing || e.metaKey || e.ctrlKey || e.altKey) return
-      const key = e.key.toLowerCase()
-      const answer = ANSWER_KEYS.find(([k]) => k === key)
-      const disputed = call?.type_dispute?.options[DISPUTE_KEYS.indexOf(key)]
-      if (key === ' ') {
-        e.preventDefault()
-        setPaused((p) => !p)
-      } else if (key === 'n') void step()
-      else if (key === 'x') setSpeed((s) => (s === 1 ? 2 : 1))
-      else if (key === 'c' && canConfirm && !busy) void act({ kind: 'confirm_location' })
-      else if (key === 't' && canConfirmType && !busy) void act({ kind: 'confirm_type' })
-      // A pending aviso interrupts (DESIGN §Paso 8): its A goes before the A of a tipo en disputa.
-      else if (key === 'a' && aviso && !busy) resolve(aviso.id, 'aceptar')
-      else if (key === 'm' && aviso && !busy) resolve(aviso.id, 'mantener')
-      else if (disputed && !busy) void act({ kind: 'choose_type', value: disputed.category })
-      else if (key === 'v' && premark && !busy)
-        void act({ kind: 'confirm_premark', target: premark.question_id })
-      else if (key === 's' && !busy) skipNext()
-      else if (key === 'l' && nextInstruction && !busy) markRead(nextInstruction.instruction_id)
-      else if (key === 'd' && call?.can_derive && !call.derived && !busy) void derive()
-      else if (answer && !busy) answerNext(answer[1])
-      else if (key === 'p' && call?.priority) {
-        e.preventDefault()
-        setEditingPriority(true)
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const target = e.target instanceof HTMLElement ? e.target : null
+      const typing = !!target?.closest('input, select, textarea, [contenteditable="true"]')
+      if (e.key === 'Escape') {
+        // Out of a box and back to the keys; each box also cancels its own edit on Esc.
+        if (typing) target?.blur()
+        else setHelpOpen(false)
+        return
       }
+      if (typing) return
+      if (e.key === KEYS.help) return setHelpOpen((o) => !o)
+      if (e.key === KEYS.pause) {
+        // Space still presses the button, or opens the detalle técnico, reached with Tab.
+        const pressable = target?.matches('button, summary, a, [role="radio"]')
+        if (pressable && target?.matches(':focus-visible')) return
+        e.preventDefault()
+        if (call) setPaused((p) => !p)
+        return
+      }
+      const run = shortcuts[e.key.toLowerCase()]
+      if (!run) return
+      // The key is not typed into the box it opens (U, P, O).
+      e.preventDefault()
+      run()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -253,83 +313,127 @@ export default function App() {
   // The llamada's mode follows its last lectura; before one, what the server is configured for.
   const mode: Mode = call?.mode ?? (health?.provider === 'openai_compat' ? 'ia' : 'simulado')
 
+  const showSamples = !call || samplesOpen
+
   return (
     <div className="shell">
       <header className="topbar">
         <h1>Copiloto de Sala</h1>
-        <a className="badge" href="/despacho" target="_blank" rel="noreferrer">
-          Bandeja del despachador ↗
-        </a>
-        {health && (
-          <span className={`badge mode-${mode}`} title={MODE_TITLE[mode]}>
-            {MODE_TEXT[mode]} · {health.catalog_size} llamadas de prueba
-          </span>
+        {call && (
+          <div className="call-meta" aria-label="Llamada en curso">
+            <span title={`Llamada ${call.call_id}`}>
+              Llamada <strong>{call.call_id.slice(0, 6).toUpperCase()}</strong>
+            </span>
+            <span>
+              Línea <strong>{call.line}</strong>
+            </span>
+            <Elapsed since={openedAt} />
+            <button type="button" className="secondary" onClick={() => void close()}>
+              Cerrar llamada <kbd>{keyLabel(KEYS.close)}</kbd>
+            </button>
+          </div>
         )}
+        <div className="topbar-tools">
+          {health && (
+            <span
+              className={`badge mode-${mode}`}
+              title={`${MODE_TITLE[mode]} · ${health.catalog_size} llamadas de prueba`}
+            >
+              {MODE_TEXT[mode]}
+            </span>
+          )}
+          {call && (
+            <button
+              type="button"
+              className={`secondary${samplesOpen ? ' on' : ''}`}
+              aria-expanded={samplesOpen}
+              onClick={() => setSamplesOpen((o) => !o)}
+            >
+              Llamadas de prueba
+            </button>
+          )}
+          <a className="badge" href="/despacho" target="_blank" rel="noreferrer">
+            Bandeja del despachador ↗
+          </a>
+          <button
+            type="button"
+            className={`secondary${helpOpen ? ' on' : ''}`}
+            aria-expanded={helpOpen}
+            onClick={() => setHelpOpen((o) => !o)}
+          >
+            Atajos <kbd>{keyLabel(KEYS.help)}</kbd>
+          </button>
+        </div>
       </header>
+
+      {helpOpen && <ShortcutHelp onClose={() => setHelpOpen(false)} />}
 
       {error && <p className="error">{error}</p>}
 
-      <main className="layout">
-        <aside className="samples">
-          <h2>Llamadas demo</h2>
-          <SampleList
-            samples={samples.filter((s) => s.kind === 'demo')}
-            activeId={sample?.id ?? null}
-            onPick={(s) => void start(fromSample(s))}
-          />
-
-          <h2>Pegar un relato</h2>
-          <form
-            className="paste"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void playPasted()
-            }}
-          >
-            <textarea
-              value={pasted}
-              onChange={(e) => setPasted(e.target.value)}
-              rows={5}
-              placeholder={
-                'Operador: 911, ¿su emergencia?\nLlamante: …\n\nSin prefijos, es un solo turno del llamante.'
-              }
-              aria-label="Texto de la llamada"
+      <main className={`layout${showSamples ? '' : ' layout-wide'}`}>
+        {showSamples && (
+          <aside className="samples">
+            <h2>Llamadas demo</h2>
+            <SampleList
+              samples={samples.filter((s) => s.kind === 'demo')}
+              activeId={sample?.id ?? null}
+              onPick={(s) => void start(fromSample(s))}
             />
-            <div className="paste-actions">
-              <select
-                value={pastedLine}
-                onChange={(e) => setPastedLine(e.target.value as Line)}
-                aria-label="Línea"
-              >
-                {LINES.map((l) => (
-                  <option key={l} value={l}>
-                    Línea {l}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className={sample?.id === 'pegado' ? 'active' : ''}
-                disabled={!pasted.trim()}
-              >
-                ▶ Reproducir
-              </button>
-            </div>
-          </form>
 
-          <h2>Dataset</h2>
-          <SampleList
-            samples={samples.filter((s) => s.kind === 'dataset')}
-            activeId={sample?.id ?? null}
-            onPick={(s) => void start(fromSample(s))}
-          />
-        </aside>
+            <h2>Pegar un relato</h2>
+            <form
+              className="paste"
+              onSubmit={(e) => {
+                e.preventDefault()
+                void playPasted()
+              }}
+            >
+              <textarea
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                rows={5}
+                placeholder={
+                  'Operador: 911, ¿su emergencia?\nLlamante: …\n\nSin prefijos, es un solo turno del llamante.'
+                }
+                aria-label="Texto de la llamada"
+              />
+              <div className="paste-actions">
+                <select
+                  value={pastedLine}
+                  onChange={(e) => setPastedLine(e.target.value as Line)}
+                  aria-label="Línea"
+                >
+                  {LINES.map((l) => (
+                    <option key={l} value={l}>
+                      Línea {l}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className={sample?.id === 'pegado' ? 'active' : ''}
+                  disabled={!pasted.trim()}
+                >
+                  ▶ Reproducir
+                </button>
+              </div>
+            </form>
+
+            <h2>Dataset</h2>
+            <SampleList
+              samples={samples.filter((s) => s.kind === 'dataset')}
+              activeId={sample?.id ?? null}
+              onPick={(s) => void start(fromSample(s))}
+            />
+          </aside>
+        )}
 
         {call && sample ? (
           <section className="workspace">
             <StageBar
               stages={call.stages}
               nextQuestion={nextQuestion}
+              canDerive={call.can_derive && !call.derived}
               busy={busy}
               onAnswer={answerNext}
               onSkip={skipNext}
@@ -345,33 +449,41 @@ export default function App() {
 
             <AvisoBand avisos={call.avisos} busy={busy} onResolve={resolve} onFocus={setFocus} />
 
-            <div className="playback" role="toolbar" aria-label="Reproducción">
-              <span className="line">Línea {call.line}</span>
-              <button type="button" onClick={() => setPaused((p) => !p)} disabled={finished}>
-                {paused ? '▶ Seguir' : '❚❚ Pausa'} <kbd>Espacio</kbd>
-              </button>
-              <button type="button" onClick={() => void step()} disabled={finished || busy}>
-                ⏭ Siguiente turno <kbd>N</kbd>
-              </button>
-              <button
-                type="button"
-                className={speed === 2 ? 'on' : ''}
-                onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
-              >
-                ×2 <kbd>X</kbd>
-              </button>
-              <span className="muted">
-                Turno {cursor}/{sample.turns.length}
-                {finished ? ' · fin del relato' : paused ? ' · en pausa' : ''}
-              </span>
-              <button type="button" className="secondary" onClick={() => void close()}>
-                Cerrar llamada
-              </button>
-            </div>
-
             <div className="columns">
-              <section className="card">
-                <h2>Relato</h2>
+              <section className="card relato-card">
+                <header className="card-head">
+                  <h2>Relato</h2>
+                  <div className="playback" role="toolbar" aria-label="Reproducción">
+                    <span className="muted">
+                      Turno {cursor}/{sample.turns.length}
+                      {finished ? ' · fin' : paused ? ' · en pausa' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPaused((p) => !p)}
+                      disabled={finished}
+                      title={paused ? 'Seguir' : 'Pausa'}
+                    >
+                      {paused ? '▶' : '❚❚'} <kbd>{keyLabel(KEYS.pause)}</kbd>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void step()}
+                      disabled={finished || busy}
+                      title="Siguiente turno"
+                    >
+                      ⏭ <kbd>{keyLabel(KEYS.nextTurn)}</kbd>
+                    </button>
+                    <button
+                      type="button"
+                      className={speed === 2 ? 'on' : ''}
+                      onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
+                      title="Velocidad ×2"
+                    >
+                      ×2 <kbd>{keyLabel(KEYS.speed)}</kbd>
+                    </button>
+                  </div>
+                </header>
                 <Relato
                   turns={call.turns}
                   evidence={evidence}
@@ -383,9 +495,11 @@ export default function App() {
                 <LocationCard
                   location={call.location}
                   busy={busy}
+                  editing={editingLocation}
+                  onEdit={setEditingLocation}
                   onConfirm={() => void act({ kind: 'confirm_location' })}
                   onCorrect={(value) => void act({ kind: 'correct_location', value })}
-                  onFocus={(on) => setFocus(on ? (call.location?.evidence ?? []) : [])}
+                  onFocus={setFocus}
                 />
                 <IncidentCard
                   incident={call.incident}
@@ -412,25 +526,57 @@ export default function App() {
                   onFocus={setFocus}
                 />
               </div>
-              <Instructions
-                items={call.instructions}
-                nextId={nextInstruction?.instruction_id ?? null}
-                busy={busy}
-                onRead={markRead}
-              />
+              <div className="stack side">
+                <Instructions
+                  items={call.instructions}
+                  nextId={nextInstruction?.instruction_id ?? null}
+                  busy={busy}
+                  onRead={markRead}
+                />
+                <NoteBox
+                  notes={call.notes}
+                  busy={busy}
+                  onAdd={(text) => void act({ kind: 'add_note', value: text })}
+                />
+              </div>
             </div>
 
-            <CartaPanel call={call} busy={busy} onDerive={() => void derive()} />
+            <CartaPanel call={call} busy={busy} onDerive={() => void derive()} onFocus={setFocus} />
 
-            <TracePanel callId={call.call_id} lecturas={call.turns.length} />
+            <TracePanel
+              callId={call.call_id}
+              lecturas={call.turns.length}
+              open={traceOpen}
+              onToggle={setTraceOpen}
+            />
           </section>
         ) : (
           <section className="workspace card">
-            <p className="muted">Elegí una llamada de prueba para reproducirla turno a turno.</p>
+            <p className="muted">
+              Elegí una llamada de prueba para reproducirla turno a turno, con el mouse o con Tab y
+              Enter. Con <kbd>{keyLabel(KEYS.help)}</kbd> ves todos los atajos.
+            </p>
           </section>
         )}
       </main>
     </div>
+  )
+}
+
+/** Time since the llamada was opened, ticking every second. */
+function Elapsed({ since }: { since: number }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  const seconds = Math.max(0, Math.floor((now - since) / 1000))
+  const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const ss = String(seconds % 60).padStart(2, '0')
+  return (
+    <span title="Tiempo desde que se abrió la llamada">
+      ⏱ <strong>{`${mm}:${ss}`}</strong>
+    </span>
   )
 }
 

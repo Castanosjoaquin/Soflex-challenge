@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import type { Confidence, Location } from '../api'
+import type { Confidence, Evidence, Location } from '../api'
 import { formatAddress } from '../format'
+import { lit } from '../lit'
+import { KEYS, keyLabel } from '../shortcuts'
 
 const CONFIDENCE_TEXT: Record<Confidence, string> = {
   confirmado: 'Confirmado',
@@ -30,36 +32,55 @@ function typedDiffers(location: Location): boolean {
 interface Props {
   location: Location | null
   busy: boolean
+  /** The correction box is open (U opens it too). */
+  editing: boolean
+  onEdit: (editing: boolean) => void
   onConfirm: () => void
   onCorrect: (value: string) => void
-  onFocus: (focused: boolean) => void
+  onFocus: (evidence: Evidence[]) => void
 }
 
-export function LocationCard({ location, busy, onConfirm, onCorrect, onFocus }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState('')
+export function LocationCard({
+  location,
+  busy,
+  editing,
+  onEdit,
+  onConfirm,
+  onCorrect,
+  onFocus,
+}: Props) {
+  const correct = editing ? (
+    <CorrectForm
+      initial={location ? formatAddress(location) : ''}
+      busy={busy}
+      onCancel={() => onEdit(false)}
+      onSubmit={(value) => {
+        onCorrect(value)
+        onEdit(false)
+      }}
+    />
+  ) : null
 
   if (!location) {
     return (
       <section className="card">
         <h2>① Ubicación</h2>
         <p className="muted">Esperando que el llamante diga dónde es.</p>
+        {correct ?? (
+          <div className="actions">
+            <button type="button" className="secondary" onClick={() => onEdit(true)}>
+              Cargar a mano <kbd>{keyLabel(KEYS.correctLocation)}</kbd>
+            </button>
+          </div>
+        )}
       </section>
     )
   }
 
   const confirmed = location.confidence === 'confirmado'
-  const submit = () => {
-    if (draft.trim()) onCorrect(draft.trim())
-    setEditing(false)
-  }
 
   return (
-    <section
-      className="card location"
-      onMouseEnter={() => onFocus(true)}
-      onMouseLeave={() => onFocus(false)}
-    >
+    <section className="card location" {...lit(onFocus, location.evidence)}>
       <header className="card-head">
         <h2>① Ubicación</h2>
         <span className={`confidence confidence-${location.confidence}`}>
@@ -94,44 +115,51 @@ export function LocationCard({ location, busy, onConfirm, onCorrect, onFocus }: 
           </>
         )}
       </dl>
-      {editing ? (
-        <form
-          className="correct"
-          onSubmit={(e) => {
-            e.preventDefault()
-            submit()
-          }}
-        >
-          <input
-            autoFocus
-            onFocus={(e) => e.target.select()}
-            value={draft}
-            placeholder="Calle y altura, p. ej. Av. Corrientes 1540"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Escape' && setEditing(false)}
-          />
-          <button type="submit" disabled={busy}>
-            Guardar
-          </button>
-        </form>
-      ) : (
+      {correct ?? (
         <div className="actions">
           <button type="button" disabled={busy || confirmed} onClick={onConfirm}>
-            Confirmar <kbd>C</kbd>
+            Confirmar <kbd>{keyLabel(KEYS.confirmLocation)}</kbd>
           </button>
-          <button
-            type="button"
-            className="secondary"
-            disabled={busy}
-            onClick={() => {
-              setDraft(formatAddress(location))
-              setEditing(true)
-            }}
-          >
-            Corregir
+          <button type="button" className="secondary" disabled={busy} onClick={() => onEdit(true)}>
+            Corregir <kbd>{keyLabel(KEYS.correctLocation)}</kbd>
           </button>
         </div>
       )}
     </section>
+  )
+}
+
+interface CorrectFormProps {
+  initial: string
+  busy: boolean
+  onCancel: () => void
+  onSubmit: (value: string) => void
+}
+
+/** The dirección as the operador types it; Enter saves, Esc leaves it as it was. */
+function CorrectForm({ initial, busy, onCancel, onSubmit }: CorrectFormProps) {
+  const [draft, setDraft] = useState(initial)
+  return (
+    <form
+      className="correct"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (draft.trim()) onSubmit(draft.trim())
+        else onCancel()
+      }}
+    >
+      <input
+        autoFocus
+        onFocus={(e) => e.target.select()}
+        value={draft}
+        aria-label="Dirección corregida"
+        placeholder="Calle y altura, p. ej. Av. Corrientes 1540"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => e.key === 'Escape' && onCancel()}
+      />
+      <button type="submit" disabled={busy}>
+        Guardar
+      </button>
+    </form>
   )
 }

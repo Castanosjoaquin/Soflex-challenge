@@ -6,16 +6,6 @@ export const ANSWER_TEXT: Record<SignalAnswer, string> = {
   no_sabe: 'No sabe',
 }
 
-/** One key per option of a tipo en disputa, in the order of `TypeDispute.options`. */
-export const DISPUTE_KEYS = ['a', 'b']
-
-/** Keys that answer the próxima pregunta, in the order the buttons show them. */
-export const ANSWER_KEYS: [string, SignalAnswer][] = [
-  ['1', 'si'],
-  ['2', 'no'],
-  ['3', 'no_sabe'],
-]
-
 /**
  * What an answer to the próxima pregunta targets: the pregunta clave itself, or, for the
  * universal one, the first señal it still asks about. The ubicación question is answered by

@@ -9,7 +9,8 @@ import type {
   Source,
   TypeDispute,
 } from '../api'
-import { DISPUTE_KEYS } from '../questions'
+import { lit as litBy } from '../lit'
+import { DISPUTE_KEYS, KEYS, keyLabel } from '../shortcuts'
 
 const CONFIDENCE_TEXT: Record<Confidence, string> = {
   confirmado: 'Confirmado',
@@ -56,10 +57,7 @@ export function IncidentCard({
   onSetPriority,
   onFocus,
 }: Props) {
-  const lit = (evidence: Evidence[]) => ({
-    onMouseEnter: () => onFocus(evidence),
-    onMouseLeave: () => onFocus([]),
-  })
+  const lit = (evidence: Evidence[]) => litBy(onFocus, evidence)
 
   if (!incident && !priority) {
     return (
@@ -105,7 +103,7 @@ export function IncidentCard({
                 {labelOf(catalog?.types, o.category)}
                 {o.subtype ? ` · ${labelOf(catalog?.subtypes, o.subtype)}` : ''}
                 <span className="muted"> ({SOURCE_TEXT[o.source]})</span>{' '}
-                <kbd>{DISPUTE_KEYS[i]?.toUpperCase()}</kbd>
+                {DISPUTE_KEYS[i] && <kbd>{keyLabel(DISPUTE_KEYS[i])}</kbd>}
               </button>
             ))}
           </div>
@@ -113,8 +111,8 @@ export function IncidentCard({
       )}
 
       {incident && (
-        <>
-          <dl className="two-lines" {...lit(incident.evidence)}>
+        <div className="incident-type" {...lit(incident.evidence)}>
+          <dl className="two-lines">
             <dt>Tipo</dt>
             <dd className="address">{labelOf(catalog?.types, incident.category)}</dd>
             <dt>Subtipo</dt>
@@ -122,23 +120,31 @@ export function IncidentCard({
           </dl>
           <div className="actions">
             <button type="button" disabled={busy || confirmed} onClick={() => onConfirmType()}>
-              Confirmar tipo <kbd>T</kbd>
+              Confirmar tipo <kbd>{keyLabel(KEYS.confirmType)}</kbd>
             </button>
             <TypePicker catalog={catalog} current={incident} busy={busy} onPick={onConfirmType} />
+            <kbd title="Abre la lista de tipos">{keyLabel(KEYS.otherType)}</kbd>
           </div>
-        </>
+        </div>
       )}
 
       {priority && (
         <div className="priority">
-          <div className="priority-head">
+          <div
+            className="priority-head"
+            {...lit(priority.reasons.flatMap((r) => (r.evidence ? [r.evidence] : [])))}
+          >
             <span className={`prio prio-${priority.level} prio-big`}>{priority.level}</span>
             <span className="priority-rule">{priority.rule}</span>
           </div>
           {priority.reasons.length > 0 && (
             <ul className="reasons" aria-label="Por qué">
               {priority.reasons.map((r) => (
-                <li key={r.signal_id} {...lit(r.evidence ? [r.evidence] : [])}>
+                <li
+                  key={r.signal_id}
+                  tabIndex={r.evidence ? 0 : undefined}
+                  {...lit(r.evidence ? [r.evidence] : [])}
+                >
                   <span>
                     {labelOf(catalog?.signals, r.signal_id)}
                     {r.value === 'no' ? ': no' : ''}
@@ -170,7 +176,7 @@ export function IncidentCard({
           ) : (
             <div className="actions">
               <button type="button" className="secondary" onClick={() => onEditPriority(true)}>
-                Cambiar prioridad <kbd>P</kbd>
+                Cambiar prioridad <kbd>{keyLabel(KEYS.priority)}</kbd>
               </button>
             </div>
           )}
@@ -179,6 +185,9 @@ export function IncidentCard({
     </section>
   )
 }
+
+/** The tipo list, which E opens from the keyboard. */
+export const TYPE_PICKER_ID = 'type-picker'
 
 interface TypePickerProps {
   catalog: Catalog | null
@@ -193,6 +202,7 @@ function TypePicker({ catalog, current, busy, onPick }: TypePickerProps) {
   const value = current.subtype ? `${current.category}:${current.subtype}` : current.category
   return (
     <select
+      id={TYPE_PICKER_ID}
       aria-label="Elegir otro tipo"
       disabled={busy}
       value={value}

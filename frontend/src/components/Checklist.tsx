@@ -5,7 +5,9 @@ import type {
   SignalAlternative,
   SignalAnswer,
 } from '../api'
+import { lit } from '../lit'
 import { ANSWER_TEXT } from '../questions'
+import { KEYS, keyLabel } from '../shortcuts'
 
 const STATUS_MARK: Record<QuestionStatus, string> = {
   pendiente: '○',
@@ -68,8 +70,8 @@ export function Checklist({
             <li
               key={item.question_id}
               className={`question question-${item.status}${item.question_id === nextId ? ' next' : ''}`}
-              onMouseEnter={() => onFocus(phrases)}
-              onMouseLeave={() => onFocus([])}
+              tabIndex={phrases.length > 0 ? 0 : undefined}
+              {...lit(onFocus, phrases)}
             >
               <span className="question-mark" title={STATUS_TEXT[item.status]}>
                 {STATUS_MARK[item.status]}
@@ -95,24 +97,26 @@ export function Checklist({
                     <q>{alternative.evidence.quote}</q>
                   </span>
                 )}
-                {item.status === 'pre_marcada' && (
-                  <button
-                    type="button"
-                    className="question-confirm"
-                    disabled={busy}
-                    onClick={() => onConfirm(item.question_id)}
-                  >
-                    Confirmar {item.question_id === firstPremark && <kbd>V</kbd>}
-                  </button>
-                )}
-                {(item.status === 'pendiente' || item.status === 'salteada') && (
+                {item.status !== 'respondida' && (
                   <span className="question-quick">
+                    {item.status === 'pre_marcada' && (
+                      <button
+                        type="button"
+                        className="question-confirm"
+                        disabled={busy}
+                        onClick={() => onConfirm(item.question_id)}
+                      >
+                        Confirmar{' '}
+                        {item.question_id === firstPremark && <kbd>{keyLabel(KEYS.premark)}</kbd>}
+                      </button>
+                    )}
                     {(['si', 'no', 'no_sabe'] as const).map((value) => (
                       <button
                         key={value}
                         type="button"
                         className="secondary"
                         disabled={busy}
+                        title={item.status === 'pre_marcada' ? 'Corregir la pre-marca' : undefined}
                         onClick={() => onAnswer(item.question_id, value)}
                       >
                         {value === 'no_sabe' ? 'NS' : ANSWER_TEXT[value]}

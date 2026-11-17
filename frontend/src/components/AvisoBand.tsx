@@ -1,4 +1,6 @@
 import type { Aviso, Evidence, Resolution } from '../api'
+import { lit } from '../lit'
+import { KEYS, keyLabel } from '../shortcuts'
 
 interface Props {
   avisos: Aviso[]
@@ -24,12 +26,7 @@ export function AvisoBand({ avisos, busy, onResolve, onFocus }: Props) {
   const accept = aviso.kind === 'senal_p1' ? `Pasar a ${aviso.after}` : `Tomar ${aviso.after}`
   const keep = aviso.kind === 'senal_p1' ? `Dejar ${aviso.before}` : `Mantener ${aviso.before}`
   return (
-    <div
-      className="aviso-band"
-      role="alert"
-      onMouseEnter={() => onFocus(aviso.evidence)}
-      onMouseLeave={() => onFocus([])}
-    >
+    <div className="aviso-band" role="alert" {...lit(onFocus, aviso.evidence)}>
       <p>
         <small>
           {TITLE[aviso.kind]} · {aviso.label}
@@ -42,7 +39,7 @@ export function AvisoBand({ avisos, busy, onResolve, onFocus }: Props) {
       </p>
       <div className="aviso-actions">
         <button type="button" disabled={busy} onClick={() => onResolve(aviso.id, 'aceptar')}>
-          {accept} <kbd>A</kbd>
+          {accept} <kbd>{keyLabel(KEYS.avisoAccept)}</kbd>
         </button>
         <button
           type="button"
@@ -50,7 +47,7 @@ export function AvisoBand({ avisos, busy, onResolve, onFocus }: Props) {
           disabled={busy}
           onClick={() => onResolve(aviso.id, 'mantener')}
         >
-          {keep} <kbd>M</kbd>
+          {keep} <kbd>{keyLabel(KEYS.avisoKeep)}</kbd>
         </button>
       </div>
     </div>
