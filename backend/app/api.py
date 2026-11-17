@@ -1,7 +1,9 @@
 """HTTP routes under /api."""
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.calls.service import (
     ActionKind,
@@ -11,6 +13,7 @@ from app.calls.service import (
     InvalidActionError,
     InvalidActionValueError,
 )
+from app.catalog.demos import DemoCall
 from app.catalog.incidents import SUBTYPES, TYPES, SubtypeDef, TypeDef
 from app.catalog.models import CatalogCase, Category, Priority
 from app.catalog.priority import PRIORITY_RULES, PriorityRule
@@ -30,16 +33,31 @@ class HealthResponse(BaseModel):
     catalog_size: int
 
 
+class SampleTurn(ParsedTurn):
+    """A turno ready to replay; demo calls bring their own pause, dataset ones use a default."""
+
+    delay_ms: int | None = None
+
+
 class SampleCall(BaseModel):
-    """A dataset case as a llamada de prueba: its line and its turnos, ready to replay."""
+    """A llamada de prueba: a dataset case or a demo call, with its line and turnos to replay.
+
+    A demo call carries the category, subcategory and priority of the dataset case it extends.
+    """
 
     id: str
+    kind: Literal["demo", "dataset"]
+    title: str
     line: Line
     category: Category
     subcategory: str
     priority: Priority
     transcript: str
-    turns: list[ParsedTurn]
+    turns: list[SampleTurn]
+
+
+class ParseRequest(BaseModel):
+    text: str = Field(max_length=20_000)
 
 
 class CatalogResponse(BaseModel):
@@ -80,13 +98,39 @@ _LINE_BY_SOURCE = {
 def _sample(case: CatalogCase) -> SampleCall:
     return SampleCall(
         id=case.id,
+        kind="dataset",
+        title=case.subcategory,
         line=_LINE_BY_SOURCE.get(case.source, Line.L911),
         category=case.category,
         subcategory=case.subcategory,
         priority=case.priority,
         transcript=case.transcript,
-        turns=parse_transcript(case.transcript),
+        turns=[
+            SampleTurn(speaker=t.speaker, text=t.text) for t in parse_transcript(case.transcript)
+        ],
     )
+
+
+def _demo_sample(demo: DemoCall, base: CatalogCase) -> SampleCall:
+    return SampleCall(
+        id=demo.id,
+        kind="demo",
+        title=demo.title,
+        line=demo.line,
+        category=base.category,
+        subcategory=base.subcategory,
+        priority=base.priority,
+        transcript=" ".join(f"{t.speaker.value.capitalize()}: {t.text}" for t in demo.turns),
+        turns=[SampleTurn(speaker=t.speaker, text=t.text, delay_ms=t.delay_ms) for t in demo.turns],
+    )
+
+
+def _samples(request: Request) -> list[SampleCall]:
+    """Demo calls first, then the dataset cases."""
+    cases = _cases(request)
+    by_id = {c.id: c for c in cases}
+    demos: list[DemoCall] = request.app.state.demos
+    return [_demo_sample(d, by_id[d.based_on]) for d in demos] + [_sample(c) for c in cases]
 
 
 def _cases(request: Request) -> list[CatalogCase]:
@@ -120,20 +164,26 @@ def catalog() -> CatalogResponse:
 
 @router.get("/samples")
 def list_samples(request: Request) -> list[SampleCall]:
-    return [_sample(c) for c in _cases(request)]
+    return _samples(request)
 
 
 @router.get("/samples/{case_id}")
 def get_sample(case_id: str, request: Request) -> SampleCall:
-    for case in _cases(request):
-        if case.id == case_id:
-            return _sample(case)
+    for sample in _samples(request):
+        if sample.id == case_id:
+            return sample
     raise HTTPException(status_code=404, detail="Caso no encontrado")
+
+
+@router.post("/transcripts/parse")
+def parse_pasted(body: ParseRequest) -> list[ParsedTurn]:
+    """Split a pasted text into turnos, so the panel can replay it like any llamada."""
+    return parse_transcript(body.text)
 
 
 @router.post("/calls")
 def open_call(body: OpenCallRequest, request: Request) -> CallState:
-    if body.sample_id is not None and all(c.id != body.sample_id for c in _cases(request)):
+    if body.sample_id is not None and all(s.id != body.sample_id for s in _samples(request)):
         raise HTTPException(status_code=404, detail="Caso no encontrado")
     return _calls(request).open(body.line, body.sample_id)
 

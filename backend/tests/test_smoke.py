@@ -21,7 +21,7 @@ def test_health_reports_mock_provider(client: TestClient) -> None:
 
 def test_samples_roundtrip(client: TestClient) -> None:
     samples = client.get("/api/samples").json()
-    assert len(samples) == 30
+    assert len([s for s in samples if s["kind"] == "dataset"]) == 30
     first = client.get(f"/api/samples/{samples[0]['id']}").json()
     assert first == samples[0]
     assert client.get("/api/samples/NOPE").status_code == 404
