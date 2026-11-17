@@ -251,8 +251,14 @@ La IA **no decide nada**: no pone la prioridad, no escribe instrucciones ni inve
    el operador elige.
 
 La confianza se muestra en tres niveles, nunca como un porcentaje inventado por la IA:
-**confirmado** (lo validó el operador), **probable** (hay frase y los dos lectores coinciden) y
-**a confirmar** (falta respaldo, hay dudas o hay contradicción).
+**confirmado** (lo validó el operador), **probable** (tiene frase verificada y nada lo contradice) y
+**a confirmar** (falta respaldo, los lectores no coinciden o hay contradicción). En modo simulado hay
+un solo lector, así que el desacuerdo nunca baja la confianza: el segundo lector solo sirve para
+detectar desacuerdos.
+
+**Cómo se combinan los lectores:** se toma la **unión** de las señales que pasaron el control de frase.
+La prioridad se calcula sobre esa unión. Si el tipo está en disputa, se toma la prioridad **más alta**
+de los dos tipos: ante la duda, siempre conviene sobre-priorizar.
 
 ---
 
@@ -407,8 +413,10 @@ El operador marca cada una cuando la leyó.
 - Cada respuesta nueva que el operador confirma se manda al despachador como **ampliación** de la Carta.
 - **Lo que el operador ya confirmó o corrigió no se toca.** Una nueva lectura nunca pisa una decisión
   humana.
-- Si el llamante **contradice** algo ("no, es en el 1450"), aparece un aviso: *"Antes dijo 1540, ahora
-  dice 1450"*. Es uno de los dos únicos avisos que interrumpen; el otro es una señal de P1. Todo lo
+- Si el llamante cambia un dato que el operador **todavía no confirmó**, es una **autocorrección**:
+  gana el último valor, sin aviso (es lo que hace el Paso 2).
+- Si cambia un dato **ya confirmado** ("no, es en el 1450"), es una **contradicción**: el dato no se
+  toca y aparece un aviso, *"Antes dijo 1540, ahora dice 1450"*. Es uno de los dos únicos avisos que interrumpen; el otro es una señal de P1. Todo lo
   demás es información tranquila en pantalla, para que los avisos no se vuelvan ruido y se ignoren
   (la lección del caso Corti).
 
@@ -605,3 +613,20 @@ producto completo para presentar.
 3. **Lectura síncrona:** cada frase nueva dispara una lectura completa y el panel se actualiza cuando
    termina (1–2 s con IA).
 4. **Bandeja del despachador:** sí, una vista simple con la Carta y sus ampliaciones.
+5. **Confianza sin segundo lector:** *probable* = frase verificada y sin contradicción. El desacuerdo
+   entre lectores solo baja a *a confirmar*.
+6. **Autocorrección vs. contradicción:** lo que el operador no confirmó se actualiza en silencio; lo que
+   confirmó no se pisa y dispara el aviso.
+7. **Lectores combinados:** unión de señales verificadas; con el tipo en disputa, gana la prioridad más
+   alta.
+8. **Dataset:** se usa como semilla del catálogo curado, como llamadas de prueba y como base de la
+   evaluación. No hay "casos similares" ni few-shot: BM25 acierta 40% en leave-one-out (EDA §8) y otro
+   panel sería ruido. El few-shot queda como opción si sobra tiempo.
+9. **Sin recursos en la Carta:** los recursos los elige el despachador en el CAD.
+10. **Estado:** la llamada vive en memoria del backend. El registro de acciones y las Cartas derivadas
+    con sus ampliaciones van a SQLite, append-only. El frontend reproduce la llamada con un
+    `POST` por turno y recibe el estado completo. Las lecturas se serializan por llamada, el timeout
+    de la IA es ~8 s y la bandeja hace polling.
+11. **Texto pegado:** con prefijos `Operador:` / `Llamante:` se separa en turnos; sin ellos, es un solo
+    turno del llamante.
+12. **Vocabulario:** ver [`CONTEXT.md`](../CONTEXT.md) (*Incidente*, *Señal*, *Evidencia*, *Lectura*…).
