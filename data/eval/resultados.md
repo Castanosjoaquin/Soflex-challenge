@@ -8,13 +8,13 @@ Corpus: las 30 llamadas del dataset tal como vienen (*original*) y 7 variantes r
 
 | Métrica | Simulado · original | Simulado · ruidoso | Δ | IA · original | IA · ruidoso | Δ |
 |---|--:|--:|--:|--:|--:|--:|
-| Calle (nombre oficial) | 28/30 · 93 % | 165/210 · 79 % | −15 pp | pendiente | pendiente | — |
-| Altura | 29/30 · 97 % | 185/210 · 88 % | −9 pp | pendiente | pendiente | — |
+| Calle (nombre oficial) | 28/30 · 93 % | 197/210 · 94 % | 0 pp | pendiente | pendiente | — |
+| Altura | 29/30 · 97 % | 204/210 · 97 % | 0 pp | pendiente | pendiente | — |
 | Tipo | 30/30 · 100 % | 210/210 · 100 % | 0 pp | pendiente | pendiente | — |
-| Prioridad | 27/30 · 90 % | 186/210 · 89 % | −1 pp | pendiente | pendiente | — |
-| Pre-marcas · precisión | 12/18 · 67 % | 82/123 · 67 % | 0 pp | pendiente | pendiente | — |
-| Pre-marcas · recall | 12/25 · 48 % | 82/175 · 47 % | −1 pp | pendiente | pendiente | — |
-| Datos descartados antes del filtro | 0/116 · 0 % | 0/748 · 0 % | 0 pp | pendiente | pendiente | — |
+| Prioridad | 27/30 · 90 % | 188/210 · 90 % | 0 pp | pendiente | pendiente | — |
+| Pre-marcas · precisión | 12/18 · 67 % | 84/126 · 67 % | 0 pp | pendiente | pendiente | — |
+| Pre-marcas · recall | 12/25 · 48 % | 84/175 · 48 % | 0 pp | pendiente | pendiente | — |
+| Datos descartados antes del filtro | 0/116 · 0 % | 0/782 · 0 % | 0 pp | pendiente | pendiente | — |
 | Respuestas rotas de la IA | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
 | Fallbacks a reglas | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
 
@@ -23,12 +23,12 @@ Corpus: las 30 llamadas del dataset tal como vienen (*original*) y 7 variantes r
 | Variante | Con ruido | Calle | Altura | Tipo | Prioridad | Pre-marcas P | Pre-marcas R |
 |---|--:|--:|--:|--:|--:|--:|--:|
 | original | — | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
-| muletillas | 30/30 | 25/30 | 27/30 | 30/30 | 26/30 | 11/17 | 11/25 |
+| muletillas | 30/30 | 28/30 | 29/30 | 30/30 | 26/30 | 12/18 | 12/25 |
 | numeros_en_palabras | 21/30 | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
-| typos_asr | 30/30 | 28/30 | 29/30 | 30/30 | 25/30 | 11/16 | 11/25 |
-| autocorreccion | 30/30 | 27/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
+| typos_asr | 30/30 | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
+| autocorreccion | 30/30 | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
 | sin_av | 14/30 | 27/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
-| minusculas | 30/30 | 0/30 | 12/30 | 30/30 | 27/30 | 12/18 | 12/25 |
+| minusculas | 30/30 | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
 | sin_direccion | 30/30 | 30/30 | 30/30 | 30/30 | 27/30 | 12/18 | 12/25 |
 
 ## Degradación por tipo de ruido · IA
