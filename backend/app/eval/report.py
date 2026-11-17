@@ -102,7 +102,7 @@ _MODES = ((LLMProviderName.MOCK, "Simulado"), (LLMProviderName.OPENAI_COMPAT, "I
 _COMMAND = "uv run python -m app.eval --provider {provider}"
 _IA_COMMAND = (
     "cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> "
-    "uv run python -m app.eval --provider openai_compat"
+    "uv run python -m app.eval --provider openai_compat --concurrency 1 --pause 20"
 )
 
 
@@ -222,7 +222,8 @@ def _pending(provider: LLMProviderName) -> list[str]:
         "```",
         "",
         "`LLM_BASE_URL` y `LLM_MODEL` eligen el endpoint compatible con OpenAI (por defecto, Groq "
-        "con `llama-3.3-70b-versatile`). `--concurrency` limita las llamadas simultáneas.",
+        "con `qwen/qwen3.8-27b`). `--concurrency` limita las llamadas simultáneas y `--pause` "
+        "espacia las lecturas para no pasar el límite de tokens por minuto del plan gratuito.",
     ]
 
 

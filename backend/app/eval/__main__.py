@@ -9,13 +9,16 @@ import argparse
 import asyncio
 import sys
 import time
+from collections.abc import Sequence
 
 from app.config import LLMProviderName, Settings
+from app.engine.models import Line
 from app.eval import report
 from app.eval.corpus import EVAL_DIR, load_corpus
 from app.eval.runner import run_corpus
 from app.readers.ia.provider import OpenAICompatProvider
-from app.readers.ia.reader import IAReader
+from app.readers.ia.reader import IAReader, IAReading
+from app.transcript.models import Turn
 
 RESULTS_DIR = EVAL_DIR / "results"
 REPORT_PATH = EVAL_DIR / "resultados.md"
@@ -37,10 +40,41 @@ def _args(settings: Settings) -> argparse.Namespace:
         default=4,
         help="llamadas a la IA en paralelo (por defecto, 4)",
     )
+    parser.add_argument(
+        "--pause",
+        type=float,
+        default=0.0,
+        help="segundos mínimos entre lecturas con IA, para no pasar el límite de tokens por "
+        "minuto de un plan gratuito (por defecto, 0)",
+    )
     return parser.parse_args()
 
 
-async def _run(settings: Settings, provider: LLMProviderName, concurrency: int) -> None:
+class _PacedIAReader(IAReader):
+    """An IAReader that waits its turn *before* the lectura starts, never inside it.
+
+    The wait stays out of the lectura's timeout: a rate limit of the plan is not a slow IA. Only
+    for the evaluación; the copiloto never waits.
+    """
+
+    def __init__(self, inner: IAReader, pause: float) -> None:
+        self._inner = inner
+        self._pause = pause
+        self._next = 0.0
+        self._lock = asyncio.Lock()
+
+    async def read(self, turns: Sequence[Turn], line: Line | None = None) -> IAReading:
+        async with self._lock:
+            wait = self._next - time.monotonic()
+            if wait > 0:
+                await asyncio.sleep(wait)
+            self._next = time.monotonic() + self._pause
+        return await self._inner.read(turns, line)
+
+
+async def _run(
+    settings: Settings, provider: LLMProviderName, concurrency: int, pause: float
+) -> None:
     ia_provider = None
     if provider is LLMProviderName.OPENAI_COMPAT:
         if settings.llm_api_key is None:
@@ -52,6 +86,8 @@ async def _run(settings: Settings, provider: LLMProviderName, concurrency: int) 
             timeout_seconds=settings.llm_timeout_seconds,
         )
     ia = IAReader(ia_provider, settings.llm_timeout_seconds) if ia_provider else None
+    if ia is not None and pause > 0:
+        ia = _PacedIAReader(ia, pause)
     started = time.monotonic()
     try:
         outcomes = await run_corpus(load_corpus(), ia, concurrency)
@@ -75,7 +111,7 @@ async def _run(settings: Settings, provider: LLMProviderName, concurrency: int) 
 def main() -> None:
     settings = Settings()
     args = _args(settings)
-    asyncio.run(_run(settings, args.provider, args.concurrency))
+    asyncio.run(_run(settings, args.provider, args.concurrency, args.pause))
 
 
 if __name__ == "__main__":
