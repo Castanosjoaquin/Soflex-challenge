@@ -21,6 +21,7 @@ from app.engine.state import add_turn, answer_question, confirm_type, new_call
 from app.main import _provider
 from app.readers.models import Evidence, IncidentReading, ReaderOutput, SignalReading
 from app.readers.rules.reader import RulesReader
+from app.trace.store import TraceStore
 from app.transcript.models import Speaker, Turn
 from tests.ia_fakes import SLOW, FakeEndpoint, ia_reader
 
@@ -40,9 +41,13 @@ INCENDIO = {
 def service(tmp_path: Path, replies: list[Any] | None, timeout: float = 8.0) -> CallService:
     db = tmp_path / "log.db"
     if replies is None:
-        return CallService(RulesReader(), ActionLog(db), DispatchStore(db), Mode.SIMULADO)
+        return CallService(
+            RulesReader(), ActionLog(db), DispatchStore(db), TraceStore(db), Mode.SIMULADO
+        )
     reader = ia_reader(FakeEndpoint(replies), timeout)
-    return CallService(RulesReader(), ActionLog(db), DispatchStore(db), Mode.IA, ia_reader=reader)
+    return CallService(
+        RulesReader(), ActionLog(db), DispatchStore(db), TraceStore(db), Mode.IA, ia_reader=reader
+    )
 
 
 def call(svc: CallService, text: str = PIZZERIA, line: Line = Line.L911) -> CallState:

@@ -6,12 +6,15 @@ from app.calls.service import CallService
 from app.dispatch.store import DispatchStore
 from app.engine.models import Line, Mode
 from app.readers.rules.reader import RulesReader
+from app.trace.store import TraceStore
 from app.transcript.models import Speaker
 
 
 def test_concurrent_turns_keep_relato_order(tmp_path: Path) -> None:
     db = tmp_path / "log.db"
-    service = CallService(RulesReader(), ActionLog(db), DispatchStore(db), Mode.SIMULADO)
+    service = CallService(
+        RulesReader(), ActionLog(db), DispatchStore(db), TraceStore(db), Mode.SIMULADO
+    )
     call_id = service.open(Line.L911).call_id
 
     async def burst() -> None:
