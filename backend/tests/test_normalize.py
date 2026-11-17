@@ -57,6 +57,24 @@ def test_autocorrection_keeps_the_last_value(said: str, normalized: str) -> None
 
 
 @pytest.mark.parametrize(
+    ("said", "normalized"),
+    [
+        # Case 016, variante autocorreccion: the dot of "Av." does not end a sentence.
+        (
+            "Buen día, en Plaza Almagro, Av. Cabildo 2100, no, perdón, Sarmiento y Bulnes, hay",
+            "Buen día, en Plaza Almagro, Sarmiento y Bulnes, hay",
+        ),
+        ("Hola, Gral. Paz 1200, no, perdón, Lavalle 300", "Hola, Lavalle 300"),
+        ("Hola, Juan B. Justo 900, no, perdón, Muñecas 400", "Hola, Muñecas 400"),
+    ],
+)
+def test_an_abbreviation_dot_is_not_where_the_corrected_value_starts(
+    said: str, normalized: str
+) -> None:
+    assert normalize(said).text == normalized
+
+
+@pytest.mark.parametrize(
     "said",
     [
         "No, perdón, no hay nadie adentro",  # nothing before the marker to correct

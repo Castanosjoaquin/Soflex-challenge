@@ -112,7 +112,12 @@ _CORRECTION = re.compile(
     rf"|mejor dicho|me equivoqu[eé]|(?<=[,….])\s*(?:digo|en realidad))(?!\w){_PAUSE}?\s*",
     re.IGNORECASE,
 )
-_SEGMENT_END = re.compile(r"[,;.!?…]")
+# The dot of an abbreviation ("Av.", "Gral.", the "B." of "Juan B. Justo") is part of a name.
+_SEGMENT_END = re.compile(
+    r"[,;!?…]|(?<!\bAv)(?<!\bAvda)(?<!\bGral)(?<!\bDr)(?<!\bPte)(?<!\bCnel)(?<!\bTte)"
+    r"(?<!\bSta)(?<!\bSto)(?<!\b(?-i:[A-Z]))\.",
+    re.IGNORECASE,
+)
 _WORD = re.compile(r"[\wÁÉÍÓÚÜÑáéíóúüñ]+")
 # How far back the corrected value can start: one short phrase, not the whole turno.
 _CORRECTION_REACH = 60
