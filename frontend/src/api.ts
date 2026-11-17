@@ -49,7 +49,10 @@ export interface Location {
   street_official: string | null
   number: { value: number | null; kind: NumberKind } | null
   cross_streets: string[]
+  /** Official names of the cross streets, or as said when not in the list. */
+  cross_streets_official: string[]
   landmark: string | null
+  /** Every official street the name fits, when it fits more than one. */
   candidates: string[]
   confidence: Confidence
   source: Source
@@ -129,7 +132,8 @@ export interface CallState {
   checklist: ChecklistItem[]
   skipped_questions: string[]
   next_question: NextQuestion | null
-  stages: { id: StageId; status: StageStatus }[]
+  /** `alert`: the llamada already needs what this etapa lacks (① without dirección). */
+  stages: { id: StageId; status: StageStatus; alert: boolean }[]
 }
 
 export type ActionKind =

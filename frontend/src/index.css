@@ -194,6 +194,15 @@ h2 {
   opacity: 0.55;
 }
 
+.stage-alert {
+  border-color: var(--p1);
+  opacity: 1;
+}
+
+.stage-alert small {
+  color: var(--p1);
+}
+
 /* Reproducción */
 .playback {
   display: flex;
@@ -318,6 +327,10 @@ mark.focused {
   grid-template-columns: auto 1fr;
   gap: 0.35rem 0.75rem;
   margin: 0 0 1rem;
+}
+
+.two-lines .candidates {
+  color: var(--p2);
 }
 
 .two-lines dt {
