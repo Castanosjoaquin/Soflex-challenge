@@ -1,0 +1,452 @@
+[
+  {
+    "case_id": "SFX-REC-2026-001",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias, ¿dónde es su urgencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, por favor manden a los bomberos este… ya! En mmm, la eh, pizzería de Av. Corrientes 1540 casi Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro eh, al salón, la gente salió corriendo a mmm, la calle pero adentro quedó el cocinero!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-002",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Emergencias de la Ciudad, buen día."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Sí, mirá, acá en Scalabrini Ortiz al 800, entre Vera y bueno, Velasco, prendieron fuego un contenedor negro de basura. Las llamas ya tienen como dos metros y hay un auto estacionado pegado que se le está derritiendo la óptica."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-003",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿en qué lo asisto?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, o sea, soy el encargado de un edificio en Billinghurst 1845. Se trabó el eh, ascensor o sea, principal entre los pisos 5 viste, y 6. Hay cuatro personas adentro, este… una mujer embarazada y un nene chiquito, y se o sea, les cortó tipo, la luz de cabina, están viste, entrando en pánico."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-004",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Defensa Civil, dígame."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Buenas tardes, estoy corriendo por el Parque este… Indoamericano viste, en Soldati, cerca de Escalada y Castañares, o sea, y hay eh, una quema eh, grande de pastos secos y basura que avanza hacia el sector de juegos infantiles."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-005",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿cuál es su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Chocó un tipo, taxi con una moto en Av. San Juan y Entre Ríos. tipo, El viste, delivery de la moto voló por arriba viste, del capot, está tirado en el carril central, este… tiene casco puesto pero no se tipo, mueve y le duele mucho la pierna que parece fracturada."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-006",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Choque eh, en cadena en la Autopista viste, 25 de eh, Mayo, mano a Provincia, a la bueno, altura de la bajada de Boedo. Son tres autos y una utilitaria. Un auto quedó cruzado en el carril rápido y hay humo saliendo del motor. La gente está saliendo viste, mareada de los autos."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-007",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Monitoreo Urbano, buenas tardes."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Reporto que un camión con acoplado quiso pasar por el bajo puente o sea, de Av. Elcano y las vías del bueno, Mitre y quedó encajado tipo, de este… punta. Rompió el cartel de altura máxima y está trabando toda la circulación hacia Belgrano R."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-008",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107, ¿cuál es el paciente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, soy personal bueno, de Metrovías en este… la tipo, estación Carlos Pellegrini de este… la Línea B. mmm, En el andén dirección a Alem se desmayó viste, una bueno, señora de unos 50 años. El andén está que arde de calor. viste, La tipo, señora recuperó tipo, la conciencia pero está blanca como un papel, transpira tipo, frío y dice que no siente las tipo, piernas."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-009",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME, indique localidad y dirección."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Por favor, es mi hija de 8 años, estamos en Av. Directorio 2140 3ro eh, C. bueno, Tuvo un broncoespasmo severo, le dimos los disparos bueno, de salbutamol mmm, pero no bueno, le entra el aire, tiene tiraje en las costillas y bueno, los o sea, labios morados!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-010",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, mi o sea, mamá de 82 años bueno, tropezó con un desnivel en la vereda de Cabildo 3700, tipo, casi Jaramillo. Se golpeó muy fuerte este… la cadera izquierda y mmm, el brazo, no se tipo, puede incorporar y llora de bueno, dolor. Hay varios vecinos ayudándola."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-011",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Guardia de Auxilio 103, buenas noches."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, acaba de colapsar un tipa añoso en Av. Forest bueno, al eh, 1200, entre Virrey Arredondo y Virrey Loreto. Cortó los cables de media bueno, tensión, aplastó el techo de dos camionetas estacionadas este… y la mmm, copa ocupa toda la calzada, nadie puede pasar."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-012",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Emergencias de la Ciudad, ¿dónde es?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En tipo, Thames 1900, entre Nicaragua y bueno, Costa Rica. este… Una cuadrilla de fibra óptica estaba picando la vereda y viste, agujerearon un bueno, caño de gas. Hay un soplido fuertísimo que sale de mmm, la zanja y el este… olor a gas ya entra a las casas de viste, los vecinos!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-013",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Guardia Urbana, buenas noches."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Estoy reportando desde este… Av. Juan B. Justo y o sea, Muñecas. En eh, el carril del Metrobus se abrió un pozo de unos dos metros de diámetro con mmm, agua fluyendo abajo. este… Un colectivo casi se va adentro de tipo, la fosa."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-014",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Defensa Civil, dígame."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, por el viento que se levantó recién se desprendieron dos anclajes de una marquesina de chapa de 6 metros en Av. o sea, Rivadavia 6300, este… casi Membrillar. Quedó colgada de un o sea, solo perno balanceándose sobre la vereda."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-015",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hay eh, una pelea de un grupo de jóvenes eh, a la salida de este… un tipo, bar en Serrano y Honduras, en Plaza Serrano. Se están tirando sillas plásticas y botellas, rompieron la vidriera de un kiosco mmm, y hay un chico con un raspón grande en eh, el viste, brazo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-016",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Atención Ciudadana."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Buen día, en Plaza Almagro, Sarmiento y Bulnes, hay un perro dogo o pitbull sin bozal ni este… correa que atacó a otro perrito y los dueños se fueron. El perro está alterado gruñendo a cualquiera que entra al canil."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-017",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿cuál es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, soy bueno, la directora de la escuela primaria en Yerbal 2450. En el hall de entrada empezó a salir chispas y humo negro con olor a plástico bueno, del mmm, tablero central de trifásica. Ya sonó la alarma eh, y estamos iniciando la evacuación al patio abierto con los 180 chicos."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-018",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde ocurre el hecho?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En la ciclovía de bueno, Billinghurst y Gorriti. Un colectivo o sea, dobló sin mirar y tiró al piso a un chico en monopatín o viste, bicicleta. o sea, El chico viste, quedó debajo del estribo, está consciente pero no puede mover la pierna o sea, derecha y el colectivo frenó de golpe atravesado en la calle."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-019",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Necesito una ambulancia urgente en Honduras o sea, 4800, en un restaurante. mmm, Un comensal comió un mmm, postre con nueces y es alérgico grave. Se viste, le está cerrando la garganta, tiene la bueno, cara totalmente hinchada, o sea, ronchas rojas o sea, en tipo, el este… cuello y no puede tragar la este… saliva!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-020",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Atención de la Ciudad."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Por bueno, favor, en mmm, Warnes 650, casi Darwin, este… un camión de mudanzas enganchó una manguera de cables aéreos y arrancó dos postes de eh, madera. Hay un cable grueso chispeando contra eh, el asfalto mojado y humo saliendo del suelo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-021",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "103 Guardia de Auxilio."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En el viaducto de Salguero y las vías de Figueroa Alcorta se inundó todo eh, el bajo nivel. bueno, El agua llega bueno, a la mitad de las puertas de tres viste, autos que intentaron cruzar y bueno, se pararon los motores. Los conductores están arriba de tipo, los techos esperando bueno, rescate."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-022",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Av. 27 de Febrero y Puente Alsina, un camión cisterna chico volcó sobre la rotonda. Está perdiendo gasoil viste, a chorros hacia el cordón cuneta y el olor es insoportable. No o sea, hay bueno, fuego por ahora pero los autos siguen pasando cerca."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-023",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME, ¿cuál es el paciente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, en un predio viste, de canchas de fútbol 5 en Av. Belgrano 3100, en Balvanera. Un chico de o sea, 24 años chocó disputando la pelota y tiene una fractura expuesta de tibia y peroné. viste, Se ve el hueso asomando, está sangrando bastante y gritando de dolor."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-024",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Ciudad, buen día."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En la esquina de Av. Juan de Garay eh, y Av. Boedo se apagó toda eh, la eh, batería de semáforos hace 40 minutos. mmm, Es un caos absoluto, colectivos y camiones o sea, cruzando a ciegas, casi atropellan a dos maestras con chicos de escuela."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-025",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Auxilio! En un taller de reparación de monopatines eléctricos en Warnes 1400 explotó una batería de este… litio mientras cargaba. Hizo una llamarada enorme blanca, despidió un humo picante mmm, blanco que no se puede respirar y bueno, hay fuego en los estantes con más tipo, baterías!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-026",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, en un bodegón de Av. San Juan bueno, 2800 en San Cristóbal. Un hombre joven de unos 30 años empezó mmm, a temblar en la viste, mesa, se viste, cayó de la silla al piso eh, y está convulsionando con sacudidas fuertes mmm, en brazos y piernas, tiene espuma en la boca y no responde."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-027",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "103 Guardia de Auxilio."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En una obra en construcción de Paraguay al este… 3800 entre Salguero y Vidt. Se desmoronó este… un paño de pared medianera tipo, hacia el patio del mmm, edificio vecino. Por suerte no había nadie en el patio pero mmm, tembló todo el piso y o sea, quedaron ladrillos colgando viste, con riesgo de seguir cayendo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-028",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Ciudad de Buenos Aires."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Av. Montes de Oca al 1100, casi Rocha eh, en Barracas. Reventó un viste, caño maestro de agua potable en la vereda. Sale un chorro de agua a presión de cuatro metros viste, de alto que inunda toda la avenida de vereda mmm, a mmm, vereda y está entrando agua a dos subsuelos de garaje."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-029",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es el accidente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Av. Lugones altura Parque Norte, sentido hacia el centro. Un auto perdió el control, mordió eh, el guardarraíl y quedó volcado con mmm, las ruedas para arriba en la zanja de desagüe. El conductor está atrapado por el eh, cinturón de o sea, seguridad colgando boca abajo y no puede abrir la puerta."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-030",
+    "kind": "muletillas",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En bueno, la subestación eléctrica viste, que está en Av. o sea, Independencia 2200 casi Pasco. Hubo un zumbido ensordecedor, una explosión sorda y empezó a salir un humo gris mmm, denso y mmm, olor a aceite quemado por las rejillas de o sea, ventilación. Se cortó la luz en cuatro manzanas a la redonda."
+      }
+    ]
+  }
+]

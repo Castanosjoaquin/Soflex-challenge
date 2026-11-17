@@ -1,0 +1,452 @@
+[
+  {
+    "case_id": "SFX-REC-2026-001",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias, ¿dónde es su urgencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, por favor manden a los bomberos ya! En la pizzería de Corrientes 1540 casi Montevideo, se prendió fuego la campana de la cocina y se está metiendo el humo negro al salón, la gente salió corriendo a la calle pero adentro quedó el cocinero!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-002",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Emergencias de la Ciudad, buen día."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Sí, mirá, acá en Scalabrini Ortiz al 800, entre Vera y Velasco, prendieron fuego un contenedor negro de basura. Las llamas ya tienen como dos metros y hay un auto estacionado pegado que se le está derritiendo la óptica."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-003",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿en qué lo asisto?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, soy el encargado de un edificio en Billinghurst 1845. Se trabó el ascensor principal entre los pisos 5 y 6. Hay cuatro personas adentro, una mujer embarazada y un nene chiquito, y se les cortó la luz de cabina, están entrando en pánico."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-004",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Defensa Civil, dígame."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Buenas tardes, estoy corriendo por el Parque Indoamericano en Soldati, cerca de Escalada y Castañares, y hay una quema grande de pastos secos y basura que avanza hacia el sector de juegos infantiles."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-005",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿cuál es su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Chocó un taxi con una moto en San Juan y Entre Ríos. El delivery de la moto voló por arriba del capot, está tirado en el carril central, tiene casco puesto pero no se mueve y le duele mucho la pierna que parece fracturada."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-006",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Choque en cadena en la Autopista 25 de Mayo, mano a Provincia, a la altura de la bajada de Boedo. Son tres autos y una utilitaria. Un auto quedó cruzado en el carril rápido y hay humo saliendo del motor. La gente está saliendo mareada de los autos."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-007",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Monitoreo Urbano, buenas tardes."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Reporto que un camión con acoplado quiso pasar por el bajo puente de Elcano y las vías del Mitre y quedó encajado de punta. Rompió el cartel de altura máxima y está trabando toda la circulación hacia Belgrano R."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-008",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107, ¿cuál es el paciente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, soy personal de Metrovías en la estación Carlos Pellegrini de la Línea B. En el andén dirección a Alem se desmayó una señora de unos 50 años. El andén está que arde de calor. La señora recuperó la conciencia pero está blanca como un papel, transpira frío y dice que no siente las piernas."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-009",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME, indique localidad y dirección."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Por favor, es mi hija de 8 años, estamos en Directorio 2140 3ro C. Tuvo un broncoespasmo severo, le dimos los disparos de salbutamol pero no le entra el aire, tiene tiraje en las costillas y los labios morados!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-010",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911 emergencias."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, mi mamá de 82 años tropezó con un desnivel en la vereda de Cabildo 3700, casi Jaramillo. Se golpeó muy fuerte la cadera izquierda y el brazo, no se puede incorporar y llora de dolor. Hay varios vecinos ayudándola."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-011",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Guardia de Auxilio 103, buenas noches."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, acaba de colapsar un tipa añoso en Forest al 1200, entre Virrey Arredondo y Virrey Loreto. Cortó los cables de media tensión, aplastó el techo de dos camionetas estacionadas y la copa ocupa toda la calzada, nadie puede pasar."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-012",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Emergencias de la Ciudad, ¿dónde es?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Thames 1900, entre Nicaragua y Costa Rica. Una cuadrilla de fibra óptica estaba picando la vereda y agujerearon un caño de gas. Hay un soplido fuertísimo que sale de la zanja y el olor a gas ya entra a las casas de los vecinos!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-013",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Guardia Urbana, buenas noches."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Estoy reportando desde Juan B. Justo y Muñecas. En el carril del Metrobus se abrió un pozo de unos dos metros de diámetro con agua fluyendo abajo. Un colectivo casi se va adentro de la fosa."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-014",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "Defensa Civil, dígame."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, por el viento que se levantó recién se desprendieron dos anclajes de una marquesina de chapa de 6 metros en Rivadavia 6300, casi Membrillar. Quedó colgada de un solo perno balanceándose sobre la vereda."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-015",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hay una pelea de un grupo de jóvenes a la salida de un bar en Serrano y Honduras, en Plaza Serrano. Se están tirando sillas plásticas y botellas, rompieron la vidriera de un kiosco y hay un chico con un raspón grande en el brazo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-016",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Atención Ciudadana."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Buen día, en Plaza Almagro, Sarmiento y Bulnes, hay un perro dogo o pitbull sin bozal ni correa que atacó a otro perrito y los dueños se fueron. El perro está alterado gruñendo a cualquiera que entra al canil."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-017",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿cuál es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, soy la directora de la escuela primaria en Yerbal 2450. En el hall de entrada empezó a salir chispas y humo negro con olor a plástico del tablero central de trifásica. Ya sonó la alarma y estamos iniciando la evacuación al patio abierto con los 180 chicos."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-018",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde ocurre el hecho?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En la ciclovía de Billinghurst y Gorriti. Un colectivo dobló sin mirar y tiró al piso a un chico en monopatín o bicicleta. El chico quedó debajo del estribo, está consciente pero no puede mover la pierna derecha y el colectivo frenó de golpe atravesado en la calle."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-019",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Necesito una ambulancia urgente en Honduras 4800, en un restaurante. Un comensal comió un postre con nueces y es alérgico grave. Se le está cerrando la garganta, tiene la cara totalmente hinchada, ronchas rojas en el cuello y no puede tragar la saliva!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-020",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Atención de la Ciudad."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Por favor, en Warnes 650, casi Darwin, un camión de mudanzas enganchó una manguera de cables aéreos y arrancó dos postes de madera. Hay un cable grueso chispeando contra el asfalto mojado y humo saliendo del suelo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-021",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "103 Guardia de Auxilio."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En el viaducto de Salguero y las vías de Figueroa Alcorta se inundó todo el bajo nivel. El agua llega a la mitad de las puertas de tres autos que intentaron cruzar y se pararon los motores. Los conductores están arriba de los techos esperando rescate."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-022",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En 27 de Febrero y Puente Alsina, un camión cisterna chico volcó sobre la rotonda. Está perdiendo gasoil a chorros hacia el cordón cuneta y el olor es insoportable. No hay fuego por ahora pero los autos siguen pasando cerca."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-023",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME, ¿cuál es el paciente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, en un predio de canchas de fútbol 5 en Belgrano 3100, en Balvanera. Un chico de 24 años chocó disputando la pelota y tiene una fractura expuesta de tibia y peroné. Se ve el hueso asomando, está sangrando bastante y gritando de dolor."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-024",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Ciudad, buen día."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En la esquina de Juan de Garay y Boedo se apagó toda la batería de semáforos hace 40 minutos. Es un caos absoluto, colectivos y camiones cruzando a ciegas, casi atropellan a dos maestras con chicos de escuela."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-025",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿su emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "Auxilio! En un taller de reparación de monopatines eléctricos en Warnes 1400 explotó una batería de litio mientras cargaba. Hizo una llamarada enorme blanca, despidió un humo picante blanco que no se puede respirar y hay fuego en los estantes con más baterías!"
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-026",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "SAME 107."
+      },
+      {
+        "speaker": "llamante",
+        "text": "Hola, en un bodegón de San Juan 2800 en San Cristóbal. Un hombre joven de unos 30 años empezó a temblar en la mesa, se cayó de la silla al piso y está convulsionando con sacudidas fuertes en brazos y piernas, tiene espuma en la boca y no responde."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-027",
+    "kind": "sin_av",
+    "applied": false,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "103 Guardia de Auxilio."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En una obra en construcción de Paraguay al 3800 entre Salguero y Vidt. Se desmoronó un paño de pared medianera hacia el patio del edificio vecino. Por suerte no había nadie en el patio pero tembló todo el piso y quedaron ladrillos colgando con riesgo de seguir cayendo."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-028",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "147 Ciudad de Buenos Aires."
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Montes de Oca al 1100, casi Rocha en Barracas. Reventó un caño maestro de agua potable en la vereda. Sale un chorro de agua a presión de cuatro metros de alto que inunda toda la de vereda a vereda y está entrando agua a dos subsuelos de garaje."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-029",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es el accidente?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En Lugones altura Parque Norte, sentido hacia el centro. Un auto perdió el control, mordió el guardarraíl y quedó volcado con las ruedas para arriba en la zanja de desagüe. El conductor está atrapado por el cinturón de seguridad colgando boca abajo y no puede abrir la puerta."
+      }
+    ]
+  },
+  {
+    "case_id": "SFX-REC-2026-030",
+    "kind": "sin_av",
+    "applied": true,
+    "turns": [
+      {
+        "speaker": "operador",
+        "text": "911, ¿dónde es la emergencia?"
+      },
+      {
+        "speaker": "llamante",
+        "text": "En la subestación eléctrica que está en Independencia 2200 casi Pasco. Hubo un zumbido ensordecedor, una explosión sorda y empezó a salir un humo gris denso y olor a aceite quemado por las rejillas de ventilación. Se cortó la luz en cuatro manzanas a la redonda."
+      }
+    ]
+  }
+]
