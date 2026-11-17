@@ -206,6 +206,49 @@ def test_set_priority_with_reason_is_logged(client: TestClient) -> None:
     assert record.after is not None and '"P2"' in record.after
 
 
+def _item(state: dict[str, Any], question_id: str) -> dict[str, Any]:
+    item: dict[str, Any] = next(i for i in state["checklist"] if i["question_id"] == question_id)
+    return item
+
+
+def test_case_001_premark_answer_and_skip_go_to_the_action_log(client: TestClient) -> None:
+    state = _replay(client, CASE_001)
+    call_id = state["call_id"]
+    atrapados = _item(state, "inc_atrapados")
+    assert (atrapados["status"], atrapados["evidence"]["quote"]) == (
+        "pre_marcada",
+        "adentro quedó el cocinero",
+    )
+    state = _act(client, call_id, kind="confirm_premark", target="inc_atrapados").json()
+    assert _item(state, "inc_atrapados")["status"] == "respondida"
+    state = _act(client, call_id, kind="answer_question", target="inc_gas", value="no").json()
+    assert (_item(state, "inc_gas")["status"], _item(state, "inc_gas")["source"]) == (
+        "respondida",
+        "operador",
+    )
+    state = _act(client, call_id, kind="skip_question", target="inc_propagacion").json()
+    assert _item(state, "inc_propagacion")["status"] == "salteada"
+    assert _stage(state, "preguntas") == "hecha"
+    records = _log(client).for_call(call_id)
+    assert [(r.action, r.target) for r in records] == [
+        ("confirm_premark", "inc_atrapados"),
+        ("answer_question", "inc_gas"),
+        ("skip_question", "inc_propagacion"),
+    ]
+    assert records[0].before is not None and "pre_marcada" in records[0].before
+    assert records[2].after is not None and "salteada" in records[2].after
+
+
+def test_question_actions_check_their_target_and_value(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    assert _act(client, call_id, kind="answer_question", value="si").status_code == 422
+    answer = _act(client, call_id, kind="answer_question", target="inc_gas", value="tal vez")
+    assert answer.status_code == 422
+    assert _act(client, call_id, kind="skip_question", target="vial_casco").status_code == 409
+    assert _act(client, call_id, kind="confirm_premark", target="inc_gas").status_code == 409
+    assert _log(client).for_call(call_id) == []
+
+
 def test_catalog_lists_signals_types_and_subtypes(client: TestClient) -> None:
     catalog = client.get("/api/catalog").json()
     assert len(catalog["signals"]) == 25

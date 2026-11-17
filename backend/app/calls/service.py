@@ -1,6 +1,7 @@
 """Llamadas in memory, keyed by call_id, with lecturas serialized per llamada (SPEC §5.3)."""
 
 import asyncio
+import json
 import time
 import uuid
 from collections.abc import Callable
@@ -13,6 +14,7 @@ from pydantic import BaseModel
 from app.calls.action_log import ActionLog, ActionRecord
 from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category, Priority
+from app.catalog.signals import SignalAnswer
 from app.engine import state as engine
 from app.engine.models import CallState, Line, Mode
 from app.readers.rules.location import read_turn_location
@@ -25,6 +27,9 @@ class ActionKind(StrEnum):
     CORRECT_LOCATION = "correct_location"
     CONFIRM_TYPE = "confirm_type"
     SET_PRIORITY = "set_priority"
+    CONFIRM_PREMARK = "confirm_premark"
+    ANSWER_QUESTION = "answer_question"
+    SKIP_QUESTION = "skip_question"
 
 
 class CallNotFoundError(LookupError):
@@ -86,10 +91,11 @@ class CallService:
         kind: ActionKind,
         value: str | None = None,
         reason: str | None = None,
+        target: str | None = None,
     ) -> CallState:
         call = self._call(call_id)
         async with call.lock:
-            state, target = self._apply(call.state, kind, value, reason)
+            state, target = self._apply(call.state, kind, value, reason, target)
             self._log.append(
                 ActionRecord(
                     call_id=call_id,
@@ -105,7 +111,12 @@ class CallService:
             return state
 
     def _apply(
-        self, state: CallState, kind: ActionKind, value: str | None, reason: str | None
+        self,
+        state: CallState,
+        kind: ActionKind,
+        value: str | None,
+        reason: str | None,
+        target: str | None,
     ) -> tuple[CallState, str]:
         match kind:
             case ActionKind.CONFIRM_LOCATION:
@@ -127,6 +138,23 @@ class CallService:
                 except ValueError:
                     raise InvalidActionValueError(f"Prioridad desconocida: {value!r}") from None
                 return engine.set_priority(state, level, reason or ""), "priority"
+            case ActionKind.CONFIRM_PREMARK | ActionKind.ANSWER_QUESTION | ActionKind.SKIP_QUESTION:
+                question_id = _question_target(target)
+                return self._act_on_question(state, kind, question_id, value), question_id
+
+    def _act_on_question(
+        self, state: CallState, kind: ActionKind, question_id: str, value: str | None
+    ) -> CallState:
+        try:
+            if kind is ActionKind.CONFIRM_PREMARK:
+                return engine.confirm_premark(state, question_id)
+            if kind is ActionKind.SKIP_QUESTION:
+                return engine.skip_question(state, question_id)
+            return engine.answer_question(state, question_id, _parse_answer(value))
+        except engine.UnknownQuestionError:
+            raise InvalidActionError(f"La pregunta {question_id!r} no está en juego") from None
+        except engine.NoPremarkError:
+            raise InvalidActionError(f"La pregunta {question_id!r} no tiene pre-marca") from None
 
     def _correct_location(self, state: CallState, value: str | None) -> CallState:
         text = (value or "").strip()
@@ -162,6 +190,19 @@ def _parse_type(value: str | None) -> tuple[Category | None, Subtype | None]:
     return category, subtype
 
 
+def _question_target(target: str | None) -> str:
+    if not (target or "").strip():
+        raise InvalidActionValueError("Falta la pregunta (target)")
+    return (target or "").strip()
+
+
+def _parse_answer(value: str | None) -> SignalAnswer:
+    try:
+        return SignalAnswer(value or "")
+    except ValueError:
+        raise InvalidActionValueError(f"Respuesta desconocida: {value!r} (si|no|no_sabe)") from None
+
+
 _SUMMARY_FIELDS: dict[str, set[str]] = {
     "location": {"street", "number", "cross_streets", "landmark", "confidence", "source"},
     "incident": {"category", "subtype", "confidence", "source"},
@@ -170,7 +211,24 @@ _SUMMARY_FIELDS: dict[str, set[str]] = {
 
 
 def _summary(state: CallState, target: str) -> str | None:
+    if target not in _SUMMARY_FIELDS:
+        return _question_summary(state, target)
     dato = getattr(state, target)
     if not isinstance(dato, BaseModel):
         return None
     return dato.model_dump_json(include=_SUMMARY_FIELDS[target])
+
+
+def _question_summary(state: CallState, question_id: str) -> str:
+    """Where a pregunta stands: its checklist item, or the señal and skip of the universal."""
+    for item in state.checklist:
+        if item.question_id == question_id:
+            return item.model_dump_json(include={"status", "value", "source"})
+    signal = next((s for s in state.signals if s.signal_id.value == question_id), None)
+    return json.dumps(
+        {
+            "value": signal.value.value if signal else None,
+            "source": signal.source.value if signal else None,
+            "skipped": question_id in state.skipped_questions,
+        }
+    )
