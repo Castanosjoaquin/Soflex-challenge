@@ -1,12 +1,13 @@
 """HTTP routes under /api."""
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from app.calls.service import (
     ActionKind,
     CallNotFoundError,
     CallService,
+    CannotDeriveError,
     InvalidActionError,
     InvalidActionValueError,
 )
@@ -15,6 +16,7 @@ from app.catalog.models import CatalogCase, Category, Priority
 from app.catalog.priority import PRIORITY_RULES, PriorityRule
 from app.catalog.signals import SIGNALS, SignalDef
 from app.config import LLMProviderName
+from app.dispatch.store import DerivedCarta, DispatchStore
 from app.engine.models import CallState, Line
 from app.transcript.models import ParsedTurn, Speaker
 from app.transcript.parser import parse_transcript
@@ -154,3 +156,29 @@ async def act(call_id: str, body: ActionRequest, request: Request) -> CallState:
         raise HTTPException(status_code=409, detail=str(exc)) from None
     except InvalidActionValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
+
+
+@router.post("/calls/{call_id}/derive")
+async def derive(call_id: str, request: Request) -> CallState:
+    try:
+        return await _calls(request).derive(call_id)
+    except CallNotFoundError:
+        raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
+    except CannotDeriveError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None
+
+
+@router.post("/calls/{call_id}/close", status_code=204)
+async def close(call_id: str, request: Request) -> Response:
+    try:
+        await _calls(request).close(call_id)
+    except CallNotFoundError:
+        raise HTTPException(status_code=404, detail="Llamada no encontrada") from None
+    return Response(status_code=204)
+
+
+@router.get("/dispatch")
+def dispatch(request: Request) -> list[DerivedCarta]:
+    """The bandeja del despachador: Cartas derivadas, the most recent first."""
+    store: DispatchStore = request.app.state.dispatch
+    return store.inbox()
