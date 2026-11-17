@@ -51,7 +51,8 @@ def _args(settings: Settings) -> argparse.Namespace:
 
 
 class _PacedIAReader(IAReader):
-    """An IAReader that waits its turn *before* the lectura starts, never inside it.
+    """An IAReader that waits its turn *before* the lectura starts, never inside it, and says
+    how the run is going on stderr (every fallback with its error, and a count every 10).
 
     The wait stays out of the lectura's timeout: a rate limit of the plan is not a slow IA. Only
     for the evaluación; the copiloto never waits.
@@ -62,6 +63,8 @@ class _PacedIAReader(IAReader):
         self._pause = pause
         self._next = 0.0
         self._lock = asyncio.Lock()
+        self._done = 0
+        self._fell_back = 0
 
     async def read(self, turns: Sequence[Turn], line: Line | None = None) -> IAReading:
         async with self._lock:
@@ -69,7 +72,15 @@ class _PacedIAReader(IAReader):
             if wait > 0:
                 await asyncio.sleep(wait)
             self._next = time.monotonic() + self._pause
-        return await self._inner.read(turns, line)
+        reading = await self._inner.read(turns, line)
+        self._done += 1
+        if reading.fell_back:
+            self._fell_back += 1
+            print(f"lectura {self._done}: {reading.status} · {reading.error}", file=sys.stderr)
+        if self._done % 10 == 0:
+            print(f"{self._done} lecturas · {self._fell_back} a reglas", file=sys.stderr)
+        sys.stderr.flush()
+        return reading
 
 
 async def _run(
@@ -86,7 +97,7 @@ async def _run(
             timeout_seconds=settings.llm_timeout_seconds,
         )
     ia = IAReader(ia_provider, settings.llm_timeout_seconds) if ia_provider else None
-    if ia is not None and pause > 0:
+    if ia is not None:
         ia = _PacedIAReader(ia, pause)
     started = time.monotonic()
     try:
