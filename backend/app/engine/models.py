@@ -241,6 +241,40 @@ class Ampliacion(BaseModel):
     changes: list[CartaChange]
 
 
+class AvisoKind(StrEnum):
+    """The only two avisos that interrupt (DESIGN §Paso 8): everything else is quiet."""
+
+    CONTRADICCION = "contradiccion"  # the relato changed a dato the operador confirmed
+    SENAL_P1 = "senal_p1"  # a P1 señal appeared over a prioridad the operador lowered
+
+
+class AvisoStatus(StrEnum):
+    PENDIENTE = "pendiente"
+    ACEPTADO = "aceptado"  # the operador took the new value
+    MANTENIDO = "mantenido"  # the operador kept the one before
+
+
+class Aviso(BaseModel):
+    """«Antes dijo X, ahora dice Y»: the confirmed dato is kept until the operador decides.
+
+    `target` is the dato it is about: "location", "incident", a señal id or "priority".
+    `proposed` is the new value, applied as is (and confirmed) if the operador accepts it.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    id: str
+    kind: AvisoKind
+    target: str
+    label: str
+    before: str
+    after: str
+    text: str
+    evidence: list[Evidence] = Field(default_factory=list)
+    status: AvisoStatus = AvisoStatus.PENDIENTE
+    proposed: Location | Incident | SignalValue | PriorityAssessment
+
+
 class CallState(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -268,3 +302,8 @@ class CallState(BaseModel):
     can_derive: bool = False
     derived: bool = False
     ampliaciones: list[Ampliacion] = Field(default_factory=list)
+    # Contradicciones and señales de P1 for the operador to resolve, in order of appearance.
+    avisos: list[Aviso] = Field(default_factory=list)
+    # What the relato said last of each dato ("location", "incident", señal ids): a confirmed dato
+    # is contradicted only when the relato changes, not when it still says what it said before.
+    heard: dict[str, str] = Field(default_factory=dict)

@@ -8,7 +8,8 @@ from app.catalog.models import Category, Priority
 from app.catalog.questions import checklist_for
 from app.catalog.signals import INCOHERENT_PAIRS, VICTIM_SIGNALS, SignalAnswer, SignalId
 from app.catalog.streets import MatchKind, StreetMatch, bare_name, match_street
-from app.engine import carta
+from app.engine import carta, contradictions
+from app.engine.contradictions import Resolution
 from app.engine.models import (
     Ampliacion,
     CallState,
@@ -88,16 +89,20 @@ def apply_reading(state: CallState, output: ReaderOutput) -> CallState:
     Every dato whose evidence is not in the relato is discarded. A confirmed dato is never
     overwritten; an unconfirmed one takes the latest value (autocorrección).
     """
+    said_location = _location_from(state.turns, output.location) if output.location else None
+    said_incident = _incident_from(state.turns, output.incident) if output.incident else None
+    said_signals = _signals_from(state.turns, output.signals)
     location = state.location
-    if not _is_confirmed(location) and output.location is not None:
-        location = _location_from(state.turns, output.location) or location
+    if not _is_confirmed(location):
+        location = said_location or location
     incident = state.incident
-    if not _is_confirmed(incident) and output.incident is not None:
-        incident = _incident_from(state.turns, output.incident) or incident
-    signals = _merge_signals(state.turns, state.signals, output.signals)
-    return _derive(
-        state.model_copy(update={"location": location, "incident": incident, "signals": signals})
-    )
+    if not _is_confirmed(incident):
+        incident = said_incident or incident
+    signals = _merge_signals(state.signals, said_signals)
+    read = state.model_copy(update={"location": location, "incident": incident, "signals": signals})
+    # A confirmed dato the relato changed stays as it is: the operador gets an aviso instead.
+    read = contradictions.on_reading(read, said_location, said_incident, said_signals)
+    return contradictions.on_priority(state, _derive(read))
 
 
 def confirm_location(state: CallState) -> CallState:
@@ -223,6 +228,11 @@ def derive(state: CallState) -> CallState:
     return _derive(state.model_copy(update={"derived": True}))
 
 
+def resolve_contradiction(state: CallState, aviso_id: str, resolution: Resolution) -> CallState:
+    """The operador takes the new value of an aviso (it becomes confirmed) or keeps the old one."""
+    return _derive(contradictions.resolve(state, aviso_id, resolution))
+
+
 def add_ampliacion(state: CallState, ampliacion: Ampliacion) -> CallState:
     return state.model_copy(update={"ampliaciones": [*state.ampliaciones, ampliacion]})
 
@@ -250,7 +260,8 @@ def _with_signal(state: CallState, signal: SignalValue, question_id: str) -> Cal
     others = [s for s in state.signals if s.signal_id is not signal.signal_id]
     signals = sorted([*others, signal], key=lambda s: list(SignalId).index(s.signal_id))
     skipped = [q for q in state.skipped_questions if q != question_id]
-    return _derive(state.model_copy(update={"signals": signals, "skipped_questions": skipped}))
+    after = _derive(state.model_copy(update={"signals": signals, "skipped_questions": skipped}))
+    return contradictions.on_priority(state, after)
 
 
 # Location
@@ -331,25 +342,30 @@ def _incident_from(turns: Sequence[Turn], reading: IncidentReading) -> Incident 
 # Señales
 
 
-def _merge_signals(
-    turns: Sequence[Turn], current: Sequence[SignalValue], readings: Sequence[SignalReading]
-) -> list[SignalValue]:
-    """Union of what was known and what this lectura found; confirmed señales are never touched."""
-    merged = {s.signal_id: s for s in current}
-    for reading in readings:
-        previous = merged.get(reading.signal_id)
-        if previous is not None and previous.confidence is Confidence.CONFIRMADO:
-            continue
-        evidence = verify(reading.evidence, turns)
-        if evidence is None:
-            continue
-        merged[reading.signal_id] = SignalValue(
+def _signals_from(turns: Sequence[Turn], readings: Sequence[SignalReading]) -> list[SignalValue]:
+    """The señales of the lectura whose evidence is in the relato."""
+    return [
+        SignalValue(
             signal_id=reading.signal_id,
             value=reading.value,
             evidence=evidence,
             source=Source.REGLAS,
             confidence=Confidence.PROBABLE,
         )
+        for reading in readings
+        if (evidence := verify(reading.evidence, turns)) is not None
+    ]
+
+
+def _merge_signals(
+    current: Sequence[SignalValue], said: Sequence[SignalValue]
+) -> list[SignalValue]:
+    """Union of what was known and what this lectura found; confirmed señales are never touched."""
+    merged = {s.signal_id: s for s in current}
+    for signal in said:
+        previous = merged.get(signal.signal_id)
+        if previous is None or previous.confidence is not Confidence.CONFIRMADO:
+            merged[signal.signal_id] = signal
     return _with_coherence([merged[s] for s in SignalId if s in merged])
 
 
