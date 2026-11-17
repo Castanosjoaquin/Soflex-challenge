@@ -15,6 +15,8 @@ drops for lack of a second lector.
 
 from collections.abc import Sequence
 
+from pydantic import BaseModel, ConfigDict
+
 from app.catalog.models import Category, Priority
 from app.catalog.signals import SignalAnswer, SignalId
 from app.engine.models import (
@@ -37,6 +39,25 @@ class NoTypeDisputeError(ValueError):
     """The operador chose a tipo that is not one of the options en disputa."""
 
 
+class Unverified(BaseModel):
+    """A dato a lector proposed whose phrase is not in the relato: it is dropped."""
+
+    model_config = ConfigDict(frozen=True)
+
+    target: str  # "location", "incident" or a señal id
+    quote: str
+
+
+class Checked(BaseModel):
+    """A lectura after the control de evidencia: what stands, how many datos and what fell."""
+
+    model_config = ConfigDict(frozen=True)
+
+    output: ReaderOutput
+    proposed: int
+    dropped: list[Unverified]
+
+
 def apply_readings(state: CallState, rules: ReaderOutput, ia: ReaderOutput | None) -> CallState:
     """Fold the lectura of each lector into the state. `ia` is None with a single lector."""
     if ia is None:
@@ -44,7 +65,7 @@ def apply_readings(state: CallState, rules: ReaderOutput, ia: ReaderOutput | Non
     rules, ia = verified(rules, state.turns), verified(ia, state.turns)
     by_rules = {s.signal_id: s for s in rules.signals}
     by_ia = {s.signal_id: s for s in ia.signals}
-    disputed = {i for i in by_rules.keys() & by_ia.keys() if _disagree(by_rules[i], by_ia[i])}
+    disputed = set(disputed_signals(rules, ia))
     ia_wins = {
         i
         for i, s in by_ia.items()
@@ -89,21 +110,53 @@ def choose_type(state: CallState, category: Category) -> CallState:
 
 def verified(output: ReaderOutput, turns: Sequence[Turn]) -> ReaderOutput:
     """Only the datos whose phrases are in the relato, with the evidence located on it."""
+    return check(output, turns).output
+
+
+def check(output: ReaderOutput, turns: Sequence[Turn]) -> Checked:
+    """The control de evidencia of one lectura: what stands and what is dropped, and why."""
+    dropped: list[Unverified] = []
     location = output.location
     if location is not None:
         evidence = _verified(location.evidence, turns)
-        ok = evidence and len(evidence) == len(location.evidence)
-        location = location.model_copy(update={"evidence": evidence}) if ok else None
+        if evidence and len(evidence) == len(location.evidence):
+            location = location.model_copy(update={"evidence": evidence})
+        else:
+            missing = [e for e in location.evidence if verify(e, turns) is None]
+            quote = missing[0].quote if missing else location.said
+            dropped.append(Unverified(target="location", quote=quote))
+            location = None
     incident = output.incident
     if incident is not None:
         evidence = _verified(incident.evidence, turns)
-        incident = incident.model_copy(update={"evidence": evidence}) if evidence else None
-    signals = [
-        s.model_copy(update={"evidence": found})
-        for s in output.signals
-        if (found := verify(s.evidence, turns)) is not None
+        if evidence:
+            incident = incident.model_copy(update={"evidence": evidence})
+        else:
+            quote = incident.evidence[0].quote if incident.evidence else ""
+            dropped.append(Unverified(target="incident", quote=quote))
+            incident = None
+    signals = []
+    for s in output.signals:
+        found = verify(s.evidence, turns)
+        if found is None:
+            dropped.append(Unverified(target=s.signal_id.value, quote=s.evidence.quote))
+        else:
+            signals.append(s.model_copy(update={"evidence": found}))
+    proposed = len(output.signals) + (output.location is not None) + (output.incident is not None)
+    return Checked(
+        output=ReaderOutput(location=location, incident=incident, signals=signals),
+        proposed=proposed,
+        dropped=dropped,
+    )
+
+
+def disputed_signals(rules: ReaderOutput, ia: ReaderOutput) -> list[SignalId]:
+    """Señales the two lectores give opposite values (sí against no), in catalog order."""
+    by_rules = {s.signal_id: s for s in rules.signals}
+    by_ia = {s.signal_id: s for s in ia.signals}
+    return [
+        i for i in SignalId if i in by_rules and i in by_ia and _disagree(by_rules[i], by_ia[i])
     ]
-    return ReaderOutput(location=location, incident=incident, signals=signals)
 
 
 def _verified(evidence: Sequence[Evidence], turns: Sequence[Turn]) -> list[Evidence]:
