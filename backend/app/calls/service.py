@@ -15,8 +15,10 @@ from app.calls.action_log import ActionLog, ActionRecord
 from app.catalog.incidents import SUBTYPES, Subtype
 from app.catalog.models import Category, Priority
 from app.catalog.signals import SignalAnswer
+from app.dispatch.store import DispatchStore
+from app.engine import carta as cartas
 from app.engine import state as engine
-from app.engine.models import CallState, Line, Mode
+from app.engine.models import Ampliacion, CallState, Carta, Line, Mode
 from app.readers.rules.location import read_turn_location
 from app.readers.rules.reader import RulesReader
 from app.transcript.models import Speaker, Turn
@@ -45,12 +47,18 @@ class InvalidActionValueError(ValueError):
     """The action itself is malformed: a missing motivo or an unknown value."""
 
 
+class CannotDeriveError(ValueError):
+    """Derivar is not possible yet (ubicación or tipo not confirmed) or was already done."""
+
+
 @dataclass
 class _Call:
     state: CallState
     opened_at: float
     # One lectura at a time per llamada: a turno that arrives mid-lectura waits its turn.
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    # The Carta as the despachador has it: as derivada plus every ampliación sent.
+    sent: Carta | None = None
 
 
 class CallService:
@@ -58,11 +66,13 @@ class CallService:
         self,
         reader: RulesReader,
         log: ActionLog,
+        dispatch: DispatchStore,
         mode: Mode,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._reader = reader
         self._log = log
+        self._dispatch = dispatch
         self._mode = mode
         self._clock = clock
         self._calls: dict[str, _Call] = {}
@@ -108,8 +118,69 @@ class CallService:
                     reason=reason,
                 )
             )
-            call.state = state
+            call.state = self._amplify(call, kind, state)
+            return call.state
+
+    async def derive(self, call_id: str) -> CallState:
+        """Send the Carta to the bandeja del despachador. Etapa ④ is done."""
+        call = self._call(call_id)
+        async with call.lock:
+            try:
+                state = engine.derive(call.state)
+            except engine.AlreadyDerivedError:
+                raise CannotDeriveError("La Carta ya fue derivada") from None
+            except engine.NotDerivableError:
+                raise CannotDeriveError(
+                    "Para derivar, confirmá la ubicación y el tipo de incidente"
+                ) from None
+            now = datetime.now(UTC)
+            self._dispatch.add_carta(call_id, state.line, now, state.carta)
+            self._log.append(
+                ActionRecord(
+                    call_id=call_id,
+                    at=now,
+                    action="derive",
+                    target="carta",
+                    after=state.carta.model_dump_json(),
+                )
+            )
+            call.state, call.sent = state, state.carta
             return state
+
+    async def close(self, call_id: str) -> None:
+        """The llamada ends: its state leaves memory; the registro and the bandeja stay."""
+        call = self._call(call_id)
+        async with call.lock:
+            self._log.append(
+                ActionRecord(
+                    call_id=call_id,
+                    at=datetime.now(UTC),
+                    action="close",
+                    after=json.dumps({"derived": call.state.derived}),
+                )
+            )
+            del self._calls[call_id]
+
+    def _amplify(self, call: _Call, kind: ActionKind, state: CallState) -> CallState:
+        """After derivar, what the operador confirms goes to the despachador as an ampliación."""
+        if call.sent is None:
+            return state
+        changes = cartas.diff(call.sent, state.carta)
+        if not changes:
+            return state
+        ampliacion = Ampliacion(at=datetime.now(UTC), action=kind.value, changes=changes)
+        self._dispatch.add_ampliacion(state.call_id, ampliacion)
+        self._log.append(
+            ActionRecord(
+                call_id=state.call_id,
+                at=ampliacion.at,
+                action="ampliacion",
+                target=kind.value,
+                after=json.dumps([c.model_dump() for c in changes], ensure_ascii=False),
+            )
+        )
+        call.sent = state.carta
+        return engine.add_ampliacion(state, ampliacion)
 
     def _apply(
         self,
