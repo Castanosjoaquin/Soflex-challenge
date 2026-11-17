@@ -18,7 +18,8 @@ from app.catalog.signals import SignalAnswer
 from app.dispatch.store import DispatchStore
 from app.engine import carta as cartas
 from app.engine import state as engine
-from app.engine.models import Ampliacion, CallState, Carta, Line, Mode
+from app.engine.contradictions import Resolution, UnknownAvisoError
+from app.engine.models import Ampliacion, Aviso, CallState, Carta, Line, Mode
 from app.readers.rules.location import read_turn_location
 from app.readers.rules.reader import RulesReader
 from app.transcript.models import Speaker, Turn
@@ -33,6 +34,7 @@ class ActionKind(StrEnum):
     ANSWER_QUESTION = "answer_question"
     SKIP_QUESTION = "skip_question"
     MARK_INSTRUCTION_READ = "mark_instruction_read"
+    RESOLVE_CONTRADICTION = "resolve_contradiction"
 
 
 class CallNotFoundError(LookupError):
@@ -221,6 +223,17 @@ class CallService:
                     raise InvalidActionError(
                         f"La instrucción {instruction_id!r} no corresponde a esta llamada"
                     ) from None
+            case ActionKind.RESOLVE_CONTRADICTION:
+                aviso_id = _aviso_target(target)
+                try:
+                    resolved = engine.resolve_contradiction(
+                        state, aviso_id, _parse_resolution(value)
+                    )
+                except UnknownAvisoError:
+                    raise InvalidActionError(
+                        f"El aviso {aviso_id!r} no existe o ya fue resuelto"
+                    ) from None
+                return resolved, aviso_id
 
     def _act_on_question(
         self, state: CallState, kind: ActionKind, question_id: str, value: str | None
@@ -282,6 +295,21 @@ def _instruction_target(target: str | None) -> str:
     return (target or "").strip()
 
 
+def _aviso_target(target: str | None) -> str:
+    if not (target or "").strip():
+        raise InvalidActionValueError("Falta el aviso (target)")
+    return (target or "").strip()
+
+
+def _parse_resolution(value: str | None) -> Resolution:
+    try:
+        return Resolution(value or "")
+    except ValueError:
+        raise InvalidActionValueError(
+            f"Resolución desconocida: {value!r} (aceptar|mantener)"
+        ) from None
+
+
 def _parse_answer(value: str | None) -> SignalAnswer:
     try:
         return SignalAnswer(value or "")
@@ -297,6 +325,9 @@ _SUMMARY_FIELDS: dict[str, set[str]] = {
 
 
 def _summary(state: CallState, target: str) -> str | None:
+    for aviso in state.avisos:
+        if aviso.id == target:
+            return _aviso_summary(state, aviso)
     for item in state.instructions:
         if item.instruction_id == target:
             return item.model_dump_json(include={"read"})
@@ -306,6 +337,23 @@ def _summary(state: CallState, target: str) -> str | None:
     if not isinstance(dato, BaseModel):
         return None
     return dato.model_dump_json(include=_SUMMARY_FIELDS[target])
+
+
+def _aviso_summary(state: CallState, aviso: Aviso) -> str:
+    """The aviso's status and the dato it is about, as it stands."""
+    if aviso.target in _SUMMARY_FIELDS:
+        dato = _summary(state, aviso.target)
+    else:
+        signal = next((s for s in state.signals if s.signal_id.value == aviso.target), None)
+        dato = signal.model_dump_json(include={"value", "confidence"}) if signal else None
+    return json.dumps(
+        {
+            "aviso": aviso.text,
+            "status": aviso.status.value,
+            aviso.target: json.loads(dato) if dato else None,
+        },
+        ensure_ascii=False,
+    )
 
 
 def _question_summary(state: CallState, question_id: str) -> str:
