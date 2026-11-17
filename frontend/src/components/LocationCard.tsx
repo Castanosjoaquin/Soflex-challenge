@@ -8,6 +8,25 @@ const CONFIDENCE_TEXT: Record<Confidence, string> = {
   a_confirmar: 'A confirmar',
 }
 
+const fold = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/^(av\.?|avda\.?|avenida|calle)\s+/i, '')
+    .replace(/[^\w ]/g, '')
+    .trim()
+    .toLowerCase()
+
+/** The operador typed a street the matcher read as another official name ("Biyinghurst"). */
+function typedDiffers(location: Location): boolean {
+  return (
+    location.source === 'operador' &&
+    !!location.street &&
+    !!location.street_official &&
+    fold(location.street) !== fold(location.street_official)
+  )
+}
+
 interface Props {
   location: Location | null
   busy: boolean
@@ -57,6 +76,15 @@ export function LocationCard({ location, busy, onConfirm, onCorrect, onFocus }: 
           <>
             <dt>¿Cuál?</dt>
             <dd className="candidates">{location.candidates.join(' · ')}</dd>
+          </>
+        )}
+        {typedDiffers(location) && (
+          <>
+            <dt>Tipeaste</dt>
+            <dd className="typed">
+              “{location.street}” → <strong>{location.street_official}</strong>. Si no es esa
+              calle, corregí de nuevo.
+            </dd>
           </>
         )}
         {location.street && !location.street_official && (
