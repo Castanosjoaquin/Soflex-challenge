@@ -37,6 +37,10 @@ PIZZERIA = (
 )
 
 
+# A dirección, so that the ubicación question is not the próxima pregunta.
+AQUI = "Estoy en Av. Corrientes 1540. "
+
+
 def _call_with(*texts: str, line: Line = Line.L911) -> CallState:
     state = new_call("c1", line, Mode.SIMULADO)
     for i, text in enumerate(texts):
@@ -159,25 +163,27 @@ def test_a_close_call_on_the_tipo_is_a_confirmar() -> None:
 
 
 def test_victims_with_unknown_vital_signs_ask_the_universal_question() -> None:
-    state = _call_with("mi mamá se cayó y le duele la cadera", line=Line.L107)
+    state = _call_with(AQUI + "mi mamá se cayó y le duele la cadera", line=Line.L107)
     assert state.next_question is not None
     assert state.next_question.id == "universal"
     assert state.next_question.signal_ids == [S.CONSCIENTE, S.RESPIRA]
 
 
 def test_only_the_missing_vital_sign_is_asked() -> None:
-    state = _call_with("convulsiona y no responde", line=Line.L107)
+    state = _call_with(AQUI + "convulsiona y no responde", line=Line.L107)
     assert state.next_question is not None
     assert state.next_question.signal_ids == [S.RESPIRA]
 
 
 def test_someone_who_does_not_breathe_needs_no_universal_question() -> None:
-    state = _call_with("mi hija no respira", line=Line.L107)
+    state = _call_with(AQUI + "mi hija no respira", line=Line.L107)
     assert state.next_question is None
 
 
 def test_no_victims_no_universal_question() -> None:
-    assert _call_with("se apagaron los semáforos de la esquina").next_question is None
+    state = _call_with(AQUI + "se apagaron los semáforos")
+    assert state.next_question is not None
+    assert state.next_question.id != "universal"
 
 
 def test_stage_two_is_done_when_tipo_confirmed_and_vital_risk_evaluated() -> None:

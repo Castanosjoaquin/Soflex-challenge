@@ -116,6 +116,28 @@ class NextQuestion(BaseModel):
     signal_ids: list[SignalId] = Field(default_factory=list)
 
 
+class QuestionStatus(StrEnum):
+    PENDIENTE = "pendiente"
+    PRE_MARCADA = "pre_marcada"  # the relato answers it; waits for the operador
+    RESPONDIDA = "respondida"  # the operador confirmed or answered it
+    SALTEADA = "salteada"
+
+
+class ChecklistItem(BaseModel):
+    """One pregunta clave of the llamada's checklist and where it stands (SPEC §5.7)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    question_id: str
+    text: str
+    signal_id: SignalId
+    critical: bool
+    status: QuestionStatus
+    value: SignalAnswer | None = None
+    evidence: Evidence | None = None
+    source: Source | None = None
+
+
 class StageId(StrEnum):
     UBICAR = "ubicar"
     QUE_PASA = "que_pasa"
@@ -149,5 +171,8 @@ class CallState(BaseModel):
     incident: Incident | None = None
     signals: list[SignalValue] = Field(default_factory=list)
     priority: PriorityAssessment | None = None
+    checklist: list[ChecklistItem] = Field(default_factory=list)
+    # Preguntas the operador skipped: a pregunta clave id, or "universal".
+    skipped_questions: list[str] = Field(default_factory=list)
     next_question: NextQuestion | None = None
     stages: list[Stage]

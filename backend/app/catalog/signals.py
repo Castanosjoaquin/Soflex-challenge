@@ -114,11 +114,12 @@ INCOHERENT_PAIRS: tuple[tuple[SignalFact, SignalFact], ...] = (
     ((SignalId.PERSONA_ATRAPADA, SignalAnswer.SI), (SignalId.EVACUADO, SignalAnswer.SI)),
 )
 
-# Señales that mean there is a víctima: when any of them is "sí", the universal questions
-# (¿consciente? ¿respira?) come first (DESIGN §Paso 5, as in MPDS).
+# Señales that mean there is a víctima the llamante can see: when any of them is "sí", the
+# universal questions (¿consciente? ¿respira?) come first (DESIGN §Paso 5, as in MPDS).
+# Persona atrapada is not one: someone who stayed inside cannot be checked by the llamante, so
+# the checklist goes on (caso 001: the cocinero inside, next comes the gas question).
 VICTIM_SIGNALS: frozenset[SignalId] = frozenset(
     {
-        SignalId.PERSONA_ATRAPADA,
         SignalId.ATRAPADO_VEHICULO,
         SignalId.HERIDOS,
         SignalId.SANGRADO_ABUNDANTE,
