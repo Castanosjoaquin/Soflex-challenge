@@ -45,11 +45,13 @@ class Location(BaseModel):
     said: str
     evidence: list[Evidence] = Field(default_factory=list)
     street: str | None = None
-    street_official: str | None = None  # filled by the official street matcher (SPEC §5.5)
+    # Filled by the official street matcher (SPEC §5.5); None when the street is not in the list.
+    street_official: str | None = None
     number: StreetNumber | None = None
     cross_streets: list[str] = Field(default_factory=list)
+    cross_streets_official: list[str] = Field(default_factory=list)  # as said when not in the list
     landmark: str | None = None
-    candidates: list[str] = Field(default_factory=list)
+    candidates: list[str] = Field(default_factory=list)  # when the name fits more than one street
     confidence: Confidence
     source: Source
 
@@ -157,6 +159,7 @@ class Stage(BaseModel):
 
     id: StageId
     status: StageStatus
+    alert: bool = False  # the llamada already needs what this etapa lacks: shown in red
 
 
 class CallState(BaseModel):

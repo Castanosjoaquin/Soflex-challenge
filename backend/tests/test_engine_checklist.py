@@ -130,7 +130,7 @@ def test_a_street_without_altura_asks_for_it_before_anything_else() -> None:
 def test_a_place_without_streets_asks_where_near() -> None:
     state = _call_with("Estoy en la estación Carlos Pellegrini de la Línea B, hay humo")
     assert state.next_question is not None
-    assert state.next_question.text == "¿Entre qué calles o cerca de qué esquina?"
+    assert state.next_question.text == "¿Entre qué calles o cerca de qué entrada?"
 
 
 def test_the_universal_comes_before_the_preguntas_clave() -> None:

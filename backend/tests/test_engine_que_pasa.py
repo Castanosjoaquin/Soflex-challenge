@@ -186,6 +186,12 @@ def test_no_victims_no_universal_question() -> None:
     assert state.next_question.id != "universal"
 
 
+def test_the_ubicación_is_asked_before_the_universal_question() -> None:
+    state = _call_with("mi mamá se cayó y le duele la cadera", line=Line.L107)
+    assert state.next_question is not None
+    assert state.next_question.text == "¿Dónde es la emergencia?"
+
+
 def test_stage_two_is_done_when_tipo_confirmed_and_vital_risk_evaluated() -> None:
     state = _call_with("mi mamá se cayó y le duele la cadera", line=Line.L107)
     state = confirm_type(state)
