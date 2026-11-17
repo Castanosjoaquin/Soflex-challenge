@@ -57,6 +57,16 @@ class Location(BaseModel):
     source: Source
 
 
+class SignalAlternative(BaseModel):
+    """What the other lector read for the same señal, when the two lectores disagree."""
+
+    model_config = ConfigDict(frozen=True)
+
+    value: SignalAnswer
+    evidence: Evidence
+    source: Source
+
+
 class SignalValue(BaseModel):
     """What the llamada knows about one señal, and how sure it is."""
 
@@ -67,6 +77,8 @@ class SignalValue(BaseModel):
     evidence: Evidence | None = None
     source: Source
     confidence: Confidence
+    # Set when the lectores disagree on the value (SPEC §5.4.3): the señal is a_confirmar.
+    alternative: SignalAlternative | None = None
 
 
 class Incident(BaseModel):
@@ -79,6 +91,17 @@ class Incident(BaseModel):
     evidence: list[Evidence] = Field(default_factory=list)
     confidence: Confidence
     source: Source
+
+
+class TypeDispute(BaseModel):
+    """The lectores point to different tipos: the operador chooses one (SPEC §5.4.4).
+
+    Meanwhile the llamada's incidente is the option with the higher prioridad.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    options: list[Incident]
 
 
 class PriorityReason(BaseModel):
@@ -285,6 +308,7 @@ class CallState(BaseModel):
     turns: list[Turn] = Field(default_factory=list)
     location: Location | None = None
     incident: Incident | None = None
+    type_dispute: TypeDispute | None = None
     signals: list[SignalValue] = Field(default_factory=list)
     priority: PriorityAssessment | None = None
     checklist: list[ChecklistItem] = Field(default_factory=list)
