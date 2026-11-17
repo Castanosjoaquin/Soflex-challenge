@@ -94,6 +94,19 @@ export interface NextQuestion {
   signal_ids: string[]
 }
 
+export type QuestionStatus = 'pendiente' | 'pre_marcada' | 'respondida' | 'salteada'
+
+export interface ChecklistItem {
+  question_id: string
+  text: string
+  signal_id: string
+  critical: boolean
+  status: QuestionStatus
+  value: SignalAnswer | null
+  evidence: Evidence | null
+  source: Source | null
+}
+
 export interface Catalog {
   signals: { id: string; label: string; question_hint: string }[]
   types: { id: string; label: string }[]
@@ -113,11 +126,20 @@ export interface CallState {
   incident: Incident | null
   signals: SignalValue[]
   priority: PriorityAssessment | null
+  checklist: ChecklistItem[]
+  skipped_questions: string[]
   next_question: NextQuestion | null
   stages: { id: StageId; status: StageStatus }[]
 }
 
-export type ActionKind = 'confirm_location' | 'correct_location' | 'confirm_type' | 'set_priority'
+export type ActionKind =
+  | 'confirm_location'
+  | 'correct_location'
+  | 'confirm_type'
+  | 'set_priority'
+  | 'confirm_premark'
+  | 'answer_question'
+  | 'skip_question'
 
 export interface Action {
   kind: ActionKind
