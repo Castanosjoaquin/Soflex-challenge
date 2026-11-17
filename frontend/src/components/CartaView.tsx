@@ -20,6 +20,7 @@ function Dato({ dato }: { dato: CartaDato }) {
     <li className={`carta-dato origin-${dato.origin}`}>
       <span className="carta-label">{dato.label}</span>
       <span className="carta-value">{dato.value}</span>
+      {!dato.confirmed && <span className="carta-unconfirmed">sin confirmar</span>}
       <span className="carta-origin">
         {ORIGIN_TEXT[dato.origin]}
         {dato.quote && dato.quote !== dato.value && <q>{dato.quote}</q>}

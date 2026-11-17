@@ -195,6 +195,9 @@ class CartaDato(BaseModel):
     value: str
     origin: CartaOrigin
     quote: str | None = None
+    # False for a pre-marca: said by the llamante, with its phrase verified in the relato, but not
+    # yet confirmed by the operador. A dato a_confirmar never reaches the Carta.
+    confirmed: bool = True
 
 
 class MissingQuestion(BaseModel):

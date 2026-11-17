@@ -122,22 +122,22 @@ def test_derive_twice_is_409_and_unknown_call_is_404(client: TestClient) -> None
     assert len(client.get("/api/dispatch").json()) == 1
 
 
-def test_carta_has_no_probable_data_and_lists_the_skipped_pregunta(client: TestClient) -> None:
+def test_carta_sends_pre_marcas_unconfirmed_and_lists_the_skipped_pregunta(
+    client: TestClient,
+) -> None:
     state = _replay(client, CASE_001)
     call_id = state["call_id"]
     _act(client, call_id, kind="confirm_location")
     _act(client, call_id, kind="confirm_type")
     state = _act(client, call_id, kind="skip_question", target="inc_propagacion")
-    unconfirmed = {
-        f"senal.{s['signal_id']}" for s in state["signals"] if s["confidence"] != "confirmado"
-    }
-    assert unconfirmed, "caso 001 has pre-marcas still to confirm"
     carta = _ok(client.post(f"/api/calls/{call_id}/derive"))["carta"]
-    keys = {d["key"] for d in _lines(carta)}
-    assert not keys & unconfirmed
+    atrapada = next(d for d in carta["at_risk"] if d["key"] == "senal.persona_atrapada")
+    assert (atrapada["quote"], atrapada["confirmed"]) == ("adentro quedó el cocinero", False)
     assert all(d["origin"] in {"llamante", "sistema", "operador"} for d in _lines(carta))
     propagacion = next(i for i in state["checklist"] if i["question_id"] == "inc_propagacion")
     assert {"text": propagacion["text"], "skipped": True} in carta["missing"]
+    atrapados = next(i for i in state["checklist"] if i["question_id"] == "inc_atrapados")
+    assert atrapados["text"] not in {m["text"] for m in carta["missing"]}
 
 
 def test_ampliaciones_follow_priority_location_and_instrucciones(client: TestClient) -> None:

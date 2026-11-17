@@ -804,6 +804,14 @@ button.primary {
   quotes: '«' '»';
 }
 
+.carta-unconfirmed {
+  font-size: 0.7rem;
+  padding: 0 0.35rem;
+  border: 1px dashed var(--p2);
+  border-radius: 0.25rem;
+  color: var(--p2);
+}
+
 .carta-skipped {
   color: var(--p2);
 }

@@ -1,7 +1,10 @@
 """Carta de Llamada: a fixed template over the confirmed data of a llamada (SPEC §5.9, ADR 0001).
 
-No IA writes it. A dato enters only when the operador confirmed it, and each line says where it
-comes from: said by the llamante (with the phrase), from the system, or loaded by the operador.
+No IA writes it. Ubicación and tipo enter once the operador confirmed them. A señal enters when
+it is confirmed or when it is a pre-marca (said by the llamante, phrase verified, marked "sin
+confirmar"): deriving early must not hide «adentro quedó el cocinero» from the despachador. A dato
+a_confirmar never enters. Each line says where it comes from: said by the llamante (with the
+phrase), from the system, or loaded by the operador.
 It carries no recursos: the despachador decides them.
 """
 
@@ -43,12 +46,12 @@ _UNIVERSAL = "universal"
 
 def build(state: CallState) -> Carta:
     """The Carta as it stands now. `state` already has its checklist and próxima pregunta."""
-    confirmed = [s for s in state.signals if s.confidence is Confidence.CONFIRMADO]
+    known = [s for s in state.signals if s.confidence is not Confidence.A_CONFIRMAR]
     return Carta(
         where=_where(state.location),
-        what=_what(state) + [_signal(s) for s in confirmed if s.signal_id not in PEOPLE_SIGNALS],
+        what=_what(state) + [_signal(s) for s in known if s.signal_id not in PEOPLE_SIGNALS],
         priority=_priority(state),
-        at_risk=[_signal(s) for s in confirmed if s.signal_id in PEOPLE_SIGNALS],
+        at_risk=[_signal(s) for s in known if s.signal_id in PEOPLE_SIGNALS],
         instructions=[
             CartaDato(
                 key=f"instruccion.{i.instruction_id}",
@@ -71,18 +74,23 @@ def diff(before: Carta, after: Carta) -> list[CartaChange]:
         CartaChange(
             key=key,
             label=dato.label,
-            before=old[key].value if key in old else None,
-            after=dato.value,
+            before=_shown(old[key]) if key in old else None,
+            after=_shown(dato),
         )
         for key, dato in new.items()
-        if key not in old or old[key].value != dato.value
+        if key not in old or _shown(old[key]) != _shown(dato)
     ]
     changes += [
-        CartaChange(key=key, label=dato.label, before=dato.value, after=None)
+        CartaChange(key=key, label=dato.label, before=_shown(dato), after=None)
         for key, dato in old.items()
         if key not in new
     ]
     return changes
+
+
+def _shown(dato: CartaDato) -> str:
+    """How a line reads to the despachador: confirming a pre-marca is news too."""
+    return dato.value if dato.confirmed else f"{dato.value} (sin confirmar)"
 
 
 def _lines(carta: Carta) -> list[CartaDato]:
@@ -182,6 +190,7 @@ def _signal(signal: SignalValue) -> CartaDato:
         value=_ANSWER_TEXT[signal.value],
         origin=CartaOrigin.LLAMANTE if said else CartaOrigin.OPERADOR,
         quote=signal.evidence.quote if said and signal.evidence else None,
+        confirmed=signal.confidence is Confidence.CONFIRMADO,
     )
 
 
@@ -189,7 +198,7 @@ def _priority(state: CallState) -> list[CartaDato]:
     """The prioridad the operador sees when deriving, and its porqué.
 
     It is calculated by the tabla de reglas, not suggested: the operador takes it by deriving, or
-    changes it with a motivo. The señales behind it go to the Carta only once confirmed.
+    changes it with a motivo. The señales behind it are in the Carta, confirmed or as pre-marcas.
     """
     priority = state.priority
     incident = state.incident
@@ -205,13 +214,17 @@ def _priority(state: CallState) -> list[CartaDato]:
 
 
 def _missing(state: CallState) -> list[MissingQuestion]:
-    """Preguntas the despacho should know are still open: not answered, or skipped."""
+    """Preguntas nobody answered yet: pending, or skipped with nothing said about them.
+
+    A pre-marca is not missing: its señal is already in the Carta with the llamante's phrase.
+    """
     missing = []
     if state.next_question is not None and state.next_question.id == _UNIVERSAL:
         missing.append(MissingQuestion(text=state.next_question.text))
     missing += [
         MissingQuestion(text=item.text, skipped=item.status is QuestionStatus.SALTEADA)
         for item in state.checklist
-        if item.status is not QuestionStatus.RESPONDIDA
+        if item.status is QuestionStatus.PENDIENTE
+        or (item.status is QuestionStatus.SALTEADA and item.value is None)
     ]
     return missing

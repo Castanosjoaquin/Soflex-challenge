@@ -150,9 +150,13 @@ Mantiene un **mapa de offsets** de normalizado a original para poder resaltar la
 ### 5.9 Derivar (etapa ④), bandeja y ampliaciones
 - **Derivar** se habilita con la ubicación y el tipo confirmados. En P1 aparece "P1 · derivá ahora y
   seguí preguntando".
-- La Carta se arma con una **plantilla** (no con IA) y solo con datos confirmados. Lleva dónde (dicho
-  y normalizado), qué pasa (tipo, subtipo y resumen de señales), prioridad y porqué, quién está en
-  riesgo, instrucciones dadas, preguntas que faltan, y el origen de cada dato. **No lleva recursos.**
+- La Carta se arma con una **plantilla** (no con IA). Ubicación y tipo entran solo confirmados. Las
+  señales entran confirmadas o como **pre-marca** (dichas por el llamante, con su frase verificada y
+  marcadas "sin confirmar"): derivar temprano no puede esconderle al despachador «adentro quedó el
+  cocinero». Lo *a confirmar* nunca entra. Lleva dónde (dicho y normalizado), qué pasa (tipo, subtipo
+  y resumen de señales), prioridad y porqué, quién está en riesgo, instrucciones dadas, preguntas que
+  nadie contestó (pendientes o salteadas sin respuesta) y el origen de cada dato. **No lleva
+  recursos.**
 - Al derivar, la Carta se guarda en SQLite y aparece en la **bandeja del despachador** (`/despacho`,
   con polling cada 2 s).
 - Después de derivar, cada dato que el operador confirma (respuesta, cambio de prioridad, ubicación
