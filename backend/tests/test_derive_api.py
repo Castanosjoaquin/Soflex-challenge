@@ -199,6 +199,46 @@ def test_bandeja_is_append_only(client: TestClient) -> None:
         conn.execute("UPDATE cartas SET carta = '{}'")
 
 
+def test_add_note_goes_to_the_carta_and_the_registro(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    state = _act(client, call_id, kind="add_note", value="  Se escuchan gritos de fondo  ")
+    assert state["notes"] == ["Se escuchan gritos de fondo"]
+    (nota,) = state["carta"]["notes"]
+    assert (nota["key"], nota["value"], nota["origin"]) == (
+        "nota.1",
+        "Se escuchan gritos de fondo",
+        "operador",
+    )
+    record = _log(client).for_call(call_id)[-1]
+    assert (record.action, record.target) == ("add_note", "nota.1")
+    assert record.before is None and record.after == '"Se escuchan gritos de fondo"'
+
+    blank = client.post(f"/api/calls/{call_id}/actions", json={"kind": "add_note", "value": " "})
+    assert blank.status_code == 422
+    assert _log(client).for_call(call_id)[-1].target == "nota.1"
+
+
+def test_a_note_after_derivar_is_an_ampliacion(client: TestClient) -> None:
+    call_id = _replay(client, CASE_001)["call_id"]
+    _act(client, call_id, kind="add_note", value="Llamante muy nervioso")
+    _act(client, call_id, kind="confirm_location")
+    _act(client, call_id, kind="confirm_type")
+    _ok(client.post(f"/api/calls/{call_id}/derive"))
+    state = _act(client, call_id, kind="add_note", value="El dueño espera en la esquina")
+    (ampliacion,) = state["ampliaciones"]
+    assert ampliacion["action"] == "add_note"
+    assert ampliacion["changes"] == [
+        {
+            "key": "nota.2",
+            "label": "Nota del operador",
+            "before": None,
+            "after": "El dueño espera en la esquina",
+        }
+    ]
+    (inbox,) = client.get("/api/dispatch").json()
+    assert [n["value"] for n in inbox["carta"]["notes"]] == ["Llamante muy nervioso"]
+
+
 def test_despacho_reloads_as_a_panel_route(tmp_path: Path) -> None:
     static = tmp_path / "dist"
     static.mkdir()

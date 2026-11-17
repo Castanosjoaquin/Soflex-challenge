@@ -13,6 +13,7 @@ const SECTIONS: { key: keyof Omit<Carta, 'missing'>; title: string; empty: strin
   { key: 'priority', title: 'Prioridad', empty: '—' },
   { key: 'at_risk', title: 'Quién está en riesgo', empty: 'Nada confirmado todavía' },
   { key: 'instructions', title: 'Qué se le indicó al llamante', empty: 'Ninguna instrucción leída' },
+  { key: 'notes', title: 'Notas del operador', empty: 'Sin notas' },
 ]
 
 function Dato({ dato }: { dato: CartaDato }) {

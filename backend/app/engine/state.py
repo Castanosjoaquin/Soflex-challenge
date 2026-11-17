@@ -226,6 +226,11 @@ def mark_instruction_read(state: CallState, instruction_id: str) -> CallState:
     return _derive(state.model_copy(update={"read_instructions": read}))
 
 
+def add_note(state: CallState, text: str) -> CallState:
+    """The operador writes a nota of their own. It goes to the Carta as written."""
+    return _derive(state.model_copy(update={"notes": [*state.notes, text]}))
+
+
 def derive(state: CallState) -> CallState:
     """The operador derives the Carta to the despachador. Etapa ④ is done."""
     if state.derived:

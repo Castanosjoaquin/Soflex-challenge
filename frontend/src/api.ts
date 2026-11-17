@@ -163,6 +163,8 @@ export interface CallState {
   instructions: InstructionItem[]
   critical_instruction: InstructionItem | null
   read_instructions: string[]
+  /** The operador's own notas, in order: the only free text. They go to the Carta. */
+  notes: string[]
   /** `alert`: the llamada already needs what this etapa lacks (① without ubicación). */
   stages: { id: StageId; status: StageStatus; alert: boolean }[]
   carta: Carta
@@ -213,6 +215,7 @@ export interface Carta {
   priority: CartaDato[]
   at_risk: CartaDato[]
   instructions: CartaDato[]
+  notes: CartaDato[]
   missing: { text: string; skipped: boolean }[]
 }
 
@@ -277,6 +280,7 @@ export type ActionKind =
   | 'skip_question'
   | 'mark_instruction_read'
   | 'resolve_contradiction'
+  | 'add_note'
 
 export interface Action {
   kind: ActionKind
