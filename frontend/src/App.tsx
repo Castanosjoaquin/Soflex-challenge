@@ -11,7 +11,9 @@ import {
   type SignalAnswer,
 } from './api'
 import { Checklist } from './components/Checklist'
+import { CriticalBand } from './components/CriticalBand'
 import { IncidentCard } from './components/IncidentCard'
+import { Instructions } from './components/Instructions'
 import { LocationCard } from './components/LocationCard'
 import { Relato } from './components/Relato'
 import { StageBar } from './components/StageBar'
@@ -121,6 +123,10 @@ export default function App() {
     const target = skipTarget(nextQuestion)
     if (target) void act({ kind: 'skip_question', target })
   }
+  // L marks the first instrucción not read yet: the crítica, when there is one, comes first.
+  const nextInstruction = call?.instructions.find((i) => !i.read) ?? null
+  const markRead = (instructionId: string) =>
+    void act({ kind: 'mark_instruction_read', target: instructionId })
   // Every phrase that backs a dato is marked in the relato.
   const evidence: Evidence[] = call
     ? [
@@ -149,6 +155,7 @@ export default function App() {
       else if (key === 'v' && premark && !busy)
         void act({ kind: 'confirm_premark', target: premark.question_id })
       else if (key === 's' && !busy) skipNext()
+      else if (key === 'l' && nextInstruction && !busy) markRead(nextInstruction.instruction_id)
       else if (answer && !busy) answerNext(answer[1])
       else if (key === 'p' && call?.priority) {
         e.preventDefault()
@@ -201,6 +208,14 @@ export default function App() {
               busy={busy}
               onAnswer={answerNext}
               onSkip={skipNext}
+            />
+
+            <CriticalBand
+              instruction={call.critical_instruction}
+              busy={busy}
+              onRead={() =>
+                call.critical_instruction && markRead(call.critical_instruction.instruction_id)
+              }
             />
 
             <div className="playback" role="toolbar" aria-label="Reproducción">
@@ -264,6 +279,12 @@ export default function App() {
                   onFocus={setFocus}
                 />
               </div>
+              <Instructions
+                items={call.instructions}
+                nextId={nextInstruction?.instruction_id ?? null}
+                busy={busy}
+                onRead={markRead}
+              />
             </div>
           </section>
         ) : (
