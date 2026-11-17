@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api import router
 from app.calls.action_log import ActionLog
 from app.calls.service import CallService
+from app.catalog.demos import load_demo_calls
 from app.catalog.loader import load_cases, parse_dataset, seed_database
 from app.config import LLMProviderName, Settings, get_settings
 from app.dispatch.store import DispatchStore
@@ -24,6 +25,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         seed_database(settings.database_path, parse_dataset(settings.dataset_path))
         app.state.cases = load_cases(settings.database_path)
+        app.state.demos = load_demo_calls(settings.demo_calls_dir, {c.id for c in app.state.cases})
         app.state.action_log = ActionLog(settings.database_path)
         # The Lector con IA arrives with its own ticket; until then every llamada runs on rules.
         mode = Mode.SIMULADO if settings.effective_provider is LLMProviderName.MOCK else Mode.REGLAS
