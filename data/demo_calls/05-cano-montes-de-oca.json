@@ -1,0 +1,38 @@
+{
+  "id": "DEMO-05",
+  "line": "147",
+  "title": "Caño maestro reventado: el agua entra a los subsuelos",
+  "based_on": "SFX-REC-2026-028",
+  "turns": [
+    {
+      "speaker": "operador",
+      "text": "147 Ciudad de Buenos Aires.",
+      "delay_ms": 600
+    },
+    {
+      "speaker": "llamante",
+      "text": "Hola, mirá, en Av. Montes de Oca al 1100, casi Rocha, en Barracas, reventó un caño de agua en la vereda. Sale un chorro a presión altísimo, como de cuatro metros.",
+      "delay_ms": 2500
+    },
+    {
+      "speaker": "operador",
+      "text": "¿El agua llega a casas o comercios?",
+      "delay_ms": 5000
+    },
+    {
+      "speaker": "llamante",
+      "text": "Sí, ya está entrando agua al subsuelo del edificio de al lado, y la avenida está inundada de vereda a vereda.",
+      "delay_ms": 3000
+    },
+    {
+      "speaker": "operador",
+      "text": "¿Hay algún herido o algún auto afectado?",
+      "delay_ms": 5000
+    },
+    {
+      "speaker": "llamante",
+      "text": "No hay heridos. Un colectivo quedó parado en el medio del agua. Y se está hundiendo la vereda alrededor del pozo.",
+      "delay_ms": 3000
+    }
+  ]
+}

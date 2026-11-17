@@ -1,0 +1,38 @@
+{
+  "id": "DEMO-03",
+  "line": "911",
+  "title": "Taxi contra moto: el delivery tirado con el casco puesto",
+  "based_on": "SFX-REC-2026-005",
+  "turns": [
+    {
+      "speaker": "operador",
+      "text": "911, ¿cuál es su emergencia?",
+      "delay_ms": 600
+    },
+    {
+      "speaker": "llamante",
+      "text": "Chocó un taxi con una moto en Av. San Juan y Entre Ríos. El chico del delivery voló por arriba del capot y está tirado en el carril del medio, no se mueve.",
+      "delay_ms": 2500
+    },
+    {
+      "speaker": "operador",
+      "text": "¿Tiene el casco puesto? Que nadie se lo saque. ¿Se golpeó la cabeza?",
+      "delay_ms": 6000
+    },
+    {
+      "speaker": "llamante",
+      "text": "Sí, tiene el casco puesto, nadie lo tocó. Se pegó la cabeza contra el asfalto y ahora abrió los ojos, dice que le duele mucho la pierna.",
+      "delay_ms": 3500
+    },
+    {
+      "speaker": "operador",
+      "text": "¿Hay nafta derramada o humo?",
+      "delay_ms": 5000
+    },
+    {
+      "speaker": "llamante",
+      "text": "La moto está perdiendo nafta, hay un charco al lado. El taxista está bien, está acá parado.",
+      "delay_ms": 3000
+    }
+  ]
+}
