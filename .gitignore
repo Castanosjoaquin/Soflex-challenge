@@ -26,3 +26,6 @@ var/
 
 # Challenge statement (not ours to publish)
 *.pdf
+
+# Local knowledge graph (graphify)
+graphify-out/
