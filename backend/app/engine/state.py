@@ -83,15 +83,21 @@ def add_turn(state: CallState, turn: Turn) -> CallState:
     return state.model_copy(update={"turns": [*state.turns, turn]})
 
 
-def apply_reading(state: CallState, output: ReaderOutput) -> CallState:
-    """Fold a lectura of the whole relato into the state.
+def apply_reading(
+    state: CallState, output: ReaderOutput, source: Source = Source.REGLAS
+) -> CallState:
+    """Fold a lectura of the whole relato into the state; `source` is the lector that read it.
 
     Every dato whose evidence is not in the relato is discarded. A confirmed dato is never
     overwritten; an unconfirmed one takes the latest value (autocorrección).
     """
-    said_location = _location_from(state.turns, output.location) if output.location else None
-    said_incident = _incident_from(state.turns, output.incident) if output.incident else None
-    said_signals = _signals_from(state.turns, output.signals)
+    said_location = (
+        _location_from(state.turns, output.location, source) if output.location else None
+    )
+    said_incident = (
+        _incident_from(state.turns, output.incident, source) if output.incident else None
+    )
+    said_signals = _signals_from(state.turns, output.signals, source)
     location = state.location
     if not _is_confirmed(location):
         location = said_location or location
@@ -156,7 +162,8 @@ def confirm_type(
             confidence=Confidence.CONFIRMADO,
             source=kept.source if kept and kept.subtype is subtype else Source.OPERADOR,
         )
-    return _derive(state.model_copy(update={"incident": confirmed}))
+    # The operador decided: a tipo en disputa is settled.
+    return _derive(state.model_copy(update={"incident": confirmed, "type_dispute": None}))
 
 
 def set_priority(state: CallState, level: Priority, reason: str) -> CallState:
@@ -267,7 +274,9 @@ def _with_signal(state: CallState, signal: SignalValue, question_id: str) -> Cal
 # Location
 
 
-def _location_from(turns: Sequence[Turn], reading: LocationReading) -> Location | None:
+def _location_from(
+    turns: Sequence[Turn], reading: LocationReading, source: Source
+) -> Location | None:
     if not reading.evidence or any(verify(ev, turns) is None for ev in reading.evidence):
         return None
     location = Location(
@@ -278,7 +287,7 @@ def _location_from(turns: Sequence[Turn], reading: LocationReading) -> Location 
         cross_streets=reading.cross_streets,
         landmark=reading.landmark,
         confidence=Confidence.A_CONFIRMAR,
-        source=Source.REGLAS,
+        source=source,
     )
     return _with_official_names(location)
 
@@ -325,7 +334,9 @@ def _with_official_names(location: Location) -> Location:
 # Incidente
 
 
-def _incident_from(turns: Sequence[Turn], reading: IncidentReading) -> Incident | None:
+def _incident_from(
+    turns: Sequence[Turn], reading: IncidentReading, source: Source
+) -> Incident | None:
     evidence = _verified(turns, reading.evidence)
     if not evidence:
         return None
@@ -335,21 +346,23 @@ def _incident_from(turns: Sequence[Turn], reading: IncidentReading) -> Incident 
         subtype=reading.subtype,
         evidence=evidence,
         confidence=Confidence.PROBABLE if sure else Confidence.A_CONFIRMAR,
-        source=Source.REGLAS,
+        source=source,
     )
 
 
 # Señales
 
 
-def _signals_from(turns: Sequence[Turn], readings: Sequence[SignalReading]) -> list[SignalValue]:
+def _signals_from(
+    turns: Sequence[Turn], readings: Sequence[SignalReading], source: Source
+) -> list[SignalValue]:
     """The señales of the lectura whose evidence is in the relato."""
     return [
         SignalValue(
             signal_id=reading.signal_id,
             value=reading.value,
             evidence=evidence,
-            source=Source.REGLAS,
+            source=source,
             confidence=Confidence.PROBABLE,
         )
         for reading in readings
