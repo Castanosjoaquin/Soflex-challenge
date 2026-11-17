@@ -42,6 +42,22 @@ cd backend && uv run pytest && uv run ruff check . && uv run mypy
 ```
 backend/   FastAPI + Pydantic: API, catálogo de referencia, extracción
 frontend/  Panel del operador (React + TypeScript + Vite)
-data/      Dataset sintético provisto
+data/      Dataset sintético provisto y lista oficial de calles (streets.json)
+scripts/   build_streets.py: regenera data/streets.json desde BA Data
 docs/      Configuración para agentes y ADRs
+```
+
+## Datos de terceros
+
+`data/streets.json` (la lista oficial de calles de CABA, con nombres anteriores y rango de alturas)
+se genera a partir del dataset **"Calles"** de [BA Data](https://data.buenosaires.gob.ar/dataset/calles),
+del Gobierno de la Ciudad Autónoma de Buenos Aires, publicado bajo licencia **Creative Commons
+Atribución (CC-BY)**. Se usa transformado: de los ~32.000 tramos del callejero solo se guarda un
+registro por nombre oficial.
+
+El archivo está commiteado: ni la app ni `docker compose up --build` acceden a internet para usarlo.
+Para regenerarlo:
+
+```bash
+cd backend && uv run python ../scripts/build_streets.py
 ```
