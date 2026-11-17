@@ -152,3 +152,26 @@ def test_a_later_turno_only_replaces_the_ubicación_with_real_streets() -> None:
     )
     reading = _read(raw)
     assert reading.street == "Thames"
+
+
+@pytest.mark.parametrize(
+    ("raw", "street"),
+    [
+        ("Llamante: Estoy en Corrientes, se prendió fuego un auto.", "Corrientes"),
+        ("Llamante: Choque sobre la Av. Rivadavia, vengan.", "Av. Rivadavia"),
+        ("Llamante: Es por la calle Billinghurst.", "Billinghurst"),
+    ],
+)
+def test_an_official_street_alone_is_read_without_altura(raw: str, street: str) -> None:
+    reading = _read(raw)
+    assert reading.street == street
+    assert reading.number is None
+    assert reading.said == street
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["Llamante: Estoy en Pepito Inventado, vengan.", "Llamante: Estoy en Biyinghurst, vengan."],
+)
+def test_a_street_alone_must_be_in_the_list_by_name(raw: str) -> None:
+    assert read_location(_turns(raw)) is None
