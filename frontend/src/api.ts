@@ -52,7 +52,52 @@ export interface Location {
   landmark: string | null
   candidates: string[]
   confidence: Confidence
-  source: 'reglas' | 'ia' | 'operador'
+  source: Source
+}
+
+export type SignalAnswer = 'si' | 'no' | 'no_sabe'
+export type Source = 'reglas' | 'ia' | 'operador'
+
+export interface SignalValue {
+  signal_id: string
+  value: SignalAnswer
+  evidence: Evidence | null
+  source: Source
+  confidence: Confidence
+}
+
+export interface Incident {
+  category: string
+  subtype: string | null
+  evidence: Evidence[]
+  confidence: Confidence
+  source: Source
+}
+
+export interface PriorityReason {
+  signal_id: string
+  value: SignalAnswer
+  evidence: Evidence | null
+}
+
+export interface PriorityAssessment {
+  level: Priority
+  /** The rule of the tabla that fired: the porqué in one line. */
+  rule: string
+  reasons: PriorityReason[]
+  overridden_by_operator: { from_level: Priority | null; reason: string } | null
+}
+
+export interface NextQuestion {
+  id: string
+  text: string
+  signal_ids: string[]
+}
+
+export interface Catalog {
+  signals: { id: string; label: string; question_hint: string }[]
+  types: { id: string; label: string }[]
+  subtypes: { id: string; category: string; label: string; reclamo: boolean }[]
 }
 
 export type StageId = 'ubicar' | 'que_pasa' | 'preguntas' | 'derivar' | 'instrucciones'
@@ -65,10 +110,14 @@ export interface CallState {
   sample_id: string | null
   turns: Turn[]
   location: Location | null
+  incident: Incident | null
+  signals: SignalValue[]
+  priority: PriorityAssessment | null
+  next_question: NextQuestion | null
   stages: { id: StageId; status: StageStatus }[]
 }
 
-export type ActionKind = 'confirm_location' | 'correct_location'
+export type ActionKind = 'confirm_location' | 'correct_location' | 'confirm_type' | 'set_priority'
 
 export interface Action {
   kind: ActionKind
@@ -95,6 +144,7 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
 
 export const api = {
   health: () => request<Health>('/api/health'),
+  catalog: () => request<Catalog>('/api/catalog'),
   samples: () => request<SampleCall[]>('/api/samples'),
   sample: (id: string) => request<SampleCall>(`/api/samples/${encodeURIComponent(id)}`),
   openCall: (line: Line, sampleId?: string) =>

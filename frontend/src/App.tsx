@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, type Action, type CallState, type Health, type ParsedTurn, type SampleCall } from './api'
+import {
+  api,
+  type Action,
+  type CallState,
+  type Catalog,
+  type Evidence,
+  type Health,
+  type ParsedTurn,
+  type SampleCall,
+} from './api'
+import { IncidentCard } from './components/IncidentCard'
 import { LocationCard } from './components/LocationCard'
 import { Relato } from './components/Relato'
 import { StageBar } from './components/StageBar'
@@ -20,16 +30,20 @@ export default function App() {
   const [paused, setPaused] = useState(false)
   const [speed, setSpeed] = useState<1 | 2>(1)
   const [busy, setBusy] = useState(false)
-  const [focused, setFocused] = useState(false)
+  const [catalog, setCatalog] = useState<Catalog | null>(null)
+  // The phrases of the dato under the pointer, lit in the relato.
+  const [focus, setFocus] = useState<Evidence[]>([])
+  const [editingPriority, setEditingPriority] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Bumped on every new llamada so responses from a replaced one are ignored.
   const generation = useRef(0)
 
   useEffect(() => {
-    Promise.all([api.health(), api.samples()])
-      .then(([h, s]) => {
+    Promise.all([api.health(), api.samples(), api.catalog()])
+      .then(([h, s, c]) => {
         setHealth(h)
         setSamples(s)
+        setCatalog(c)
       })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
   }, [])
@@ -42,6 +56,8 @@ export default function App() {
     setCall(null)
     setCursor(0)
     setPaused(false)
+    setFocus([])
+    setEditingPriority(false)
     setError(null)
     try {
       const opened = await api.openCall(picked.line, picked.id)
@@ -91,10 +107,23 @@ export default function App() {
 
   const finished = sample !== null && cursor >= sample.turns.length
   const canConfirm = call?.location != null && call.location.confidence !== 'confirmado'
+  const canConfirmType = call?.incident != null && call.incident.confidence !== 'confirmado'
+  // Every phrase that backs a dato is marked in the relato.
+  const evidence: Evidence[] = call
+    ? [
+        ...(call.location?.evidence ?? []),
+        ...(call.incident?.evidence ?? []),
+        ...call.signals.flatMap((s) => (s.evidence ? [s.evidence] : [])),
+      ]
+    : []
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return
+      const typing =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLSelectElement ||
+        e.target instanceof HTMLTextAreaElement
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return
       const key = e.key.toLowerCase()
       if (key === ' ') {
         e.preventDefault()
@@ -102,6 +131,11 @@ export default function App() {
       } else if (key === 'n') void step()
       else if (key === 'x') setSpeed((s) => (s === 1 ? 2 : 1))
       else if (key === 'c' && canConfirm && !busy) void act({ kind: 'confirm_location' })
+      else if (key === 't' && canConfirmType && !busy) void act({ kind: 'confirm_type' })
+      else if (key === 'p' && call?.priority) {
+        e.preventDefault()
+        setEditingPriority(true)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -143,7 +177,7 @@ export default function App() {
 
         {call && sample ? (
           <section className="workspace">
-            <StageBar stages={call.stages} />
+            <StageBar stages={call.stages} nextQuestion={call.next_question} />
 
             <div className="playback" role="toolbar" aria-label="Reproducción">
               <span className="line">Línea {call.line}</span>
@@ -171,18 +205,33 @@ export default function App() {
                 <h2>Relato</h2>
                 <Relato
                   turns={call.turns}
-                  evidence={call.location?.evidence ?? []}
-                  focused={focused}
+                  evidence={evidence}
+                  focus={focus}
                   waiting={!finished && !paused}
                 />
               </section>
-              <LocationCard
-                location={call.location}
-                busy={busy}
-                onConfirm={() => void act({ kind: 'confirm_location' })}
-                onCorrect={(value) => void act({ kind: 'correct_location', value })}
-                onFocus={setFocused}
-              />
+              <div className="stack">
+                <LocationCard
+                  location={call.location}
+                  busy={busy}
+                  onConfirm={() => void act({ kind: 'confirm_location' })}
+                  onCorrect={(value) => void act({ kind: 'correct_location', value })}
+                  onFocus={(on) => setFocus(on ? (call.location?.evidence ?? []) : [])}
+                />
+                <IncidentCard
+                  incident={call.incident}
+                  priority={call.priority}
+                  catalog={catalog}
+                  busy={busy}
+                  editingPriority={editingPriority}
+                  onEditPriority={setEditingPriority}
+                  onConfirmType={(value) => void act({ kind: 'confirm_type', value })}
+                  onSetPriority={(level, reason) =>
+                    void act({ kind: 'set_priority', value: level, reason })
+                  }
+                  onFocus={setFocus}
+                />
+              </div>
             </div>
           </section>
         ) : (
