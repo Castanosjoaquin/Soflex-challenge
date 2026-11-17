@@ -1,0 +1,141 @@
+import pytest
+
+from app.catalog.loader import parse_dataset
+from app.config import REPO_ROOT
+from app.readers.models import LocationReading, NumberKind
+from app.readers.rules.location import read_location
+from app.transcript.models import Speaker, Turn
+from app.transcript.parser import parse_transcript
+
+DATASET = REPO_ROOT / "data" / "dataset_challenge_soflex.csv"
+CASES = {c.id[-3:]: c for c in parse_dataset(DATASET)}
+
+
+def _turns(raw: str) -> list[Turn]:
+    return [
+        Turn(index=i, at_ms=0, speaker=p.speaker, text=p.text)
+        for i, p in enumerate(parse_transcript(raw))
+    ]
+
+
+def _read(raw: str) -> LocationReading:
+    reading = read_location(_turns(raw))
+    assert reading is not None
+    return reading
+
+
+def _read_case(case: str) -> LocationReading:
+    return _read(CASES[case].transcript)
+
+
+def test_case_001_street_number_and_casi() -> None:
+    reading = _read_case("001")
+    assert reading.street == "Av. Corrientes"
+    assert reading.number is not None
+    assert (reading.number.value, reading.number.kind) == (1540, NumberKind.EXACTA)
+    assert reading.cross_streets == ["Montevideo"]
+    assert reading.said == "Av. Corrientes 1540 casi Montevideo"
+
+
+@pytest.mark.parametrize(
+    ("case", "street", "value", "kind", "cross"),
+    [
+        ("002", "Scalabrini Ortiz", 800, NumberKind.AL, ["Vera", "Velasco"]),
+        ("009", "Av. Directorio", 2140, NumberKind.EXACTA, []),
+        ("012", "Thames", 1900, NumberKind.EXACTA, ["Nicaragua", "Costa Rica"]),
+        ("028", "Av. Montes de Oca", 1100, NumberKind.AL, ["Rocha"]),
+        ("005", "Av. San Juan", None, NumberKind.ESQUINA, ["Entre Ríos"]),
+        ("013", "Av. Juan B. Justo", None, NumberKind.ESQUINA, ["Muñecas"]),
+        ("022", "Av. 27 de Febrero", None, NumberKind.ESQUINA, ["Puente Alsina"]),
+        ("024", "Av. Juan de Garay", None, NumberKind.ESQUINA, ["Av. Boedo"]),
+    ],
+)
+def test_layers_on_dataset(
+    case: str, street: str, value: int | None, kind: NumberKind, cross: list[str]
+) -> None:
+    reading = _read_case(case)
+    assert reading.street == street
+    assert reading.number is not None
+    assert (reading.number.value, reading.number.kind) == (value, kind)
+    assert reading.cross_streets == cross
+
+
+def test_street_with_altura_reference() -> None:
+    reading = _read_case("029")
+    assert (reading.street, reading.landmark, reading.number) == (
+        "Av. Lugones",
+        "Parque Norte",
+        None,
+    )
+
+
+def test_date_named_highway_is_not_a_number() -> None:
+    reading = _read_case("006")
+    assert reading.street == "Autopista 25 de Mayo"
+    assert reading.number is None
+    assert reading.landmark == "bajada de Boedo"
+
+
+def test_landmark_naming_a_street() -> None:
+    reading = _read_case("007")
+    assert (reading.street, reading.landmark) == ("Av. Elcano", "puente de Av. Elcano")
+
+
+def test_landmark_alone_has_no_street() -> None:
+    reading = _read_case("008")
+    assert reading.street is None
+    assert reading.landmark == "estación Carlos Pellegrini de la Línea B"
+
+
+def test_intersection_keeps_nearby_landmark_as_extra_evidence() -> None:
+    reading = _read_case("015")
+    assert (reading.street, reading.cross_streets) == ("Serrano", ["Honduras"])
+    assert reading.landmark == "Plaza Serrano"
+    assert [e.quote for e in reading.evidence] == ["Serrano y Honduras", "Plaza Serrano"]
+
+
+def test_every_dataset_call_has_a_location_with_valid_offsets() -> None:
+    for case_id, case in CASES.items():
+        turns = _turns(case.transcript)
+        reading = read_location(turns)
+        assert reading is not None, case_id
+        for ev in reading.evidence:
+            turn = turns[ev.turn_index]
+            assert turn.speaker is Speaker.LLAMANTE
+            assert turn.text[ev.start : ev.end] == ev.quote, case_id
+
+
+def test_ignores_ages_and_counts() -> None:
+    assert read_location(_turns("Llamante: Mi Mamá de 82 años se cayó. Hay 15 personas.")) is None
+
+
+def test_operador_turns_are_not_read() -> None:
+    raw = "Operador: ¿Es en Corrientes 1540? Llamante: No sé, vengan rápido."
+    assert read_location(_turns(raw)) is None
+
+
+def test_latest_llamante_turn_wins() -> None:
+    raw = (
+        "Operador: ¿Dónde? Llamante: En Corrientes 1540. "
+        "Operador: ¿Seguro? Llamante: Perdón, es Av. Callao 300."
+    )
+    reading = _read(raw)
+    assert reading.street == "Av. Callao"
+    assert reading.evidence[0].turn_index == 3
+
+
+def test_offsets_point_into_the_original_text() -> None:
+    reading = _read("Llamante: Hola, estoy en Thames 1900, entre Nicaragua y Costa Rica.")
+    (ev,) = reading.evidence
+    assert ev.quote == "Thames 1900, entre Nicaragua y Costa Rica"
+    assert "Hola, estoy en Thames 1900, entre Nicaragua y Costa Rica."[ev.start : ev.end] == (
+        ev.quote
+    )
+
+
+def test_sin_numero_and_km() -> None:
+    sn = _read("Llamante: Es en Pasaje Lanín s/n.")
+    assert sn.number is not None and sn.number.kind is NumberKind.SN
+    km = _read("Llamante: En la Panamericana km 12.")
+    assert km.number is not None
+    assert (km.street, km.number.value, km.number.kind) == ("Panamericana", 12, NumberKind.KM)
