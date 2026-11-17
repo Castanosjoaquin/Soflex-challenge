@@ -64,12 +64,21 @@ export interface Location {
 export type SignalAnswer = 'si' | 'no' | 'no_sabe'
 export type Source = 'reglas' | 'ia' | 'operador'
 
+/** What the other lector read for the same señal, when the two disagree. */
+export interface SignalAlternative {
+  value: SignalAnswer
+  evidence: Evidence
+  source: Source
+}
+
 export interface SignalValue {
   signal_id: string
   value: SignalAnswer
   evidence: Evidence | null
   source: Source
   confidence: Confidence
+  /** Set when the lectores disagree on the value: the señal stays a confirmar. */
+  alternative: SignalAlternative | null
 }
 
 export interface Incident {
@@ -78,6 +87,11 @@ export interface Incident {
   evidence: Evidence[]
   confidence: Confidence
   source: Source
+}
+
+/** The lectores point to different tipos; meanwhile `incident` is the more urgent option. */
+export interface TypeDispute {
+  options: Incident[]
 }
 
 export interface PriorityReason {
@@ -139,6 +153,7 @@ export interface CallState {
   turns: Turn[]
   location: Location | null
   incident: Incident | null
+  type_dispute: TypeDispute | null
   signals: SignalValue[]
   priority: PriorityAssessment | null
   checklist: ChecklistItem[]
@@ -227,6 +242,7 @@ export type ActionKind =
   | 'confirm_location'
   | 'correct_location'
   | 'confirm_type'
+  | 'choose_type'
   | 'set_priority'
   | 'confirm_premark'
   | 'answer_question'

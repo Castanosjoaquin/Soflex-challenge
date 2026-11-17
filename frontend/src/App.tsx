@@ -10,6 +10,7 @@ import {
   type ParsedTurn,
   type Resolution,
   type SampleCall,
+  type SignalAlternative,
   type SignalAnswer,
 } from './api'
 import { AvisoBand } from './components/AvisoBand'
@@ -21,7 +22,21 @@ import { Instructions } from './components/Instructions'
 import { LocationCard } from './components/LocationCard'
 import { Relato } from './components/Relato'
 import { StageBar } from './components/StageBar'
-import { ANSWER_KEYS, answerTarget, skipTarget } from './questions'
+import { ANSWER_KEYS, DISPUTE_KEYS, answerTarget, skipTarget } from './questions'
+
+type Mode = CallState['mode']
+
+const MODE_TEXT: Record<Mode, string> = {
+  simulado: 'Modo simulado',
+  ia: 'IA',
+  reglas: 'Modo reglas',
+}
+
+const MODE_TITLE: Record<Mode, string> = {
+  simulado: 'Sin IA configurada: lee solo el lector por reglas',
+  ia: 'Leen el lector por reglas y el lector con IA',
+  reglas: 'La IA no respondió a tiempo o respondió mal: esta lectura es solo por reglas',
+}
 
 /** Pause before a turno: its own delay_ms if it has one, else roughly the time to say it. */
 function delayFor(turn: ParsedTurn, isFirst: boolean): number {
@@ -191,8 +206,12 @@ export default function App() {
         ...(call.location?.evidence ?? []),
         ...(call.incident?.evidence ?? []),
         ...call.signals.flatMap((s) => (s.evidence ? [s.evidence] : [])),
+        ...call.signals.flatMap((s) => (s.alternative ? [s.alternative.evidence] : [])),
       ]
     : []
+  const alternatives: Record<string, SignalAlternative> = Object.fromEntries(
+    (call?.signals ?? []).flatMap((s) => (s.alternative ? [[s.signal_id, s.alternative]] : [])),
+  )
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -203,6 +222,7 @@ export default function App() {
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return
       const key = e.key.toLowerCase()
       const answer = ANSWER_KEYS.find(([k]) => k === key)
+      const disputed = call?.type_dispute?.options[DISPUTE_KEYS.indexOf(key)]
       if (key === ' ') {
         e.preventDefault()
         setPaused((p) => !p)
@@ -210,6 +230,7 @@ export default function App() {
       else if (key === 'x') setSpeed((s) => (s === 1 ? 2 : 1))
       else if (key === 'c' && canConfirm && !busy) void act({ kind: 'confirm_location' })
       else if (key === 't' && canConfirmType && !busy) void act({ kind: 'confirm_type' })
+      else if (disputed && !busy) void act({ kind: 'choose_type', value: disputed.category })
       else if (key === 'v' && premark && !busy)
         void act({ kind: 'confirm_premark', target: premark.question_id })
       else if (key === 's' && !busy) skipNext()
@@ -227,6 +248,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  // The llamada's mode follows its last lectura; before one, what the server is configured for.
+  const mode: Mode = call?.mode ?? (health?.provider === 'openai_compat' ? 'ia' : 'simulado')
+
   return (
     <div className="shell">
       <header className="topbar">
@@ -235,9 +259,8 @@ export default function App() {
           Bandeja del despachador ↗
         </a>
         {health && (
-          <span className="badge" title="Lector activo">
-            {health.provider === 'mock' ? 'Modo simulado' : 'IA'} · {health.catalog_size} llamadas de
-            prueba
+          <span className={`badge mode-${mode}`} title={MODE_TITLE[mode]}>
+            {MODE_TEXT[mode]} · {health.catalog_size} llamadas de prueba
           </span>
         )}
       </header>
@@ -364,12 +387,14 @@ export default function App() {
                 />
                 <IncidentCard
                   incident={call.incident}
+                  dispute={call.type_dispute}
                   priority={call.priority}
                   catalog={catalog}
                   busy={busy}
                   editingPriority={editingPriority}
                   onEditPriority={setEditingPriority}
                   onConfirmType={(value) => void act({ kind: 'confirm_type', value })}
+                  onChooseType={(value) => void act({ kind: 'choose_type', value })}
                   onSetPriority={(level, reason) =>
                     void act({ kind: 'set_priority', value: level, reason })
                   }
@@ -378,6 +403,7 @@ export default function App() {
                 <Checklist
                   items={call.checklist}
                   nextId={nextQuestion?.id ?? null}
+                  alternatives={alternatives}
                   busy={busy}
                   onConfirm={(target) => void act({ kind: 'confirm_premark', target })}
                   onAnswer={(target, value) => void act({ kind: 'answer_question', target, value })}
