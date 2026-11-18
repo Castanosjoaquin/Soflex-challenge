@@ -49,6 +49,17 @@ function delayFor(turn: ParsedTurn, isFirst: boolean): number {
   return Math.min(1000 + turn.text.length * 15, 5000)
 }
 
+/**
+ * How fast the llamada plays. It starts slow, to follow it while presenting; the operador speeds
+ * it up (or down) as they go, and N always jumps to the next turno.
+ */
+const SPEEDS = [
+  { factor: 2 / 3, label: 'Lenta' },
+  { factor: 1, label: 'Normal' },
+  { factor: 2, label: '×2' },
+  { factor: 4, label: '×4' },
+] as const
+
 const LINES: Line[] = ['911', '107', '103', '147', 'app']
 
 /** A llamada to replay: a llamada de prueba from the API, or a text the operador pasted. */
@@ -67,7 +78,7 @@ export default function App() {
   const [call, setCall] = useState<CallState | null>(null)
   const [cursor, setCursor] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [speed, setSpeed] = useState<1 | 2>(1)
+  const [speed, setSpeed] = useState(0)
   const [busy, setBusy] = useState(false)
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   // The phrases of the dato under the pointer, lit in the relato.
@@ -189,11 +200,14 @@ export default function App() {
   // Live replay: one POST per turno, after its pause.
   useEffect(() => {
     if (!sample || !call || paused || busy || cursor >= sample.turns.length) return
-    const timer = setTimeout(() => void step(), delayFor(sample.turns[cursor], cursor === 0) / speed)
+    const pause = delayFor(sample.turns[cursor], cursor === 0) / SPEEDS[speed].factor
+    const timer = setTimeout(() => void step(), pause)
     return () => clearTimeout(timer)
   }, [sample, call, paused, busy, cursor, speed, step])
 
   const finished = sample !== null && cursor >= sample.turns.length
+  const faster = () => setSpeed((s) => Math.min(s + 1, SPEEDS.length - 1))
+  const slower = () => setSpeed((s) => Math.max(s - 1, 0))
   const canConfirm = call?.location != null && call.location.confidence !== 'confirmado'
   const canConfirmType = call?.incident != null && call.incident.confidence !== 'confirmado'
   const nextQuestion = call?.next_question ?? null
@@ -250,7 +264,8 @@ export default function App() {
     const free = !busy
     const shortcuts: Record<string, (() => void) | null> = {
       [KEYS.nextTurn]: call ? () => void step() : null,
-      [KEYS.speed]: call ? () => setSpeed((s) => (s === 1 ? 2 : 1)) : null,
+      [KEYS.faster]: call ? faster : null,
+      [KEYS.slower]: call ? slower : null,
       [KEYS.confirmLocation]:
         canConfirm && free ? () => void act({ kind: 'confirm_location' }) : null,
       [KEYS.correctLocation]: call ? () => setEditingLocation(true) : null,
@@ -476,11 +491,22 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      className={speed === 2 ? 'on' : ''}
-                      onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
-                      title="Velocidad ×2"
+                      onClick={slower}
+                      disabled={speed === 0}
+                      title="Más lento"
                     >
-                      ×2 <kbd>{keyLabel(KEYS.speed)}</kbd>
+                      − <kbd>{keyLabel(KEYS.slower)}</kbd>
+                    </button>
+                    <span className="speed" title="Velocidad">
+                      {SPEEDS[speed].label}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={faster}
+                      disabled={speed === SPEEDS.length - 1}
+                      title="Más rápido"
+                    >
+                      + <kbd>{keyLabel(KEYS.faster)}</kbd>
                     </button>
                   </div>
                 </header>

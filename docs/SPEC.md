@@ -82,7 +82,8 @@ contradicción) · `a_confirmar` (sin evidencia suficiente, lectores en desacuer
 - Fuentes: las 30 llamadas del dataset (2 turnos cada una), 5–6 llamadas de demo extendidas
   (`data/demo_calls/*.json`, con `delay_ms` por turno) y texto pegado.
 - La **reproducción en vivo** la hace el frontend: manda un `POST` por turno respetando las pausas, y
-  tiene botones de pausa, siguiente turno y velocidad ×2.
+  tiene botones de pausa, siguiente turno y velocidad (Lenta, que es la inicial, Normal, ×2 y ×4).
+  El relato muestra el turno más nuevo arriba.
 
 ### 5.2 Normalización (antes de leer)
 Saca muletillas, pasa números en palabras a dígitos ("mil quinientos cuarenta" → 1540), unifica

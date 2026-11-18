@@ -33,10 +33,10 @@ export function Relato({ turns, evidence, focus, waiting }: Props) {
   // The list scrolls on its own, inside a card that stays in sight next to the datos.
   const list = useRef<HTMLOListElement>(null)
 
-  // A new turno: follow the llamada to its last line.
+  // The newest turno goes on top: a new one brings the list back to the top to show it.
   useEffect(() => {
     const box = list.current
-    if (box) box.scrollTop = box.scrollHeight
+    if (box) box.scrollTop = 0
   }, [turns.length])
 
   // A dato under the pointer: bring its phrase into the relato's view, without moving the page.
@@ -55,7 +55,8 @@ export function Relato({ turns, evidence, focus, waiting }: Props) {
   }
   return (
     <ol className="relato" ref={list}>
-      {turns.map((turn) => {
+      {waiting && <li className="turn turn-waiting muted">…</li>}
+      {[...turns].reverse().map((turn) => {
         let offset = 0
         return (
           <li key={turn.index} className={`turn turn-${turn.speaker}`}>
@@ -82,7 +83,6 @@ export function Relato({ turns, evidence, focus, waiting }: Props) {
           </li>
         )
       })}
-      {waiting && <li className="turn turn-waiting muted">…</li>}
     </ol>
   )
 }

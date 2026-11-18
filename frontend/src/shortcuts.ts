@@ -8,7 +8,8 @@ import type { SignalAnswer } from './api'
 export const KEYS = {
   pause: ' ',
   nextTurn: 'n',
-  speed: 'x',
+  slower: 'z',
+  faster: 'x',
   confirmLocation: 'c',
   correctLocation: 'u',
   confirmType: 't',
@@ -91,7 +92,10 @@ export const HELP: { title: string; items: Shortcut[] }[] = [
     items: [
       { keys: [KEYS.pause], text: 'Pausa / seguir' },
       { keys: [KEYS.nextTurn], text: 'Siguiente turno' },
-      { keys: [KEYS.speed], text: 'Velocidad ×2' },
+      {
+        keys: [KEYS.slower, KEYS.faster],
+        text: 'Más lento / más rápido (Lenta, Normal, ×2, ×4)',
+      },
       { keys: [KEYS.trace], text: 'Abrir o cerrar el detalle técnico' },
       { keys: [KEYS.help, 'Esc'], text: 'Mostrar u ocultar esta ayuda' },
     ],
