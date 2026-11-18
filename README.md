@@ -47,16 +47,16 @@ docker compose up --build
 | `LLM_PROVIDER` | `mock` | `mock` o `openai_compat` |
 | `LLM_API_KEY` | vacía | Sin clave, queda en modo simulado aunque diga `openai_compat` |
 | `LLM_BASE_URL` | `https://api.groq.com/openai/v1` | Endpoint compatible con OpenAI (`.env.example` trae Groq, Gemini y Ollama) |
-| `LLM_MODEL` | `llama-3.3-70b-versatile` | Modelo del endpoint |
+| `LLM_MODEL` | `qwen/qwen3.8-27b` | Modelo del endpoint |
 | `LLM_TIMEOUT_SECONDS` | `8` | Tiempo máximo de la IA por lectura, reintento incluido; si se pasa, la lectura sigue solo con reglas |
 
 El panel indica el modo de la llamada: *Modo simulado*, *IA* o *Modo reglas* (la IA falló y esa
 lectura siguió solo con reglas).
 
-> **El Lector con IA no se probó contra un LLM real**: no hubo una clave disponible durante el
-> desarrollo. Está cubierto por tests con un cliente HTTP falso (JSON roto, citas inventadas,
-> timeouts, errores HTTP, un relato con instrucciones inyectadas) y se probó a mano contra un endpoint
-> compatible falso en localhost. Por eso la columna IA de la evaluación dice *pendiente*.
+Se probó contra Groq (`qwen/qwen3.8-27b`, ~1,5 s por lectura) y contra Gemini
+(`gemini-3.5-flash-lite`, con el que está corrida la evaluación). Los planes gratuitos tienen límites
+ajustados: Groq da 200.000 tokens por día y por modelo (unas 100 lecturas), y Gemini tuvo un 22 % de
+timeouts y errores 503. En esos casos la lectura sigue solo con reglas, como está previsto.
 
 ### Desarrollo local
 
@@ -133,11 +133,15 @@ versionadas en `data/eval/noisy/` y regenerables con `uv run python -m app.eval.
 y recall de las pre-marcas, datos descartados por falta de evidencia y, con IA, respuestas rotas y
 fallbacks. No es parte de pytest y tarda menos de un segundo en modo simulado.
 
-La corrida con IA está pendiente (no hubo clave). Para completarla:
+Con IA (240 lecturas; `--pause` las espacia para no pasar el límite por minuto de un plan gratuito):
 
 ```bash
-cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat
+cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat --concurrency 1 --pause 4
 ```
+
+La corrida publicada es con Gemini (`LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`,
+`LLM_MODEL=gemini-3.5-flash-lite`), porque la cuota diaria gratuita de Groq no alcanza para las 240
+lecturas.
 
 Con n = 30 los números no permiten afirmar nada estadísticamente. La tabla y sus advertencias están en
 [DECISIONS.md](DECISIONS.md#evaluación).

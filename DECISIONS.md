@@ -228,15 +228,15 @@ sin dirección.
 
 | Métrica | Simulado · original | Simulado · ruidoso | Δ | IA · original | IA · ruidoso | Δ |
 |---|--:|--:|--:|--:|--:|--:|
-| Calle (nombre oficial) | 28/30 · 93 % | 197/210 · 94 % | 0 pp | pendiente | pendiente | — |
-| Altura | 29/30 · 97 % | 204/210 · 97 % | 0 pp | pendiente | pendiente | — |
-| Tipo | 30/30 · 100 % | 210/210 · 100 % | 0 pp | pendiente | pendiente | — |
-| Prioridad | 27/30 · 90 % | 188/210 · 90 % | 0 pp | pendiente | pendiente | — |
-| Pre-marcas · precisión | 12/18 · 67 % | 84/126 · 67 % | 0 pp | pendiente | pendiente | — |
-| Pre-marcas · recall | 12/25 · 48 % | 84/175 · 48 % | 0 pp | pendiente | pendiente | — |
-| Datos descartados antes del filtro | 0/116 · 0 % | 0/782 · 0 % | 0 pp | pendiente | pendiente | — |
-| Respuestas rotas de la IA | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
-| Fallbacks a reglas | — (sin IA) | — (sin IA) | — | pendiente | pendiente | — |
+| Calle (nombre oficial) | 28/30 · 93 % | 197/210 · 94 % | 0 pp | 28/30 · 93 % | 193/210 · 92 % | −1 pp |
+| Altura | 29/30 · 97 % | 204/210 · 97 % | 0 pp | 29/30 · 97 % | 204/210 · 97 % | 0 pp |
+| Tipo | 30/30 · 100 % | 210/210 · 100 % | 0 pp | 30/30 · 100 % | 210/210 · 100 % | 0 pp |
+| Prioridad | 27/30 · 90 % | 188/210 · 90 % | 0 pp | 26/30 · 87 % | 173/210 · 82 % | −4 pp |
+| Pre-marcas · precisión | 12/18 · 67 % | 84/126 · 67 % | 0 pp | 14/22 · 64 % | 95/140 · 68 % | +4 pp |
+| Pre-marcas · recall | 12/25 · 48 % | 84/175 · 48 % | 0 pp | 14/25 · 56 % | 95/175 · 54 % | −2 pp |
+| Datos descartados antes del filtro | 0/116 · 0 % | 0/782 · 0 % | 0 pp | 2/99 · 2 % | 9/647 · 1 % | −1 pp |
+| Respuestas rotas de la IA | — (sin IA) | — (sin IA) | — | 0/30 · 0 % | 0/210 · 0 % | 0 pp |
+| Fallbacks a reglas | — (sin IA) | — (sin IA) | — | 6/30 · 20 % | 46/210 · 22 % | +2 pp |
 
 | Variante (simulado) | Con ruido | Calle | Altura | Tipo | Prioridad | Pre-marcas P | Pre-marcas R |
 |---|--:|--:|--:|--:|--:|--:|--:|
@@ -249,6 +249,17 @@ sin dirección.
 | minusculas | 30/30 | 28/30 | 29/30 | 30/30 | 27/30 | 12/18 | 12/25 |
 | sin_direccion | 30/30 | 30/30 | 30/30 | 30/30 | 27/30 | 12/18 | 12/25 |
 
+| Variante (IA) | Con ruido | Calle | Altura | Tipo | Prioridad | Pre-marcas P | Pre-marcas R |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| original | — | 28/30 | 29/30 | 30/30 | 26/30 | 14/22 | 14/25 |
+| muletillas | 30/30 | 28/30 | 29/30 | 30/30 | 25/30 | 14/20 | 14/25 |
+| numeros_en_palabras | 21/30 | 28/30 | 29/30 | 30/30 | 26/30 | 13/20 | 13/25 |
+| typos_asr | 30/30 | 28/30 | 29/30 | 30/30 | 24/30 | 15/21 | 15/25 |
+| autocorreccion | 30/30 | 28/30 | 29/30 | 30/30 | 25/30 | 13/19 | 13/25 |
+| sin_av | 14/30 | 27/30 | 29/30 | 30/30 | 26/30 | 14/20 | 14/25 |
+| minusculas | 30/30 | 28/30 | 29/30 | 30/30 | 24/30 | 12/20 | 12/25 |
+| sin_direccion | 30/30 | 26/30 | 30/30 | 30/30 | 23/30 | 14/20 | 14/25 |
+
 **Cómo leerla:**
 
 - **Con n = 30 no se puede afirmar nada estadísticamente.** Un caso mueve 3,3 puntos y ninguna
@@ -260,10 +271,22 @@ sin dirección.
   variantes. Antes de esos arreglos, el ruidoso daba 165/210 en calle (minúsculas en 0/30), 185/210
   en altura y 186/210 en prioridad (#28). La tabla muestra que esos bugs se fueron, no mide robustez
   frente a un ASR real.
-- **La columna IA está pendiente**: no hubo clave para correrla y no se inventan números. Para
-  completarla: `cd backend && LLM_PROVIDER=openai_compat LLM_API_KEY=<clave> uv run python -m app.eval --provider openai_compat`
-  (en el free tier de Groq conviene `--concurrency 1`; un 429 cuenta como fallback y la tabla lo
-  avisa).
+- **La columna IA es con `gemini-3.5-flash-lite`, plan gratuito.** 52 de 240 lecturas cayeron a
+  reglas (26 timeouts, 24 errores 503, 2 errores 429): en esas llamadas los números son los de las
+  reglas. No hubo ninguna respuesta rota. Una corrida previa con Groq (`qwen/qwen3.8-27b`) leyó sin
+  fallar las primeras ~100 lecturas y después agotó los 200.000 tokens diarios del plan; no se usa.
+- **Con IA, las pre-marcas suben en recall** (48 % → 56 % en el original, 54 % en el ruidoso) con una
+  precisión parecida. Los datos de la IA que el control de evidencia descarta son 1–2 %.
+- **La prioridad con IA empeora contra el dataset, pero siempre hacia arriba**: las 16 diferencias con
+  reglas suben la prioridad, ninguna la baja, y se concentran en 4 casos (007, 011, 021, 023). En 021
+  la IA lee *atrapado en vehículo* («los conductores están arriba de los techos esperando rescate»)
+  y en 023 un sangrado abundante: son subidas defendibles, en línea con «ante la duda, sobre-priorizar»,
+  pero el dataset dice P2.
+- **Calle en `sin_direccion` con IA (26/30)**: la ubicación de la IA entra solo si las reglas no
+  encontraron ninguna, y en 4 casos toma referencias que sí están en el relato («vías del Mitre»,
+  «carril del Metrobus», «Soldati», «las vías de Figueroa Alcorta»). Quedan *a confirmar*.
+- **La IA no es del todo determinista** aun con `temperature: 0`: el caso 007 dio P2, P1 y P3 en
+  corridas distintas.
 - **Pre-marcas** mide si el copiloto conoce la señal que responde cada pregunta mandatoria, no si el
   valor (sí/no) es correcto: la anotación manual no lo trae. La anotación de las 90 mandatorias y el
   mapa mandatoria → señal (`data/eval/mandatorias_senales.csv`, 62 de 90 con señal) son nuestros y
@@ -279,9 +302,8 @@ sin dirección.
 
 ## Limitaciones conocidas
 
-- **El Lector con IA no se probó contra un LLM real.** Solo con un cliente HTTP falso en los tests y
-  un endpoint compatible falso en localhost. No sabemos su latencia, su tasa de respuestas rotas ni
-  cuánto aporta en pre-marcas.
+- **El Lector con IA se probó solo con planes gratuitos** (Groq y Gemini): hubo timeouts, errores 503
+  y límites de cuota. El fallback a reglas los cubre, pero la tasa de IA efectiva depende del plan.
 - **La verificación de la IA comprueba que la cita exista, no que respalde el dato.** Una frase real
   usada para la señal equivocada pasa (lo mismo le pasa al lector por reglas con sus keywords). Por
   eso todo dato entra como sugerencia y lo confirma el operador.
@@ -324,8 +346,8 @@ Lo que quedó fuera de alcance a propósito (SPEC §2, DESIGN §11):
 
 Y lo que quedó pendiente de este trabajo:
 
-- **Correr la evaluación con IA** y completar la columna (el comando está arriba), y probar el panel
-  con un LLM real.
+- Correr la evaluación con IA en un plan pago (sin fallbacks por cuota) y con más de un modelo, y
+  varias veces cada uno, dado que la IA no es del todo determinista.
 - Que otra persona revise la anotación manual de las mandatorias y el mapa mandatoria → señal.
 - Un corpus ruidoso nuevo, que no se haya usado para arreglar el lector, para medir robustez de verdad.
 - «tipo,» como muletilla con el mismo mecanismo que «bueno,», excluyendo los casos con artículo
