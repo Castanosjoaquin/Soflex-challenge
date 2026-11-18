@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
+from starlette.types import Scope
 
 from app.api import router
 from app.calls.action_log import ActionLog
@@ -56,11 +58,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # Routes of the panel (SPA): reloading them must serve the panel, not a 404.
         @app.get("/despacho", include_in_schema=False)
         def despacho() -> FileResponse:
-            return FileResponse(index)
+            return FileResponse(index, headers=_NO_CACHE)
 
-        app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="panel")
+        app.mount("/", _Panel(directory=settings.static_dir, html=True), name="panel")
 
     return app
+
+
+_NO_CACHE = {"Cache-Control": "no-cache"}
+
+
+class _Panel(StaticFiles):
+    """The built panel. Its index.html is revalidated on every load: each build renames the
+    scripts it points to, and a stale copy kept by the browser would run the previous panel."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        if response.headers.get("content-type", "").startswith("text/html"):
+            response.headers.update(_NO_CACHE)
+        return response
 
 
 def _provider(settings: Settings) -> OpenAICompatProvider | None:
