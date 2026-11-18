@@ -254,3 +254,22 @@ def test_despacho_reloads_as_a_panel_route(tmp_path: Path) -> None:
         assert response.status_code == 200
         assert "root" in response.text
         assert client.get("/api/dispatch").json() == []
+
+
+def test_the_panel_html_is_never_reused_stale_after_a_new_build(tmp_path: Path) -> None:
+    # The build renames its scripts on every change; an index.html kept by the browser would
+    # keep loading the old ones. The HTML is revalidated every time; the hashed assets are not.
+    static = tmp_path / "dist"
+    (static / "assets").mkdir(parents=True)
+    (static / "index.html").write_text("<div id=root></div>")
+    (static / "assets" / "index-abc123.js").write_text("console.log(1)")
+    settings = Settings(
+        llm_provider=LLMProviderName.MOCK,
+        dataset_path=REPO_ROOT / "data" / "dataset_challenge_soflex.csv",
+        database_path=tmp_path / "test.db",
+        static_dir=static,
+    )
+    with TestClient(create_app(settings)) as client:
+        for path in ("/", "/index.html", "/despacho"):
+            assert client.get(path).headers.get("cache-control") == "no-cache", path
+        assert "cache-control" not in client.get("/assets/index-abc123.js").headers
