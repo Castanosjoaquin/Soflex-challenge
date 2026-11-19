@@ -93,7 +93,8 @@ cada pista en pantalla.
 
 Arriba de la lista están las seis llamadas demo: cada una extiende un caso del dataset a varios
 turnos, con pausas, para que se vean las cinco etapas. Se abren con Tab + Enter (o un clic) y se
-reproducen solas; `Espacio` pausa, `N` adelanta un turno y `X` va al doble de velocidad.
+reproducen solas, empezando lento y con el turno más nuevo arriba; `Espacio` pausa, `N` adelanta un
+turno y `Z` / `X` bajan o suben la velocidad (Lenta, Normal, ×2, ×4).
 
 | Demo | Qué muestra |
 |---|---|
